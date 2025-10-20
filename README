@@ -1,0 +1,9 @@
+- main: Chứa bản ổn định, chỉ PM merge.
+
+- dev: Dùng để test tổng hợp code của nhóm.
+
+- frontend / backend: Dev thực hiện công việc theo module, merge vào dev sau khi hoàn thành.
+
+    + Từng dev tạo feature branch riêng, ví dụ:
+      frontend/feature-login
+      backend/feature-auth-api
