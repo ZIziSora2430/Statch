@@ -1,6 +1,6 @@
 export default function SearchSection() {
   return (
-    <div className="w-full flex justify-center mt-12">
+    <div className="w-full flex justify-center -mt-8">
       {/* Nền đỏ */}
       <div className="relative w-full max-w-5xl bg-[#BF1D2D] rounded-2xl py-1 px-2 shadow-lg">
         <form

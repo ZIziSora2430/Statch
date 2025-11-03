@@ -1,12 +1,16 @@
-import Navbar from "../components/Navbar.jsx";
-function LandingPage(){
+import Navbar from "../components/Navbar";
+import SearchingBar from "../components/SearchingBar";
 
-    return (
-        
-        <>
-        <Navbar/>
-        </>
-    );
-}
-
-export default LandingPage;
+export default function App() {
+  return (
+     <div>
+      <Navbar />
+      <div>
+        <SearchingBar />
+      </div>
+      <main className="p-6">
+        <p>Đây là phần nội dung chính của trang</p>
+      </main>
+    </div>
+  );
+}     
