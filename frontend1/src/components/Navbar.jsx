@@ -6,7 +6,7 @@ import Bell from '../images/Bell.png';
 import Avatar from '../images/Avatar.png';
 export default function Navbar() {
   return (
-    <nav className="bg-[linear-gradient(to_bottom,#FF3D40,#A01923)] text-white h-[488px]">
+    <nav className="bg-[linear-gradient(to_bottom,#DF3C48,#A01923)] text-white h-[488px]">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
                <a href="/">
           <img src={logo} alt="MyBrand Logo" className="h-[58px] w-[32,59px]" />
@@ -42,7 +42,7 @@ export default function Navbar() {
     tatch
   </p>
         <p className="absolute top-40 left-46 text-[64px] font-bold text-white-600">
-    Anh Tài,kế tiếp bạn sẽ du lịch <br />
+    Kế tiếp bạn sẽ du lịch <br />
     đến đâu?
   </p>
       </div>
