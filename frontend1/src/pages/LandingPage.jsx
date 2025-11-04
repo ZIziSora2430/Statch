@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
+import Promo from "../components/PromotionCarousel";
 
 import ConDao from "../images/Con-Dao.jpg";
 import HaNoi from "../images/Ha-Noi.jpg";      // nên tránh dấu & khoảng trắng trong tên file
@@ -68,10 +69,25 @@ export default function App() {
             className="w-full sm:w-[30%]"
           />
         </div>
-         <p className="mt-9 ml-13 text-black text-4xl font-bold text-center">
+         <p className="mt-9  text-black text-4xl font-bold text-center">
    Ưu đãi hôm nay
   </p>
+   <div >
+      <Promo />
+      </div>
       </main>
+      <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
+  <div className="container mx-auto">
+    <p className="text-sm">
+      © 2025 Statch. All rights reserved.
+    </p>
+    <div className="mt-2 flex justify-center gap-4">
+      <a href="#" className="hover:text-white transition">Về chúng tôi</a>
+      <a href="#" className="hover:text-white transition">Liên hệ</a>
+      <a href="#" className="hover:text-white transition">Điều khoản</a>
+    </div>
+  </div>
+</footer>
     </div>
   );
 }
