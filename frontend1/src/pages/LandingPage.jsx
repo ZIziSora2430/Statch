@@ -9,11 +9,11 @@ import CanTho from "../images/Can-Tho.jpg";
 import HoiAn from "../images/Hoi-An.jpg";
 import TPHCM from "../images/TPHCM.jpg";
 
-export default function App() {
+export default function LandingPage() {
   return (
     <div>
       <Navbar />
-      <div>
+      <div className="-mt-20">
         <SearchingBar />
       </div>
 
@@ -52,6 +52,7 @@ export default function App() {
             shadow="md"
             className="w-full sm:w-[30%]"  /* nhỏ hơn hàng trên */
           />
+          
           <ImageFrame
             src={HoiAn}
             alt="Hội An"
