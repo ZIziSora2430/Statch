@@ -15,11 +15,11 @@ export default function SearchingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar/>
 
       <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
         <div className="mb-6 md:mb-8 lg:mb-10">
-          <SearchingBar />
+          <SearchingBar/>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">

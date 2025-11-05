@@ -7,6 +7,8 @@ import SignUp from './pages/SignUpPage.jsx'
 import SignIn from './pages/SignInPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import SearchingPage from './pages/SearchingPage.jsx'
+import TravellerProfile from './pages/TravellerProfile.jsx'
+import OwnerProfile from './pages/OwnerProfile.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,6 +18,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<SignIn />} />
         <Route path="/search" element={<SearchingPage />} />
+        <Route path="/profilet" element={<TravellerProfile/>} /> {/* Traveller Profile */}
+        <Route path="/profileo" element={<OwnerProfile/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

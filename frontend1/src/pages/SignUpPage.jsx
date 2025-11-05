@@ -12,7 +12,6 @@ const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 function SignUpPage() {
   // ✅ THÊM: State để lưu email
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(""); // ✅ THÊM: Email state
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -48,7 +47,7 @@ function SignUpPage() {
     try {
       // ✅ DEBUG: Log để kiểm tra
       console.log('🚀 Sending signup request to:', `${API_URL}/signup`);
-      console.log('📦 Data:', { username, email, role });
+      console.log('📦 Data:', { username, role });
 
       // ✅ THÊM: Gọi API signup đến backend FastAPI
       // ✅ MỚI CẬP NHẬT: Dùng API_URL từ environment thay vì hardcode
@@ -59,7 +58,6 @@ function SignUpPage() {
         },
         body: JSON.stringify({
           username: username.trim(), // ✅ MỚI THÊM: .trim() để xóa khoảng trắng thừa
-          email: email.trim().toLowerCase(), // ✅ MỚI THÊM: .toLowerCase() để chuẩn hóa email
           password: password,
           role: role, // ✅ THÊM: Gửi role (traveler/owner/admin)
           full_name: null // Có thể thêm field này sau
@@ -80,7 +78,7 @@ function SignUpPage() {
         // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
         // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 400 (Bad Request)
         if (response.status === 400) {
-          setError(data.detail || "Username hoặc email đã tồn tại!");
+          setError(data.detail || "Username đã tồn tại!");
         } else {
           setError(data.detail || "Đăng ký thất bại!");
         }
@@ -140,32 +138,6 @@ function SignUpPage() {
             placeholder="Nhập tên đăng nhập"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required // ✅ THÊM
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '15px',
-              fontFamily: 'Montserrat',
-              fontSize: '15px'
-            }}
-          />
-
-          {/* Email */}
-          <label style={{
-            marginBottom: '5px',
-            fontSize: '15px',
-            fontWeight: '450',
-            fontFamily: 'Montserrat'
-          }}>Email</label>
-
-          {/* ✅ THÊM: value, onChange, type="email" và required */}
-          <input
-            type="email" // ✅ SỬA: Đổi từ "text" thành "email" để validate email
-            placeholder="Nhập email"
-            value={email} // ✅ THÊM
-            onChange={(e) => setEmail(e.target.value)} // ✅ THÊM
             required // ✅ THÊM
             style={{
               padding: '10px',
@@ -292,7 +264,6 @@ function SignUpPage() {
             {/* ✅ SỬA: Đổi value để khớp với backend API (traveler, owner, admin) */}
             <option value="traveler">Người dùng</option>
             <option value="owner">Chủ trọ</option>
-            <option value="admin">Quản trị viên</option>
           </select>
 
           {/* Submit button */}
