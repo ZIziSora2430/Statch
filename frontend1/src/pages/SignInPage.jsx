@@ -61,8 +61,6 @@ function SignInPage() {
           navigate("/owner/dashboard"); // Chủ trọ -> dashboard
         } else if (data.role === "traveler") {
           navigate("/traveller/home"); // Người dùng -> home
-        } else if (data.role === "admin") {
-          navigate("/admin/dashboard"); // ✅ MỚI THÊM: Admin
         } else {
           navigate("/home"); // Các role khác
         }
