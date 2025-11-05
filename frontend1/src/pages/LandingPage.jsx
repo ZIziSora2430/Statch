@@ -13,7 +13,8 @@ export default function LandingPage() {
   return (
     <div>
       <Navbar />
-      <div className="-mt-20">
+      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
+      <div className="-mt-30  md:mb-8 lg:mb-10">
         <SearchingBar />
       </div>
 
@@ -76,6 +77,7 @@ export default function LandingPage() {
    <div >
       <Promo />
       </div>
+      </main>
       </main>
       <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
   <div className="container mx-auto">

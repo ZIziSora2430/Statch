@@ -6,6 +6,7 @@ import App from './App.jsx'
 import SignUp from './pages/SignUpPage.jsx'
 import SignIn from './pages/SignInPage.jsx'
 import LandingPage from './pages/LandingPage.jsx'
+import SearchingPage from './pages/SearchingPage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/home" element={<LandingPage />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<SignIn />} />
+        <Route path="/search" element={<SearchingPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
