@@ -1,11 +1,15 @@
 import uvicorn
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from . import models
+from .database import engine
 
-from app.routers import matching
+from .feature_login import router as login_router
+from .accommodations import router as accommodation_router # <-- DÒNG MỚI
 
 app = FastAPI()
-app.include_router(matching.router, prefix="/api/matching")
 
 @app.get("/")
 def read_root():
