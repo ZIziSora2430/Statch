@@ -60,7 +60,7 @@ function SignInPage() {
         if (data.role === "owner") {
           navigate("/owner/dashboard"); // Chủ trọ -> dashboard
         } else if (data.role === "traveler") {
-          navigate("/traveller/home"); // Người dùng -> home
+          navigate("/home"); // Người dùng -> home
         } else {
           navigate("/home"); // Các role khác
         }

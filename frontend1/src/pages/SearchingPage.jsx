@@ -1,17 +1,184 @@
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ResultBar from "../components/ResultBar"; 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:8000";
 
 export default function SearchingPage() {
-  const [results] = useState([
-    { id: 1, title: "Cozy Studio near Old Quarter", location: "Hà Nội, Việt Nam", price: "VND 850.000", thumb: "https://images.unsplash.com/photo-1505691723518-36a5ac3b2d83?q=80&w=1200&auto=format&fit=crop", rating: 4.7, reviews: 126 },
-    { id: 2, title: "Beachfront Apartment with View", location: "Đà Nẵng, Việt Nam", price: "VND 1.300.000", thumb: "https://images.unsplash.com/photo-1505691723518-36a5ac3b2d83?q=80&w=1200&auto=format&fit=crop", rating: 4.9, reviews: 210 },
-    { id: 3, title: "Minimalist Homestay in Saigon", location: "TP.HCM, Việt Nam", price: "VND 990.000", thumb: "https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1200&auto=format&fit=crop", rating: 4.6, reviews: 89 },
-  ]);
 
-  // Nếu ResultBar cần thang điểm 10 (ví dụ 9,2)
-  const toScore10 = (r) => Math.round(r * 20) / 10;
+  const [searchParamsURL] = useSearchParams();
+
+  
+  // State UI trạng thái
+  const [results, setResults] = useState([]); // Kết quả tìm kiếm thực tế
+  const [isLoading, setIsLoading] = useState(true); // Trạng thái tải
+  const [error, setError] = useState(null); // Thông báo lỗi
+
+    // 2. STATE để lưu trữ tham số tìm kiếm
+  const [searchParams, setSearchParams] = useState({
+    lat: null, 
+    lng: null, 
+    radius: 10,
+    location_text: searchParamsURL.get('location_text') || "Thành phố Hồ Chí Minh", 
+  });
+
+    
+    const toScore10 = (r) => Math.round(r * 20) / 10;
+
+  //  const fetchAccommodations = async (currentParams) => {
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setResults([]); 
+    
+  //   // ⚠️ LẤY ACCESS TOKEN ĐÃ LƯU TỪ SIGNINPAGE
+  //   const accessToken = localStorage.getItem("access_token");
+    
+  //   if (!accessToken) {
+  //       setError("Vui lòng đăng nhập để xem kết quả tìm kiếm. Token không tìm thấy.");
+  //       setIsLoading(false);
+  //       return; 
+  //   }
+
+  //   // Xây dựng chuỗi query params (chỉ dùng các tham số được backend xử lý)
+  //   const params = new URLSearchParams();
+    
+  //   // Ưu tiên tìm kiếm theo tọa độ nếu có
+  //   if (currentParams.lat !== null && currentParams.lng !== null) {
+  //     params.append("lat", currentParams.lat);
+  //     params.append("lng", currentParams.lng);
+  //     params.append("radius", currentParams.radius);
+      
+  //   // Nếu không có tọa độ, dùng location_text
+  //   } else if (searchParams.location_text) {
+  //     params.append("location_text", searchParams.location_text);
+  //   }
+    
+  //   // Nếu không có tham số nào, không gọi API
+  //   if (params.toString() === "") {
+  //        setIsLoading(false);
+  //        return; 
+  //   }
+    
+  //   const url = `${API_BASE_URL}/api/accommodations/search/?${params.toString()}`;
+
+  //   try {
+  //     const response = await fetch(url, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         // ⚠️ GỬI TOKEN CÙNG REQUEST
+  //         'Authorization': `Bearer ${accessToken}`, 
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       if (response.status === 401) {
+  //            throw new Error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.");
+  //       }
+  //       throw new Error(errorData.detail || `Lỗi HTTP: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     setResults(data);
+
+  //   } catch (err) {
+  //     console.error("Lỗi khi tìm kiếm chỗ ở:", err);
+  //     setError(err.message);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // 5. Sử dụng useEffect để gọi API khi component được mount và khi searchParams thay đổi
+  useEffect(() => {
+
+    const newLocationText = searchParamsURL.get('location_text') || "";
+    const currentLat = searchParamsURL.get('lat');
+    const currentLng = searchParamsURL.get('lng');
+    const currentRadius = searchParamsURL.get('radius');
+
+    
+    const newParams = {
+        location_text: newLocationText,
+        lat: currentLat ? parseFloat(currentLat) : null,
+        lng: currentLng ? parseFloat(currentLng) : null,
+        radius: currentRadius ? parseInt(currentRadius) : 10,
+    };
+
+    const fetchAccommodations = async (paramsToFetch) => { // Dùng paramsToFetch thay cho currentParams
+    setIsLoading(true);
+    setError(null);
+    setResults([])
+
+    // ⚠️ LẤY ACCESS TOKEN ĐÃ LƯU TỪ SIGNINPAGE
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+        setError("Vui lòng đăng nhập để xem kết quả tìm kiếm. Token không tìm thấy.");
+        setIsLoading(false);
+        return; 
+    }
+    // Xây dựng chuỗi query params (chỉ dùng các tham số được backend xử lý)
+    const newSearchParams = new URLSearchParams();
+    // Ưu tiên tìm kiếm theo tọa độ nếu có
+    if (paramsToFetch.lat !== null && paramsToFetch.lng !== null) {
+      newSearchParams.append("lat", paramsToFetch.lat);
+      newSearchParams.append("lng", paramsToFetch.lng);
+      newSearchParams.append("radius", paramsToFetch.radius);
+
+    // Nếu không có tọa độ, dùng location_text
+    } else if (paramsToFetch.location_text) {
+      newSearchParams.append("location_text", paramsToFetch.location_text);
+    }
+
+    // Nếu không có tham số nào, không gọi API
+    if (newSearchParams.toString() === "") {
+         setIsLoading(false);
+         return; 
+    }
+
+    const url = `${API_BASE_URL}/api/accommodations/search/?${newSearchParams.toString()}`;
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // ⚠️ GỬI TOKEN CÙNG REQUEST
+          'Authorization': `Bearer ${accessToken}`, 
+        },
+      }); 
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) {
+             throw new Error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.");
+        }
+        throw new Error(errorData.detail || `Lỗi HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      console.error("Lỗi khi tìm kiếm chỗ ở:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+
+  }
+    setSearchParams(newParams); // Cập nhật state searchParams với giá trị mới
+
+    if (newLocationText || currentLat) { 
+        // ⚠️ Gọi hàm fetch bên trong useEffect để đảm bảo nó luôn dùng giá trị mới nhất
+        fetchAccommodations(newParams);
+    } else {
+        // Nếu URL không có tham số nào, chỉ tắt loading
+        setIsLoading(false);
+    }
+    
+  }, [searchParamsURL]);
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,22 +241,24 @@ export default function SearchingPage() {
             <div className="mt-4 space-y-5">
               {results.map((item) => (
                 <ResultBar
-                  key={item.id}
+                  key={item.accommodation_id || item.id}
                   // map dữ liệu sang props mà ResultBar của bạn mong đợi:
-                  image={item.thumb}
+                  image={item.thumb || "https://placehold.co/1200x800"} // ảnh demo nếu không có ảnh
                   title={item.title}
                   location={item.location}
-                  ratingText={item.rating >= 4.8 ? "Tuyệt hảo" : "Rất tốt"}
-                  ratingCount={item.reviews}
-                  ratingScore={toScore10(item.rating)}     // ví dụ 9.2
-                  stars={Math.floor(item.rating)}           // nếu ResultBar hiển thị sao
-                  tags={["Côn Đảo", "View biển", "Xe đưa đón", "Hồ bơi"]} // demo
-                  categories={["3 sao", "Chỗ đậu xe", "Thú cưng", "Khách sạn"]} // demo
-                  dateRangeLabel="T5, 20 tháng 11 - T6, 21 tháng 11"
-                  summary="1 đêm, 2 người lớn"
-                  priceLabel={item.price}
-                  priceNote="Đã bao gồm thuế và phí"
-                  onClick={() => console.log("Xem chỗ trống:", item.id)}
+                  // ⚠️ Dùng giá trị mặc định cho các trường demo không có trong API
+                  ratingText={"Rất tốt"} 
+                  ratingCount={0}
+                  ratingScore={9.0} 
+                  stars={4}
+                  
+                  tags={["Chưa phân loại"]} 
+                  categories={["Khách sạn"]} 
+                  dateRangeLabel="T5, 20 tháng 11 - T6, 21 tháng 11"
+                  summary="1 đêm, 2 người lớn"
+                  priceLabel={item.price || "Liên hệ"}
+                  priceNote="Đã bao gồm thuế và phí"
+                  onClick={() => console.log("Xem chi tiết:", item.accommodation_id)}
                 />
               ))}
             </div>
