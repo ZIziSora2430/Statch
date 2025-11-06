@@ -8,7 +8,6 @@ from enum import Enum
 class RoleEnum(str, Enum):
     traveler = "traveler"
     owner = "owner"
-    admin = "admin"
 
 # Schema để tạo user
 class UserCreate(BaseModel):

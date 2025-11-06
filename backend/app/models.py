@@ -4,7 +4,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from .database import Base  # ✅ Changed to relative import
+from .database import Base  
 import enum
 
 # Enum cho role
@@ -51,6 +51,13 @@ class Accommodation(Base):
     price = Column(DECIMAL(10, 2), nullable=False)
     status = Column(String(50), default='available')
     picture_url = Column(String(255))
+
+    # CỘT MỚI ĐỂ LƯU TỌA ĐỘ
+    # DECIMAL(10, 8) đủ chính xác cho vĩ độ
+    latitude = Column(DECIMAL(10, 8), nullable=True) 
+    # DECIMAL(11, 8) đủ chính xác cho kinh độ
+    longitude = Column(DECIMAL(11, 8), nullable=True)
+
 
     # --- Relationships ---
     owner = relationship("User", back_populates="accommodations")
