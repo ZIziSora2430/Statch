@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "auto": "^11.3.0",
     "cloudinary": "^2.8.0",
     "date-fns": "^4.1.0",
     "flowbite": "^3.1.2",

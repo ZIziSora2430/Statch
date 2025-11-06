@@ -13,13 +13,13 @@ export default function LandingPage() {
   return (
     <div>
       <Navbar />
-      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
-      <div className="-mt-30  md:mb-8 lg:mb-10">
+      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-16">
+      <div className="md:mb-8 lg:mb-10">
         <SearchingBar />
       </div>
 
       {/* main xếp theo cột */}
-      <main className="p-6 max-w-6xl mx-auto flex flex-col gap-4">
+      <div className="p-6 max-w-6xl mx-auto flex flex-col gap-4">
          <p className="mb-6 ml-13 text-black text-4xl font-bold text-left">
    Điểm đến thịnh hành
   </p>
@@ -77,7 +77,7 @@ export default function LandingPage() {
    <div >
       <Promo />
       </div>
-      </main>
+      </div>
       </main>
       <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
   <div className="container mx-auto">
