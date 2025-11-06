@@ -118,8 +118,6 @@ function HotelCard({
         return { bg: '#DC143C', text: 'Đã thành công' };
       case 'cancelled':
         return { bg: '#000000', text: 'Đã Hủy' };
-      case 'pending':
-        return { bg: '#808080', text: 'Hủy đặt' };
       default:
         return { bg: '#808080', text: 'Hủy đặt' };
     }
