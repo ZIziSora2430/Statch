@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage.jsx'
 import SearchingPage from './pages/SearchingPage.jsx'
 import TravellerProfile from './pages/TravellerProfile.jsx'
 import OwnerProfile from './pages/OwnerProfile.jsx'
+import AddAccommodationForm from './pages/AddAccommodationForm.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/search" element={<SearchingPage />} />
         <Route path="/profilet" element={<TravellerProfile/>} /> {/* Traveller Profile */}
         <Route path="/profileo" element={<OwnerProfile/>} />
+        <Route path="/AddAccommodationForm" element={<AddAccommodationForm/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

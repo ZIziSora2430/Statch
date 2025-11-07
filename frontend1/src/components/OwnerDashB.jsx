@@ -378,6 +378,11 @@ export default function RoomListingGrid() {
     }
   ];
 
+  const handleClick = (e) => {
+    e.stopPropagation();
+    window.location.href = '/AddAccommodationForm';
+  }
+
   return (
     <div style={{
         position: 'absolute',
@@ -439,6 +444,7 @@ export default function RoomListingGrid() {
         e.currentTarget.style.transform = 'scale(1)';
         e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
       }}
+      onClick={(e) => handleClick(e)}
       >
         <div style={{
           fontSize: '28px',

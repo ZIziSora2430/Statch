@@ -2,17 +2,35 @@ import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
-
+import Banner from "../components/Banner";
 import ConDao from "../images/Con-Dao.jpg";
 import HaNoi from "../images/Ha-Noi.jpg";      // nên tránh dấu & khoảng trắng trong tên file
 import CanTho from "../images/Can-Tho.jpg";
 import HoiAn from "../images/Hoi-An.jpg";
 import TPHCM from "../images/TPHCM.jpg";
+import React, { useState, useEffect } from "react"; 
+
+
+
 
 export default function LandingPage() {
+
+  const [currentUserName, setCurrentUserName] = useState("bạn");
+  useEffect(() => {
+    // Tên người dùng được lưu trong SignInPage.jsx với key là "username"
+    const storedUsername = localStorage.getItem("username"); 
+    
+    if (storedUsername) {
+      // Cập nhật state nếu tìm thấy tên
+      setCurrentUserName(storedUsername);
+    }
+  }, []);
+
   return (
     <div>
       <Navbar />
+      <Banner username={currentUserName}/>
+
       <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-16">
       <div className="md:mb-8 lg:mb-10">
         <SearchingBar />

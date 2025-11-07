@@ -12,6 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 function SignUpPage() {
   // ✅ THÊM: State để lưu email
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -58,6 +59,7 @@ function SignUpPage() {
         },
         body: JSON.stringify({
           username: username.trim(), // ✅ MỚI THÊM: .trim() để xóa khoảng trắng thừa
+          email: email,
           password: password,
           role: role, // ✅ THÊM: Gửi role (traveler/owner/admin)
           full_name: null // Có thể thêm field này sau
@@ -75,6 +77,7 @@ function SignUpPage() {
         alert("Đăng ký thành công! Vui lòng đăng nhập.");
         navigate("/"); // Quay về trang login
       } else {
+        
         // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
         // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 400 (Bad Request)
         if (response.status === 400) {
@@ -139,6 +142,25 @@ function SignUpPage() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required // ✅ THÊM
+            style={{
+              padding: '10px',
+              border: '1px solid #ccc',
+              borderRadius: '5px',
+              width: '100%',
+              marginBottom: '15px',
+              fontFamily: 'Montserrat',
+              fontSize: '15px'
+            }}
+          />
+
+          {/* Email */}
+          <label>Email</label>
+          <input
+            type="email"
+            placeholder="Nhập Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
             style={{
               padding: '10px',
               border: '1px solid #ccc',

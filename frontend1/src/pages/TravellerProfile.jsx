@@ -3,22 +3,37 @@ import Avatar from "../images/Avatar.png";
 import TravellerProfilebg from "../images/ProfileAvaterbg.png"
 import OriAvatar from "../images/OriAvatar.png"
 import DefaultAvatar from "../images/avatar-default.svg"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Profilebg from "../images/profilebg.svg"
 import Secprofilebg from "../images/2ndprofilebg.svg"
 import HotelBookingList from "../components/ReservationHis";
 import ChangePass from "../components/SettingChangePass"
 
+import { useNavigate } from "react-router-dom";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 export default function TravellerProfile() {
+
+    // State cho loading và error
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const navigate = useNavigate();
+
+
     const hasAvatar = false;
     const userAvatar = hasAvatar ? OriAvatar : DefaultAvatar; // Avatar placeholer helper
-    const ID = "24127234"; // take data from user
+    const [ID, setID] = useState(""); // lấy từ API
     const [isEditing, setIsEditing] = useState(false);
-    const [userName, setUsername] = useState("Sumimasen")  // take data from user 
-    const [fullName, setFullName] = useState("Nguyen Duc Nhat Phat"); // take data from user 
-    const [activeSection, setActiveSection] = useState()
-    const isOwner = false; // take data from user
+    const [userName, setUsername] = useState("")  // lấy từ API
+    const [fullName, setFullName] = useState(""); // lấy từ API
+    const [activeSection, setActiveSection] = useState("info"); // Bắt đầu ở tab "info"
+
+
+    const isOwner = localStorage.getItem("user_role") === "owner";
     const role = isOwner ? "Người cho thuê" : "Người thuê";
+
+
     const [sex, setSex] = useState("nam")
     const [day, setDay] = useState("1");
     const [month, setMonth] = useState("1");
@@ -27,7 +42,145 @@ export default function TravellerProfile() {
     const [preference, setPreference] = useState("testingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtesting")
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
+
+
+    // State để lưu giá trị gốc (cho nút Hủy)
+    const [originalFullName, setOriginalFullName] = useState("");
+    const [originalEmail, setOriginalEmail] = useState("");
+    const [originalPhone, setOriginalPhone] = useState("");
     
+    // useEffect để fetch data khi component được tải
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            setLoading(true);
+            setError("");
+            
+            // 1. Lấy token từ localStorage
+            const token = localStorage.getItem("access_token");
+
+            if (!token) {
+              setError("Bạn chưa đăng nhập.");
+              setLoading(false);
+              navigate("/"); // Chuyển về trang đăng nhập nếu không có token
+              return;
+            }
+
+            try {
+              // 2. Gọi API để lấy thông tin user
+              const response = await fetch(`${API_URL}/users/me`, {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}` // Gửi token để xác thực
+                },
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                // 3. Cập nhật state với dữ liệu thật
+                setUsername(data.username || ""); 
+                setFullName(data.full_name || ""); 
+                setEmail(data.email || "");       
+                setID(data.id || "");             
+
+                // 4. Lưu giá trị gốc
+                setOriginalFullName(data.full_name || "");
+                setOriginalEmail(data.email || "");
+
+                // ⚠️ Các trường (sex, city, phone, preference, dob) không có 
+                // trong 'models.User', nên chúng sẽ là giá trị default
+
+                // setPhone(data.phone || ""); // Bỏ comment nếu backend có
+                // setOriginalPhone(data.phone || ""); // Bỏ comment nếu backend có
+              } else {
+                setError(data.detail || "Không thể tải thông tin cá nhân.");
+                if (response.status === 401) {
+                    navigate("/"); // Token hết hạn hoặc không hợp lệ
+                }
+              }
+            } catch (err) {
+              setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
+              console.error("Fetch profile error:", err);
+            } finally {
+              setLoading(false);
+            }
+          };
+
+          fetchProfileData();
+    }, [navigate]); // Thêm navigate vào dependency array
+
+
+    // Hàm xử lý khi nhấn nút "Lưu chỉnh sửa"
+    const handleSave = async () => {
+        setError("");
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            setError("Lỗi xác thực. Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        // hàm update_user chỉ nhận full_name và email
+        const payload = {
+            full_name: fullName,
+            email: email,
+            // ⚠️ Các trường (city, sex, phone, v.v.) sẽ KHÔNG được lưu
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/users/me`, {
+                method: "PUT", 
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Cập nhật thông tin thành công!");
+                // Cập nhật lại state và state gốc
+                setFullName(data.full_name || "");
+                setEmail(data.email || "");
+                setOriginalFullName(data.full_name || "");
+                setOriginalEmail(data.email || "");
+                
+                setIsEditing(false); // Tắt chế độ chỉnh sửa
+            } else {
+                 if (response.status === 400) {
+                    setError(data.detail || "Email đã tồn tại hoặc dữ liệu không hợp lệ.");
+                 } else {
+                    setError(data.detail || "Cập nhật thất bại.");
+                 }
+            }
+        } catch (err) {
+            console.error("Update profile error:", err);
+            setError("Lỗi kết nối. Không thể lưu thay đổi.");
+        }
+    };
+
+    // Hàm xử lý nút Hủy
+    const handleCancel = () => {
+        setIsEditing(false);
+        // Reset về giá trị gốc
+        setFullName(originalFullName);
+        setEmail(originalEmail);
+        setPhone(originalPhone);
+        
+        // Reset các giá trị local (nếu muốn)
+        // setSex("nam");
+        // setCity("");
+        // ...
+    };
+
+
+    //Hiển thị loading
+    if (loading) {
+        return <div style={{ fontFamily: 'Montserrat', fontSize: 20, textAlign: 'center', marginTop: 100 }}>Đang tải thông tin cá nhân...</div>;
+    }
+
     return (
     <div style={{ position: "relative", width: "100%", minHeight: "100vh"  }}>
       <Navbar />
@@ -203,7 +356,7 @@ export default function TravellerProfile() {
                     color: activeSection === "statusPost" ? "rgba(173, 0, 0, 1)" : "rgba(255, 255, 255, 1)",
                     cursor: "pointer"
                 }}>
-                    Lịch sử đặt bài
+                    Lịch sử đăng bài
                 </button>
 
                 <button 

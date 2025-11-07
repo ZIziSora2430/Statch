@@ -107,7 +107,7 @@ export default function Navbar() {
                   borderTop: "1px solid #eee",
                   marginTop: "5px",
                 }}
-                onClick={() => alert("Logged out")}
+                onClick={() => navigate("/")}
               >
                 Đăng xuất
               </div>

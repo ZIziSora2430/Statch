@@ -27,70 +27,6 @@ export default function SearchingPage() {
     
     const toScore10 = (r) => Math.round(r * 20) / 10;
 
-  //  const fetchAccommodations = async (currentParams) => {
-  //   setIsLoading(true);
-  //   setError(null);
-  //   setResults([]); 
-    
-  //   // ⚠️ LẤY ACCESS TOKEN ĐÃ LƯU TỪ SIGNINPAGE
-  //   const accessToken = localStorage.getItem("access_token");
-    
-  //   if (!accessToken) {
-  //       setError("Vui lòng đăng nhập để xem kết quả tìm kiếm. Token không tìm thấy.");
-  //       setIsLoading(false);
-  //       return; 
-  //   }
-
-  //   // Xây dựng chuỗi query params (chỉ dùng các tham số được backend xử lý)
-  //   const params = new URLSearchParams();
-    
-  //   // Ưu tiên tìm kiếm theo tọa độ nếu có
-  //   if (currentParams.lat !== null && currentParams.lng !== null) {
-  //     params.append("lat", currentParams.lat);
-  //     params.append("lng", currentParams.lng);
-  //     params.append("radius", currentParams.radius);
-      
-  //   // Nếu không có tọa độ, dùng location_text
-  //   } else if (searchParams.location_text) {
-  //     params.append("location_text", searchParams.location_text);
-  //   }
-    
-  //   // Nếu không có tham số nào, không gọi API
-  //   if (params.toString() === "") {
-  //        setIsLoading(false);
-  //        return; 
-  //   }
-    
-  //   const url = `${API_BASE_URL}/api/accommodations/search/?${params.toString()}`;
-
-  //   try {
-  //     const response = await fetch(url, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         // ⚠️ GỬI TOKEN CÙNG REQUEST
-  //         'Authorization': `Bearer ${accessToken}`, 
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json();
-  //       if (response.status === 401) {
-  //            throw new Error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.");
-  //       }
-  //       throw new Error(errorData.detail || `Lỗi HTTP: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     setResults(data);
-
-  //   } catch (err) {
-  //     console.error("Lỗi khi tìm kiếm chỗ ở:", err);
-  //     setError(err.message);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   // 5. Sử dụng useEffect để gọi API khi component được mount và khi searchParams thay đổi
   useEffect(() => {
@@ -182,11 +118,11 @@ export default function SearchingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar/>
+      <Navbar />
 
       <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
         <div className="mb-6 md:mb-8 lg:mb-10">
-          <SearchingBar/>
+          <SearchingBar />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">

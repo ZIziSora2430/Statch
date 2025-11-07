@@ -398,11 +398,11 @@ export default function TravellerProfile() {
                     <div style={{
                         position: 'relative',
                         width: 867,
-                        height: "auto",
+                        height: 670,
                         background: 'white',
                         borderRadius: 20,
                         border: '1px #878787 solid',
-                        top: 20,
+                        top: 60,
                         left: 0,
                         paddingBottom: "140px",
                     }}>
@@ -495,12 +495,13 @@ export default function TravellerProfile() {
                                 letterSpacing: 1,
                                 top: 142,
                                 left: 31,
-                                width: '805px',
+                                right: 31,
                                 height: '42px',
                                 padding: '5px',
                                 borderRadius: 10,
                                 backgroundColor: isEditing ? 'white' : '#f0f0f0',
                                 border: isEditing ? '1px solid #ccc' : 'none',
+                                boxSizing: 'border-box',
                             }}
                             />
                         </div>
@@ -684,12 +685,13 @@ export default function TravellerProfile() {
                                 letterSpacing: 1,
                                 top: 336,
                                 left: 31,
-                                width: '805px',
+                                right: 31,
                                 height: '42px',
                                 padding: '5px',
                                 borderRadius: 10,
                                 backgroundColor: isEditing ? 'white' : '#f0f0f0',
                                 border: isEditing ? '1px solid #ccc' : 'none',
+                                boxSizing: 'border-box',
                             }}
                             />
                         </div>
@@ -717,7 +719,7 @@ export default function TravellerProfile() {
                                 letterSpacing: 1,
                                 top: 433,
                                 left: 31,
-                                width: '805px',
+                                right: 31,
                                 height: '211px',
                                 padding: '5px',
                                 borderRadius: 10,
@@ -725,7 +727,8 @@ export default function TravellerProfile() {
                                 border: isEditing ? '1px solid #ccc' : 'none',
                                 resize: 'none',            // prevent manual resizing
                                 whiteSpace: 'pre-wrap',    // ensures line breaks and wrapping
-                                overflowWrap: 'break-word' // breaks long words if needed
+                                overflowWrap: 'break-word', // breaks long words if needed
+                                boxSizing: 'border-box',
                             }}
                             />
                         </div>
@@ -786,119 +789,47 @@ export default function TravellerProfile() {
                             </button>
                         )}
 
-                        <div style={{ fontFamily: "Montserrat", width: 600 }}>
-                            {/* EMAIL SECTION */}
-                            <div
-                                style={{
-                                position: 'absolute',
-                                border: '1px #878787 solid',
-                                borderRadius: 12,
-                                padding: "16px 20px",
-                                top: 780,
-                                left: 0,
-                                width: 867
-                                }}
-                            >
-                                <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                }}
-                                >
-                                    <div>
-                                        <h3
-                                        style={{
-                                            margin: 0,
-                                            fontSize: 18,
-                                            fontWeight: 700,
-                                        }}
-                                        >
-                                        Email đã liên kết
-                                        </h3>
-                                        <p
-                                        style={{
-                                            margin: 0,
-                                            color: "#999",
-                                            fontSize: 14,
-                                            fontWeight: 500,
-                                        }}
-                                        >
-                                        Mỗi tài khoản chỉ liên kết được với một email
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        style={{
-                                        border: "1px solid black",
-                                        backgroundColor: "white",
-                                        borderRadius: 8,
-                                        padding: "8px 16px",
-                                        fontWeight: 700,
-                                        cursor: "pointer",
-                                        }}
-                                        onClick={() => setIsEditing(true)} // Bật editing email
-                                    >
-                                        Thay đổi email
-                                    </button>
-                                </div>
-                                    <input
-                                    type="email"
-                                    value={email}
-                                    disabled={!isEditing}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    style={{
-                                        marginTop: 10,
-                                        paddingTop: 10,
-                                        borderTop: '1px #878787 solid',
-                                        fontSize: 16,
-                                        fontWeight: 700,
-                                        width: '100%',
-                                        border: 'none',
-                                        backgroundColor: isEditing ? '#fff' : '#f0f0f0'
-                                    }}/>
-                            </div>
-
-                            {/* PHONE SECTION */}
-                            <div
+                        {/* EMAIL SECTION */}
+                        <div
                             style={{
                             position: 'absolute',
-                            top: 930,
-                            left: 0,
                             border: '1px #878787 solid',
                             borderRadius: 12,
                             padding: "16px 20px",
-                            width: 867
+                            top: 780,
+                            left: 0,
+                            width: 867,
+                            boxSizing: 'border-box'
+                            }}
+                        >
+                            <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
                             }}
                             >
-                                <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                }}
-                                >
-                                    <div>
-                                        <h3
-                                        style={{
-                                            margin: 0,
-                                            fontSize: 18,
-                                            fontWeight: 700,
-                                        }}
-                                        >
-                                        Số di động
-                                        </h3>
-                                        <p
-                                        style={{
-                                            margin: 0,
-                                            color: "#999",
-                                            fontSize: 14,
-                                            fontWeight: 500,
-                                        }}
-                                        >
-                                        Mỗi tài khoản chỉ được thêm tối đa 1 số di động
-                                        </p>
-                                    </div>
+                                <div>
+                                    <h3
+                                    style={{
+                                        margin: 0,
+                                        fontSize: 18,
+                                        fontWeight: 700,
+                                    }}
+                                    >
+                                    Email đã liên kết
+                                    </h3>
+                                    <p
+                                    style={{
+                                        margin: 0,
+                                        color: "#999",
+                                        fontSize: 14,
+                                        fontWeight: 500,
+                                    }}
+                                    >
+                                    Mỗi tài khoản chỉ liên kết được với một email
+                                    </p>
+                                </div>
 
                                 <button
                                     style={{
@@ -909,30 +840,102 @@ export default function TravellerProfile() {
                                     fontWeight: 700,
                                     cursor: "pointer",
                                     }}
-                                    onClick={() => {
-                                    const newPhone = prompt("Nhập số di động:");
-                                    if (newPhone) setPhone(newPhone);
-                                    }}
+                                    onClick={() => setIsEditing(true)} // Bật editing email
                                 >
-                                    Thêm số di động
+                                    Thay đổi email
                                 </button>
-                                </div>
-
-                                {/* Appears only when phone exists */}
-                                {phone && (
-                                <div
-                                    style={{
+                            </div>
+                                <input
+                                type="email"
+                                value={email}
+                                disabled={!isEditing}
+                                onChange={(e) => setEmail(e.target.value)}
+                                style={{
                                     marginTop: 10,
                                     paddingTop: 10,
                                     borderTop: '1px #878787 solid',
                                     fontSize: 16,
                                     fontWeight: 700,
+                                    width: '100%',
+                                    border: 'none',
+                                    backgroundColor: isEditing ? '#fff' : '#f0f0f0'
+                                }}/>
+                        </div>
+
+                        {/* PHONE SECTION */}
+                        <div
+                        style={{
+                        position: 'absolute',
+                        top: 930,
+                        left: 0,
+                        border: '1px #878787 solid',
+                        borderRadius: 12,
+                        padding: "16px 20px",
+                        width: 867,
+                        boxSizing: 'border-box'
+                        }}
+                        >
+                            <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                            >
+                                <div>
+                                    <h3
+                                    style={{
+                                        margin: 0,
+                                        fontSize: 18,
+                                        fontWeight: 700,
                                     }}
-                                >
-                                    {phone}
+                                    >
+                                    Số di động
+                                    </h3>
+                                    <p
+                                    style={{
+                                        margin: 0,
+                                        color: "#999",
+                                        fontSize: 14,
+                                        fontWeight: 500,
+                                    }}
+                                    >
+                                    Mỗi tài khoản chỉ được thêm tối đa 1 số di động
+                                    </p>
                                 </div>
-                                )}
+
+                            <button
+                                style={{
+                                border: "1px solid black",
+                                backgroundColor: "white",
+                                borderRadius: 8,
+                                padding: "8px 16px",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                }}
+                                onClick={() => {
+                                const newPhone = prompt("Nhập số di động:");
+                                if (newPhone) setPhone(newPhone);
+                                }}
+                            >
+                                Thêm số di động
+                            </button>
                             </div>
+
+                            {/* Appears only when phone exists */}
+                            {phone && (
+                            <div
+                                style={{
+                                marginTop: 10,
+                                paddingTop: 10,
+                                borderTop: '1px #878787 solid',
+                                fontSize: 16,
+                                fontWeight: 700,
+                                }}
+                            >
+                                {phone}
+                            </div>
+                            )}
                         </div>
 
                     </div>
