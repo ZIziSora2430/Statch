@@ -325,8 +325,15 @@ function SignUpPage() {
               color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
               cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
             }}>
-              Điều khoản & Điều kiện và Chính sách Bảo mật
-            </span>{" "}
+              Điều khoản & Điều kiện
+            </span>
+            {" "}và{" "}
+            <span style={{ 
+              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
+              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
+            }}>
+              Chính sách bảo mật{" "}
+            </span>
             của chúng tôi.
           </p>
         </form>
