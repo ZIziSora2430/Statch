@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useNavigate } from "react-router-dom";
 
 export default function SearchingBar() {
   const [location, setLocation] = useState("");
@@ -8,15 +9,31 @@ export default function SearchingBar() {
   const [startDate, endDate] = dateRange;
   const [guests, setGuests] = useState(1);
 
+  const navigate = useNavigate();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const dateText =
-      startDate && endDate
-        ? `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
-        : "Chưa chọn ngày";
-    alert(`Tìm: ${location} | Ngày: ${dateText} | Số khách: ${guests}`);
+
+    const params = new URLSearchParams();
+    if (location) {
+        // Tham số location_text mà backend đang xử lý
+        params.append("location_text", location); 
+    }
+    // Bạn có thể thêm các tham số ngày và khách, mặc dù backend chưa xử lý chúng
+    if (startDate) {
+        params.append("checkin", startDate.toISOString().split('T')[0]);
+    }
+    if (endDate) {
+        params.append("checkout", endDate.toISOString().split('T')[0]);
+    }
+    params.append("guests", guests);
+    
+    // ⚠️ ĐIỀU HƯỚNG: Chuyển sang trang /search/ và truyền tham số
+    // Giả định URL cho trang kết quả là /search
+    navigate(`/search/?${params.toString()}`);
   };
 
+  
   return (
     <div className="w-full flex justify-center mt-10">
       <div className="w-[90%] sm:w-[80%] md:w-[70%] bg-[#BF1D2D] rounded-2xl py-1 px-1 shadow-lg">

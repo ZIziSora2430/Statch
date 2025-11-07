@@ -58,11 +58,9 @@ function SignInPage() {
 
         // ✅ THÊM: Điều hướng dựa trên role của user
         if (data.role === "owner") {
-          navigate("/owner/dashboard"); // Chủ trọ -> dashboard
+          navigate("/profileo"); // Chủ trọ -> dashboard
         } else if (data.role === "traveler") {
-          navigate("/traveller/home"); // Người dùng -> home
-        } else if (data.role === "admin") {
-          navigate("/admin/dashboard"); // ✅ MỚI THÊM: Admin
+          navigate("/home"); // Người dùng -> home
         } else {
           navigate("/home"); // Các role khác
         }

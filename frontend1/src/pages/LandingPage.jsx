@@ -2,24 +2,42 @@ import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
-
+import Banner from "../components/Banner";
 import ConDao from "../images/Con-Dao.jpg";
 import HaNoi from "../images/Ha-Noi.jpg";      // nên tránh dấu & khoảng trắng trong tên file
 import CanTho from "../images/Can-Tho.jpg";
 import HoiAn from "../images/Hoi-An.jpg";
 import TPHCM from "../images/TPHCM.jpg";
+import React, { useState, useEffect } from "react"; 
+
+
+
 
 export default function LandingPage() {
+
+  const [currentUserName, setCurrentUserName] = useState("bạn");
+  useEffect(() => {
+    // Tên người dùng được lưu trong SignInPage.jsx với key là "username"
+    const storedUsername = localStorage.getItem("username"); 
+    
+    if (storedUsername) {
+      // Cập nhật state nếu tìm thấy tên
+      setCurrentUserName(storedUsername);
+    }
+  }, []);
+
   return (
     <div>
       <Navbar />
-      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
-      <div className="-mt-30  md:mb-8 lg:mb-10">
+      <Banner username={currentUserName}/>
+
+      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-16">
+      <div className="md:mb-8 lg:mb-10">
         <SearchingBar />
       </div>
 
       {/* main xếp theo cột */}
-      <main className="p-6 max-w-6xl mx-auto flex flex-col gap-4">
+      <div className="p-6 max-w-6xl mx-auto flex flex-col gap-4">
          <p className="mb-6 ml-13 text-black text-4xl font-bold text-left">
    Điểm đến thịnh hành
   </p>
@@ -77,7 +95,7 @@ export default function LandingPage() {
    <div >
       <Promo />
       </div>
-      </main>
+      </div>
       </main>
       <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
   <div className="container mx-auto">
