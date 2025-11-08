@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+.page-frame {
+  width: 1440px;
+  height: 100vh;        
+  margin: 0 auto;       
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.page-wrapper {
+  background: black;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
