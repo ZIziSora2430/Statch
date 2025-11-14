@@ -4,7 +4,7 @@ import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
 import Banner from "../components/Banner";
 import ConDao from "../images/Con-Dao.jpg";
-import HaNoi from "../images/Ha-Noi.jpg";      // nên tránh dấu & khoảng trắng trong tên file
+import HaNoi from "../images/Ha-Noi.jpg";  
 import CanTho from "../images/Can-Tho.jpg";
 import HoiAn from "../images/Hoi-An.jpg";
 import TPHCM from "../images/TPHCM.jpg";
