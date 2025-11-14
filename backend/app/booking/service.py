@@ -84,7 +84,7 @@ def create_booking(
                     schemas.BookingStatusEnum.confirmed.value,
                 ]
             ),
-            # điều kiện overlap: start <= new_end AND end >= new_start
+            # điều kiện overlap: start <= new_end va end >= new_start
             models.Booking.date_start <= booking_data.date_end,
             models.Booking.date_end >= booking_data.date_start,
         )

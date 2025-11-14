@@ -1,4 +1,3 @@
-# app/booking/owner_router.py
 
 from typing import List
 
@@ -51,7 +50,7 @@ def get_owner_booking_detail_endpoint(
         )
 
     # Check booking có thuộc accommodation của owner không
-    # JOIN thủ công: lấy accommodation rồi so owner_id
+    # Lấy accommodation rồi so owner_id
     accommodation = db.scalar(
         database.get_db().scalar(
             # nếu bạn đã có db ở đây rồi thì có thể join trực tiếp,

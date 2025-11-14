@@ -1,4 +1,3 @@
-# app/booking/schemas.py
 
 from datetime import date
 from enum import Enum
@@ -32,7 +31,7 @@ class BookingRead(BaseModel):
     date_end: date
     status: BookingStatusEnum
 
-    model_config = ConfigDict(from_attributes=True)  # Pydantic v2: ORM mode
+    model_config = ConfigDict(from_attributes=True) 
 
 
 class BookingUpdateStatus(BaseModel):

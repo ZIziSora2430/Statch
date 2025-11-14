@@ -1,4 +1,3 @@
-# app/booking/traveler_router.py
 
 from typing import List
 
@@ -37,7 +36,7 @@ def create_booking_endpoint(
         )
         return booking
     except ValueError as e:
-        # Lỗi logic như: accommodation không tồn tại, trùng lịch, ngày sai,...
+        # accommodation không tồn tại, trùng lịch, ngày sai,...
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
