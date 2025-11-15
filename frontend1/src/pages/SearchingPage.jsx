@@ -24,13 +24,32 @@ export default function SearchingPage() {
 
   const toScore10 = (r) => Math.round(r * 20) / 10;
 
-  // ⭐ Bộ lọc sidebar: min–max price trên 1 slider
+  // ⭐ Bộ lọc sidebar
   const PRICE_MIN_LIMIT = 0;
   const PRICE_MAX_LIMIT = 10000000; // 10 triệu
 
   const [filters, setFilters] = useState({
     priceMin: PRICE_MIN_LIMIT,
     priceMax: PRICE_MAX_LIMIT,
+
+    // Tiện nghi
+    amenities: {
+      wifi: false,
+      pool: false,
+      ac: false,
+      parking: false,
+    },
+
+    // Loại chỗ ở
+    types: {
+      hotel: false,
+      homestay: false,
+      villa: false,
+      apartment: false,
+    },
+
+    // Đánh giá khách hàng (min rating) – null = tất cả
+    minRating: null,
   });
 
   const handleFilterChange = (field, rawValue) => {
@@ -56,10 +75,53 @@ export default function SearchingPage() {
     });
   };
 
+  // Tick/untick tiện nghi
+  const handleAmenityChange = (name) => {
+    setFilters((prev) => ({
+      ...prev,
+      amenities: {
+        ...prev.amenities,
+        [name]: !prev.amenities[name],
+      },
+    }));
+  };
+
+  // Tick/untick loại chỗ ở
+  const handleTypeChange = (name) => {
+    setFilters((prev) => ({
+      ...prev,
+      types: {
+        ...prev.types,
+        [name]: !prev.types[name],
+      },
+    }));
+  };
+
+  // Chọn mức đánh giá tối thiểu
+  const handleRatingChange = (value) => {
+    setFilters((prev) => ({
+      ...prev,
+      minRating: value,
+    }));
+  };
+
   const handleClearFilter = () => {
     setFilters({
       priceMin: PRICE_MIN_LIMIT,
       priceMax: PRICE_MAX_LIMIT,
+      amenities: {
+        wifi: false,
+        pool: false,
+        ac: false,
+        parking: false,
+      },
+      types: {
+        hotel: false,
+        homestay: false,
+        villa: false,
+        apartment: false,
+      },
+      minRating: null,
     });
   };
 
@@ -83,7 +145,7 @@ export default function SearchingPage() {
     return null;
   };
 
-  // Áp dụng filter lên results (client-side)
+  // Áp dụng filter lên results (client-side) – HIỆN TẠI chỉ lọc theo giá
   const applyFilters = (items) => {
     return items.filter((item) => {
       const priceNumber = parsePriceToNumber(item.price);
@@ -92,6 +154,7 @@ export default function SearchingPage() {
       if (priceNumber < filters.priceMin) return false;
       if (priceNumber > filters.priceMax) return false;
 
+      // ⭐ tiện nghi / loại chỗ ở / rating chưa dùng để lọc
       return true;
     });
   };
@@ -184,13 +247,13 @@ export default function SearchingPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          {/* Sidebar filter: 1 slider 2 đầu min–max */}
+          {/* Sidebar filter */}
           <aside className="md:col-span-4 lg:col-span-3">
             <div className="sticky top-6">
               <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
                 <h2 className="text-lg font-semibold text-gray-800">Bộ lọc</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Chọn khoảng giá phù hợp với bạn.
+                  Chọn khoảng giá, loại chỗ ở và tiện nghi phù hợp với bạn.
                 </p>
 
                 {/* KHOẢNG GIÁ */}
@@ -208,7 +271,7 @@ export default function SearchingPage() {
 
                   {/* Slider min–max trên 1 track */}
                   <div className="mt-4">
-                    <div className="range-slider h-8">
+                    <div className="range-slider h-3  ">
                       <div className="range-slider__track" />
 
                       {/* thumb min */}
@@ -238,11 +301,162 @@ export default function SearchingPage() {
                       />
                     </div>
 
-                    {/* Text min/max – tách hẳn RA NGOÀI slider */}
-                    <div className="mt-5 flex justify-between text-[11px] text-gray-400">
+                    {/* Text min/max – bên dưới slider */}
+                    <div className="mt-2 flex justify-between text-[11px] text-gray-400">
                       <span>{formatVnd(PRICE_MIN_LIMIT)}</span>
                       <span>{formatVnd(PRICE_MAX_LIMIT)}</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* LOẠI CHỖ Ở */}
+                <div className="mt-6 border-t border-gray-100 pt-4">
+                  <div className="text-sm font-medium text-gray-700 mb-2">
+                    Loại chỗ ở
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.types.hotel}
+                        onChange={() => handleTypeChange("hotel")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Khách sạn
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.types.homestay}
+                        onChange={() => handleTypeChange("homestay")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Homestay
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.types.villa}
+                        onChange={() => handleTypeChange("villa")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Villa
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.types.apartment}
+                        onChange={() => handleTypeChange("apartment")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Căn hộ
+                    </label>
+                  </div>
+                </div>
+
+                {/* ĐÁNH GIÁ CỦA KHÁCH HÀNG */}
+                <div className="mt-6 border-t border-gray-100 pt-4">
+                  <div className="text-sm font-medium text-gray-700 mb-2">
+                    Đánh giá của khách hàng
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="ratingFilter"
+                        checked={filters.minRating === null}
+                        onChange={() => handleRatingChange(null)}
+                        className="w-4 h-4"
+                      />
+                      Tất cả
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="ratingFilter"
+                        checked={filters.minRating === 9}
+                        onChange={() => handleRatingChange(9)}
+                        className="w-4 h-4"
+                      />
+                      Từ 9.0 trở lên (Tuyệt vời)
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="ratingFilter"
+                        checked={filters.minRating === 8}
+                        onChange={() => handleRatingChange(8)}
+                        className="w-4 h-4"
+                      />
+                      Từ 8.0 trở lên (Rất tốt)
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="ratingFilter"
+                        checked={filters.minRating === 7}
+                        onChange={() => handleRatingChange(7)}
+                        className="w-4 h-4"
+                      />
+                      Từ 7.0 trở lên (Tốt)
+                    </label>
+                  </div>
+                </div>
+
+                {/* TIỆN NGHI */}
+                <div className="mt-6 border-t border-gray-100 pt-4">
+                  <div className="text-sm font-medium text-gray-700 mb-2">
+                    Tiện nghi
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.amenities.wifi}
+                        onChange={() => handleAmenityChange("wifi")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Wifi miễn phí
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.amenities.pool}
+                        onChange={() => handleAmenityChange("pool")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Hồ bơi
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.amenities.ac}
+                        onChange={() => handleAmenityChange("ac")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Máy lạnh
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.amenities.parking}
+                        onChange={() => handleAmenityChange("parking")}
+                        className="w-4 h-4 rounded"
+                      />
+                      Chỗ đậu xe
+                    </label>
                   </div>
                 </div>
 
