@@ -1,8 +1,12 @@
+// src/pages/RoomDetailPage.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 
 export default function RoomDetailPage() {
+  const navigate = useNavigate();
+
   const room = {
     name: "Phòng Deluxe Hướng Biển",
     location: "Đà Nẵng, Việt Nam",
@@ -113,7 +117,7 @@ export default function RoomDetailPage() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="w-full h-28   sm:h-[210px] bg-gray-200 rounded-xl flex items-center justify-center"
+                    className="w-full h-28 sm:h-[210px] bg-gray-200 rounded-xl flex items-center justify-center"
                   >
                     <span className="text-gray-400 text-xs">Ảnh {i}</span>
                   </div>
@@ -134,25 +138,25 @@ export default function RoomDetailPage() {
 
             {/* Nút + Giá nằm sát nhau bên phải */}
             <div className="flex items-center gap-2">
-              {/* Nút Đặt ngay (bên trái) */}
-             <button
-  className="px-6 py-2 bg-[#BF1D2D] hover:bg-[#881818] text-white font-semibold text-sm sm:text-base rounded-full shadow-md hover:shadow-lg transition"
-  onClick={() =>
-    navigate("/booking-info", {
-      state: {
-        roomName: room.name,
-        hotelLocation: room.location,
-        pricePerNight: room.pricePerNight,
-        checkin: "20/11/2025",   // tạm fix, sau này lấy từ search
-        checkout: "22/11/2025",
-        guests: 2,
-        nights: 2,
-      },
-    })
-  }
->
-  Đặt ngay
-</button>
+              {/* Nút Đặt ngay */}
+              <button
+                className="px-6 py-2 bg-[#BF1D2D] hover:bg-[#881818] text-white font-semibold text-sm sm:text-base rounded-full shadow-md hover:shadow-lg transition"
+                onClick={() =>
+                  navigate("/formpage", {
+                    state: {
+                      roomName: room.name,
+                      hotelLocation: room.location,
+                      pricePerNight: room.pricePerNight,
+                      checkin: "20/11/2025", // sau này lấy từ search
+                      checkout: "22/11/2025",
+                      guests: 2,
+                      nights: 2,
+                    },
+                  })
+                }
+              >
+                Đặt ngay
+              </button>
 
               {/* Giá sát bên phải nút */}
               <div className="text-sm sm:text-base font-semibold text-[#BF1D2D]">
@@ -161,50 +165,50 @@ export default function RoomDetailPage() {
             </div>
           </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
-  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-    Thông tin phòng
-  </h2>
+          {/* Thông tin phòng + Tiện ích */}
+          <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+              Thông tin phòng
+            </h2>
 
-  {/* --- TIỆN ÍCH (ĐƯA LÊN TRÊN) --- */}
-  <div>
-    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-      Tiện ích phòng
-    </h3>
-    <div className="flex flex-wrap gap-2">
-      {room.amenities.map((item) => (
-        <span
-          key={item}
-          className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-xs sm:text-sm text-gray-800"
-        >
-          {item}
-        </span>
-      ))}
-    </div>
-  </div>
+            {/* TIỆN ÍCH (ở trên) */}
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                Tiện ích phòng
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {room.amenities.map((item) => (
+                  <span
+                    key={item}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-xs sm:text-sm text-gray-800"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-  {/* --- MÔ TẢ (ĐƯA XUỐNG DƯỚI) --- */}
-  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-    {room.description}
-  </p>
+            {/* MÔ TẢ */}
+            <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+              {room.description}
+            </p>
 
-  {/* --- THÔNG SỐ CƠ BẢN --- */}
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700 mt-3">
-    <div>
-      <p className="font-semibold text-gray-900">Số khách tối đa</p>
-      <p>{room.maxGuests} người</p>
-    </div>
-    <div>
-      <p className="font-semibold text-gray-900">Diện tích</p>
-      <p>{room.size} m²</p>
-    </div>
-    <div>
-      <p className="font-semibold text-gray-900">Giường</p>
-      <p>{room.bed}</p>
-    </div>
-  </div>
-</div>
-
+            {/* THÔNG SỐ CƠ BẢN */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700 mt-3">
+              <div>
+                <p className="font-semibold text-gray-900">Số khách tối đa</p>
+                <p>{room.maxGuests} người</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Diện tích</p>
+                <p>{room.size} m²</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Giường</p>
+                <p>{room.bed}</p>
+              </div>
+            </div>
+          </div>
 
           {/* Comment Section */}
           <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
@@ -236,7 +240,7 @@ export default function RoomDetailPage() {
               ))}
             </div>
 
-            {/* Ô nhập comment (UI thôi, chưa cần xử lý submit) */}
+            {/* Ô nhập comment */}
             <div className="mt-4">
               <p className="text-sm sm:text-base font-medium text-gray-900 mb-2">
                 Bạn đã ở đây? Hãy để lại đánh giá:
@@ -254,7 +258,7 @@ export default function RoomDetailPage() {
             </div>
           </div>
 
-          {/* Gợi ý phòng tương tự - style giống kết quả tìm kiếm */}
+          {/* Gợi ý phòng tương tự */}
           <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
               Phòng tương tự bạn có thể thích
@@ -269,25 +273,19 @@ export default function RoomDetailPage() {
                   {/* Ảnh nhỏ bên trái */}
                   <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-lg shrink-0" />
 
-                  {/* Nội dung bên phải (giống result Google) */}
+                  {/* Nội dung bên phải */}
                   <div className="flex-1">
-                    {/* Tên phòng kiểu link xanh */}
                     <button className="text-sm sm:text-base text-[#1a0dab] font-medium hover:underline text-left">
                       {item.name}
                     </button>
-
-                    {/* Location kiểu xám nhỏ */}
                     <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                       {item.location}
                     </p>
-
-                    {/* Mô tả ngắn đơn giản (tự build từ name) */}
                     <p className="text-xs sm:text-sm text-gray-700 mt-1">
-                      Phòng tại {item.location.toLowerCase()} với mức giá phù hợp, là
-                      lựa chọn thay thế cho {room.name.toLowerCase()}.
+                      Phòng tại {item.location.toLowerCase()} với mức giá phù
+                      hợp, là lựa chọn thay thế cho{" "}
+                      {room.name.toLowerCase()}.
                     </p>
-
-                    {/* Giá */}
                     <p className="text-xs sm:text-sm font-semibold text-[#BF1D2D] mt-1">
                       {formatCurrency(item.pricePerNight)}/đêm
                     </p>

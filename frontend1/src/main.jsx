@@ -27,7 +27,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/AddAccommodationForm" element={<AddAccommodationForm/>} />
         <Route path="/booking" element={<BookingDetailPage/>} />
         <Route path="/confirm" element={<BookingConfirmPage/>} />
-        <Route path="/FormPage" element={<BookingFormPage/>} />
+        <Route path="/formpage" element={<BookingFormPage/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
