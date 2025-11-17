@@ -36,7 +36,7 @@ export default function SearchingBar() {
   
   return (
     <div className="w-full flex justify-center mt-10">
-      <div className="w-[90%] sm:w-[80%] md:w-[70%] bg-[#BF1D2D] rounded-2xl py-1 px-1 shadow-lg">
+      <div className="w-[90%] sm:w-[80%] md:w-[70%] bg-[#BF1D2D] rounded-lg py-1 px-1 shadow-lg">
         <form
           onSubmit={handleSubmit}
           className="flex flex-wrap items-center justify-between gap-1 sm:gap-1"
@@ -47,7 +47,7 @@ export default function SearchingBar() {
             placeholder="Điểm đến"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="flex-1 min-w-40 bg-white rounded-xl px-4 py-3 text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-400"
+            className="flex-1 min-w-40 bg-white rounded-md px-4 py-3 h-12 text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-400"
           />
 
           {/* Ô 2: Khoảng ngày (Date Range Picker) */}
@@ -57,12 +57,12 @@ export default function SearchingBar() {
             endDate={endDate}
             onChange={(update) => setDateRange(update)}
             placeholderText="Chọn khoảng ngày"
-            className="flex-1 min-w-40 bg-white rounded-xl px-4 py-3 text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-400"
+            className="flex-1 min-w-40 bg-white rounded-md px-4 py-3 h-12 text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-400"
             dateFormat="dd/MM/yyyy"
           />
 
           {/* Ô 3: Số khách */}
-          <div className="flex items-center justify-between flex-1 min-w-40 bg-white rounded-xl px-4 py-3 text-gray-800">
+          <div className="flex items-center justify-between flex-1 min-w-40 h-12 bg-white rounded-md px-4 py-3 text-gray-800">
             <span>Số khách: {guests}</span>
             <div className="flex gap-2">
               <button
@@ -85,7 +85,7 @@ export default function SearchingBar() {
           {/* Nút Tìm */}
           <button
             type="submit"
-            className="px-6 py-3 bg-[#BF1D2D] text-[#ffffff] font-semibold rounded-xl hover:bg-[#881818] active:scale-95 transition"
+            className="px-6 py-3 bg-[#BF1D2D] text-[#ffffff] font-semibold rounded-md hover:bg-[#881818] active:scale-95 transition"
           >
             Tìm
           </button>

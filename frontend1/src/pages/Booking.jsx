@@ -102,7 +102,7 @@ export default function RoomDetailPage() {
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden p-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Ảnh lớn bên trái */}
-              <div className="w-full h-64 sm:h-full bg-gray-200 rounded-xl flex items-center justify-center">
+              <div className="w-full h-[470px] sm:h-full bg-gray-200 rounded-xl flex items-center justify-center">
                 <span className="text-gray-500 text-sm sm:text-base">
                   Ảnh lớn (demo)
                 </span>
@@ -113,7 +113,7 @@ export default function RoomDetailPage() {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="w-full h-28 sm:h-32 bg-gray-200 rounded-xl flex items-center justify-center"
+                    className="w-full h-28   sm:h-[210px] bg-gray-200 rounded-xl flex items-center justify-center"
                   >
                     <span className="text-gray-400 text-xs">Ảnh {i}</span>
                   </div>
@@ -146,50 +146,50 @@ export default function RoomDetailPage() {
             </div>
           </div>
 
-          {/* Thông tin + Tiện ích phòng (gộp chung) */}
-          <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-              Thông tin phòng
-            </h2>
+        <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
+  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+    Thông tin phòng
+  </h2>
 
-            {/* Mô tả */}
-            <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-              {room.description}
-            </p>
+  {/* --- TIỆN ÍCH (ĐƯA LÊN TRÊN) --- */}
+  <div>
+    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+      Tiện ích phòng
+    </h3>
+    <div className="flex flex-wrap gap-2">
+      {room.amenities.map((item) => (
+        <span
+          key={item}
+          className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-xs sm:text-sm text-gray-800"
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  </div>
 
-            {/* Thông số cơ bản */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700 mt-3">
-              <div>
-                <p className="font-semibold text-gray-900">Số khách tối đa</p>
-                <p>{room.maxGuests} người</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Diện tích</p>
-                <p>{room.size} m²</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Giường</p>
-                <p>{room.bed}</p>
-              </div>
-            </div>
+  {/* --- MÔ TẢ (ĐƯA XUỐNG DƯỚI) --- */}
+  <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+    {room.description}
+  </p>
 
-            {/* Tiện ích phòng */}
-            <div className="mt-4">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                Tiện ích phòng
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {room.amenities.map((item) => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-xs sm:text-sm text-gray-800"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+  {/* --- THÔNG SỐ CƠ BẢN --- */}
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700 mt-3">
+    <div>
+      <p className="font-semibold text-gray-900">Số khách tối đa</p>
+      <p>{room.maxGuests} người</p>
+    </div>
+    <div>
+      <p className="font-semibold text-gray-900">Diện tích</p>
+      <p>{room.size} m²</p>
+    </div>
+    <div>
+      <p className="font-semibold text-gray-900">Giường</p>
+      <p>{room.bed}</p>
+    </div>
+  </div>
+</div>
+
 
           {/* Comment Section */}
           <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
