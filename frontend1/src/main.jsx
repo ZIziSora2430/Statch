@@ -10,7 +10,9 @@ import SearchingPage from './pages/SearchingPage.jsx'
 import TravellerProfile from './pages/TravellerProfile.jsx'
 import OwnerProfile from './pages/OwnerProfile.jsx'
 import AddAccommodationForm from './pages/AddAccommodationForm.jsx'
-import Booking from './pages/Booking.jsx'
+import BookingDetailPage from './pages/Booking.jsx'
+import BookingConfirmPage from './pages/BookingConfirmPage.jsx'
+import BookingFormPage from './pages/BookingFormPage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -23,7 +25,9 @@ createRoot(document.getElementById('root')).render(
         <Route path="/profilet" element={<TravellerProfile/>} /> {/* Traveller Profile */}
         <Route path="/profileo" element={<OwnerProfile/>} />
         <Route path="/AddAccommodationForm" element={<AddAccommodationForm/>} />
-        <Route path="/booking" element={<Booking/>} />
+        <Route path="/booking" element={<BookingDetailPage/>} />
+        <Route path="/confirm" element={<BookingConfirmPage/>} />
+        <Route path="/FormPage" element={<BookingFormPage/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

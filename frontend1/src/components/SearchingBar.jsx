@@ -39,7 +39,7 @@ export default function SearchingBar() {
       <div className="w-[90%] sm:w-[80%] md:w-[70%] bg-[#BF1D2D] rounded-lg py-1 px-1 shadow-lg">
         <form
           onSubmit={handleSubmit}
-          className="flex flex-wrap items-center justify-between gap-1 sm:gap-1"
+          className="flex flex-nowrap items-center justify-between gap-1 sm:gap-1"
         >
           {/* Ô 1: Điểm đến */}
           <input

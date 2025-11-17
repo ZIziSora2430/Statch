@@ -135,9 +135,24 @@ export default function RoomDetailPage() {
             {/* Nút + Giá nằm sát nhau bên phải */}
             <div className="flex items-center gap-2">
               {/* Nút Đặt ngay (bên trái) */}
-              <button className="px-6 py-2 bg-[#BF1D2D] hover:bg-[#881818] text-white font-semibold text-sm sm:text-base rounded-full shadow-md hover:shadow-lg transition">
-                Đặt ngay
-              </button>
+             <button
+  className="px-6 py-2 bg-[#BF1D2D] hover:bg-[#881818] text-white font-semibold text-sm sm:text-base rounded-full shadow-md hover:shadow-lg transition"
+  onClick={() =>
+    navigate("/booking-info", {
+      state: {
+        roomName: room.name,
+        hotelLocation: room.location,
+        pricePerNight: room.pricePerNight,
+        checkin: "20/11/2025",   // tạm fix, sau này lấy từ search
+        checkout: "22/11/2025",
+        guests: 2,
+        nights: 2,
+      },
+    })
+  }
+>
+  Đặt ngay
+</button>
 
               {/* Giá sát bên phải nút */}
               <div className="text-sm sm:text-base font-semibold text-[#BF1D2D]">
