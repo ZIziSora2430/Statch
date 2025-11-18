@@ -151,7 +151,7 @@ export default function TravellerProfile() {
 
     // Hiển thị loading hoặc error
     if (loading) {
-        return <div style={{ fontFamily: 'Montserrat', fontSize: 20, textAlign: 'center', marginTop: 100 }}>Đang tải thông tin cá nhân...</div>;
+        return <div style={{  fontSize: 20, textAlign: 'center', marginTop: 100 }}>Đang tải thông tin cá nhân...</div>;
     }
 
     return (
@@ -369,7 +369,7 @@ export default function TravellerProfile() {
                 <div>
                     <h1 style={{
                         fontSize: 24, 
-                        fontFamily: 'Montserrat', 
+                         
                         fontWeight: '700', 
                         letterSpacing: 1.20,
                         color: 'rgba(173, 0, 0, 1)',
@@ -384,7 +384,7 @@ export default function TravellerProfile() {
                     {error && (
                         <p style={{
                             color: '#B01C29',
-                            fontFamily: 'Montserrat',
+                            
                             marginBottom: '10px',
                             fontSize: '14px',
                             textAlign: 'center',
@@ -413,7 +413,7 @@ export default function TravellerProfile() {
                                 left: 31,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Tên Đăng Nhập</label><br />
@@ -425,7 +425,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 45,
@@ -448,7 +448,7 @@ export default function TravellerProfile() {
                                 left: 445,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>ID người dùng</label><br />
@@ -456,7 +456,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 45,
@@ -478,7 +478,7 @@ export default function TravellerProfile() {
                                 left: 31,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Họ và tên</label><br />
@@ -490,7 +490,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 142,
@@ -513,7 +513,7 @@ export default function TravellerProfile() {
                                 left: 31,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Giới tính</label><br />
@@ -525,7 +525,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 239,
@@ -551,7 +551,7 @@ export default function TravellerProfile() {
                                 left: 187,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Vai trò</label><br />
@@ -559,7 +559,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 239,
@@ -581,7 +581,7 @@ export default function TravellerProfile() {
                                 left: 377,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Ngày sinh</label><br />
@@ -592,7 +592,7 @@ export default function TravellerProfile() {
                                 top: 239,
                                 left: 377,
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 
@@ -668,7 +668,7 @@ export default function TravellerProfile() {
                                 left: 31,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Thành phố cư trú</label><br />
@@ -680,7 +680,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 336,
@@ -703,7 +703,7 @@ export default function TravellerProfile() {
                                 left: 31,
                                 color: '#878787', 
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1
                             }}>Sở thích cá nhân</label><br />
@@ -714,7 +714,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 433,
@@ -745,7 +745,7 @@ export default function TravellerProfile() {
                             style={{
                                 position: 'absolute',
                                 fontSize: 20, 
-                                fontFamily: 'Montserrat', 
+                                 
                                 fontWeight: '700', 
                                 letterSpacing: 1,
                                 top: 680,
@@ -771,7 +771,7 @@ export default function TravellerProfile() {
                                 style={{
                                     position: 'absolute',
                                     fontSize: 20, 
-                                    fontFamily: 'Montserrat', 
+                                     
                                     fontWeight: '700', 
                                     letterSpacing: 1,
                                     top: 680,
@@ -946,7 +946,7 @@ export default function TravellerProfile() {
                 <div>
                     <h1 style={{
                         fontSize: 24, 
-                        fontFamily: 'Montserrat', 
+                         
                         fontWeight: '700', 
                         letterSpacing: 1.20,
                         color: 'rgba(173, 0, 0, 1)',
@@ -972,7 +972,7 @@ export default function TravellerProfile() {
                 <div>
                     <h1 style={{
                         fontSize: 24, 
-                        fontFamily: 'Montserrat', 
+                         
                         fontWeight: '700', 
                         letterSpacing: 1.20,
                         color: 'rgba(173, 0, 0, 1)',
