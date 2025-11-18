@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Thông tin kết nối MySQL: user:password@host:port/dbname
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://user:password@localhost:3306/testdb"
+SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:123456@127.0.0.1:3306/STACH"
 
 # Tạo engine kết nối với MySQL
 # pool_pre_ping=True để tránh lỗi "MySQL server has gone away"
