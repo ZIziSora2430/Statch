@@ -58,6 +58,7 @@ export default function Navbar() {
             borderRadius: '50%',
             objectFit: 'cover',
             boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
+            cursor: 'pointer'
           }}
           />
           {/* Dropdown menu */}
