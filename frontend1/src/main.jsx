@@ -13,6 +13,7 @@ import AddAccommodationForm from './pages/AddAccommodationForm.jsx'
 import BookingDetailPage from './pages/Booking.jsx'
 import BookingConfirmPage from './pages/BookingConfirmPage.jsx'
 import BookingFormPage from './pages/BookingFormPage.jsx'
+import ModifyAccommodationForm from './pages/ModifyAccommodationForm.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/booking" element={<BookingDetailPage/>} />
         <Route path="/confirm" element={<BookingConfirmPage/>} />
         <Route path="/formpage" element={<BookingFormPage/>} />
+        <Route path="/ModifyAccommodationForm" element={<ModifyAccommodationForm/>} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

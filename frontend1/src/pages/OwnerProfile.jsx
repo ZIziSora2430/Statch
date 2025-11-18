@@ -8,6 +8,8 @@ import Secprofilebg from "../images/2ndprofilebg.svg"
 import ChangePass from "../components/SettingChangePass"
 import OwnerDashBoard from "../components/OwnerDashB"
 import { useNavigate } from "react-router-dom";
+import BookingList from "../components/BookingList"
+import OwnerProfileDetails from "../components/OwnerProfileDetails";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -35,7 +37,6 @@ export default function TravellerProfile() {
     const [month, setMonth] = useState("1");
     const [year, setYear] = useState("2000");
     const [city, setCity] = useState("DATA TU USER")
-    const [preference, setPreference] = useState("testingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtesting")
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     
@@ -50,9 +51,11 @@ export default function TravellerProfile() {
             if (!token) {
               setError("Bạn chưa đăng nhập.");
               setLoading(false);
-              navigate("/"); // Chuyển về trang đăng nhập nếu không có token
+              
+              // navigate("/"); // Chuyển về trang đăng nhập nếu không có token
               return;
             }
+
 
             try {
               // 2. Gọi API để lấy thông tin user
@@ -156,7 +159,28 @@ export default function TravellerProfile() {
 
     return (
     <div style={{ position: "relative", width: "100%", minHeight: "100vh"  }}>
-      <Navbar />
+        <Navbar />
+
+        {error && (
+            <div style={{
+                position: "fixed",
+                top: "20px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "#ff4d4d",
+                color: "white",
+                padding: "15px 25px",
+                borderRadius: "10px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                zIndex: 9999,
+                boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+                animation: "fadeIn 0.3s"
+            }}>
+                {error}
+            </div>
+        )}
+
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", zIndex: 0, height: "1050px"}}>
             <img
             src={Profilebg}
@@ -243,7 +267,7 @@ export default function TravellerProfile() {
                     top: 162,
                     textAlign: "center",
                     fontSize: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontWeight: "700",
                     color: "white",
                     letterSpacing: 1.25,
@@ -290,7 +314,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 245,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -306,7 +330,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 310,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -322,7 +346,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 375,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -338,7 +362,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 450,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -367,578 +391,7 @@ export default function TravellerProfile() {
         }}>
             {activeSection === "info" && (
                 <div>
-                    <h1 style={{
-                        fontSize: 24, 
-                         
-                        fontWeight: '700', 
-                        letterSpacing: 1.20,
-                        color: 'rgba(173, 0, 0, 1)',
-                        position: 'absolute',
-                        left: 19,
-                        top: 10
-                    }}>
-                        Thông tin cá nhân
-                    </h1>
-
-                    {/* Hiển thị lỗi chung (nếu có) */}
-                    {error && (
-                        <p style={{
-                            color: '#B01C29',
-                            
-                            marginBottom: '10px',
-                            fontSize: '14px',
-                            textAlign: 'center',
-                            backgroundColor: '#ffe6e6',
-                            padding: '10px',
-                            borderRadius: '5px',
-                            width: '90%'
-                        }}>{error}</p>
-                    )}
-
-                    <div style={{
-                        position: 'relative',
-                        width: 867,
-                        height: 670,
-                        background: 'white',
-                        borderRadius: 20,
-                        border: '1px #878787 solid',
-                        top: 60,
-                        left: 0,
-                        paddingBottom: "140px",
-                    }}>
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 11,
-                                left: 31,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Tên Đăng Nhập</label><br />
-                            <input
-                            type="text"
-                            value={userName}
-                            disabled={true} // Không cho phép chỉnh sửa username
-                            onChange={(e) => setUsername(e.target.value)}
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 45,
-                                left: 31,
-                                width: '391px',
-                                height: '42px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                border: isEditing ? '1px solid #ccc' : 'none',
-                            }}
-                            />
-                        
-                        </div>
-                            
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 11,
-                                left: 445,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>ID người dùng</label><br />
-                            <h1
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 45,
-                                left: 445,
-                                width: '391px',
-                                height: '42px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: '#f0f0f0',
-                                border: 'none',
-                                color: '#878787'
-                            }}>{ID}</h1>
-                        </div>
-
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 108,
-                                left: 31,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Họ và tên</label><br />
-                            <input
-                            type="text"
-                            value={fullName}
-                            disabled={!isEditing}
-                            onChange={(e) => setFullName(e.target.value)}
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 142,
-                                left: 31,
-                                right: 31,
-                                height: '42px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                border: isEditing ? '1px solid #ccc' : 'none',
-                                boxSizing: 'border-box',
-                            }}
-                            />
-                        </div>
-                        
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 206,
-                                left: 31,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Giới tính</label><br />
-                            <select
-                            type="text"
-                            value={sex}
-                            disabled={!isEditing}
-                            onChange={(e) => setSex(e.target.value)}
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 239,
-                                left: 31,
-                                width: '122px',
-                                height: '42px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                border: isEditing ? '1px solid #ccc' : 'none',
-                                cursor: isEditing ? 'pointer' : 'default',
-                            }}>
-                                <option value="male">Nam</option>
-                                <option value="female">Nữ</option>
-                                <option value="undisclosed">Không muốn tiết lộ</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 206,
-                                left: 187,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Vai trò</label><br />
-                            <h1
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 239,
-                                left: 187,
-                                width: '148px',
-                                height: '42px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: '#f0f0f0',
-                                border: 'none',
-                                color: '#878787'
-                            }}>{role}</h1>
-                        </div>
-
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 206,
-                                left: 377,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Ngày sinh</label><br />
-                            <div style={{ 
-                                position: 'absolute',
-                                display: 'flex',
-                                gap: '15px',
-                                top: 239,
-                                left: 377,
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                
-                                }}>
-                                <select
-                                    value={day}
-                                    disabled={!isEditing}
-                                    onChange={(e) => setDay(e.target.value)}
-                                    style={{
-                                    borderRadius: 10,
-                                    width: '122px',
-                                    padding: '5px',
-                                    backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                    border: isEditing ? '1px solid #ccc' : 'none',
-                                    cursor: isEditing ? 'pointer' : 'default',
-                                    }}
-                                >
-                                    {[...Array(31)].map((_, i) => (
-                                    <option key={i + 1} value={i + 1}>{i + 1}</option>
-                                    ))}
-                                </select>
-                                <select
-                                    value={month}
-                                    disabled={!isEditing}
-                                    onChange={(e) => setMonth(e.target.value)}
-                                    style={{
-                                    borderRadius: 10,
-                                    width: '122px',
-                                    padding: '5px',
-                                    backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                    border: isEditing ? '1px solid #ccc' : 'none',
-                                    cursor: isEditing ? 'pointer' : 'default',
-                                    }}
-                                >
-                                    <option value="1">Tháng 1</option>
-                                    <option value="2">Tháng 2</option>
-                                    <option value="3">Tháng 3</option>
-                                    <option value="4">Tháng 4</option>
-                                    <option value="5">Tháng 5</option>
-                                    <option value="6">Tháng 6</option>
-                                    <option value="7">Tháng 7</option>
-                                    <option value="8">Tháng 8</option>
-                                    <option value="9">Tháng 9</option>
-                                    <option value="10">Tháng 10</option>
-                                    <option value="11">Tháng 11</option>
-                                    <option value="12">Tháng 12</option>
-                                </select>
-                                <select
-                                    value={year}
-                                    disabled={!isEditing}
-                                    onChange={(e) => setYear(e.target.value)}
-                                    style={{
-                                    borderRadius: 10,
-                                    width: '185px',
-                                    padding: '5px',
-                                    backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                    border: isEditing ? '1px solid #ccc' : 'none',
-                                    cursor: isEditing ? 'pointer' : 'default',
-                                    }}
-                                >
-                                    {[...Array(100)].map((_, i) => {
-                                    const y = 2025 - i;
-                                    return <option key={y} value={y}>{y}</option>;
-                                    })}
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 300,
-                                left: 31,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Thành phố cư trú</label><br />
-                            <input
-                            type="text"
-                            value={city}
-                            disabled={!isEditing}
-                            onChange={(e) => setCity(e.target.value)}
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 336,
-                                left: 31,
-                                right: 31,
-                                height: '42px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                border: isEditing ? '1px solid #ccc' : 'none',
-                                boxSizing: 'border-box',
-                            }}
-                            />
-                        </div>
-
-                        <div>
-                            <label style={{
-                                position: 'absolute',
-                                top: 400,
-                                left: 31,
-                                color: '#878787', 
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1
-                            }}>Sở thích cá nhân</label><br />
-                            <textarea
-                            value={preference}
-                            disabled={!isEditing}
-                            onChange={(e) => setPreference(e.target.value)}
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 433,
-                                left: 31,
-                                right: 31,
-                                height: '211px',
-                                padding: '5px',
-                                borderRadius: 10,
-                                backgroundColor: isEditing ? 'white' : '#f0f0f0',
-                                border: isEditing ? '1px solid #ccc' : 'none',
-                                resize: 'none',            // prevent manual resizing
-                                whiteSpace: 'pre-wrap',    // ensures line breaks and wrapping
-                                overflowWrap: 'break-word', // breaks long words if needed
-                                boxSizing: 'border-box',
-                            }}
-                            />
-                        </div>
-                        
-                        <button
-                        onClick={() => {
-                            if (isEditing) {
-                                handleSave(); // Gọi hàm lưu API
-                            } else {
-                                setIsEditing(true); // Bật chế độ chỉnh sửa
-                            }
-                        }}>
-                            <h1
-                            style={{
-                                position: 'absolute',
-                                fontSize: 20, 
-                                 
-                                fontWeight: '700', 
-                                letterSpacing: 1,
-                                top: 680,
-                                left: 588,
-                                width: '248px',
-                                height: '46px',
-                                padding: '8px',
-                                borderRadius: 10,
-                                backgroundColor: isEditing ? '#ffffffff' : 'rgba(201, 0, 0, 1)',
-                                border: 'none',
-                                color: isEditing ? 'rgba(201, 0, 0, 1)' : '#ffffffff',
-                                cursor: 'pointer',
-                                boxShadow: isEditing ? '0px 4px 10px rgba(0, 0, 0, 0.25)' : 'none'
-                            }}>{isEditing ? "Lưu chỉnh sửa" : "Chỉnh sửa thông tin" }</h1>
-                        </button>
-
-                        {/* Nút Hủy (chỉ hiển thị khi đang edit) */}
-                        {isEditing && (
-                            <button
-                            onClick={() => setIsEditing(false)}> 
-                            {/* // TODO: Nên reset lại state về giá trị ban đầu khi fetch */}
-                                <h1
-                                style={{
-                                    position: 'absolute',
-                                    fontSize: 20, 
-                                     
-                                    fontWeight: '700', 
-                                    letterSpacing: 1,
-                                    top: 680,
-                                    left: 588, // Vị trí của nút "Chỉnh sửa" cũ
-                                    width: '248px',
-                                    height: '46px',
-                                    padding: '8px',
-                                    borderRadius: 10,
-                                    backgroundColor: '#ffffffff',
-                                    border: '1px solid #878787',
-                                    color: '#555',
-                                    cursor: 'pointer',
-                                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)'
-                                }}>Hủy</h1>
-                            </button>
-                        )}
-
-                        {/* EMAIL SECTION */}
-                        <div
-                            style={{
-                            position: 'absolute',
-                            border: '1px #878787 solid',
-                            borderRadius: 12,
-                            padding: "16px 20px",
-                            top: 780,
-                            left: 0,
-                            width: 867,
-                            boxSizing: 'border-box'
-                            }}
-                        >
-                            <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                            }}
-                            >
-                                <div>
-                                    <h3
-                                    style={{
-                                        margin: 0,
-                                        fontSize: 18,
-                                        fontWeight: 700,
-                                    }}
-                                    >
-                                    Email đã liên kết
-                                    </h3>
-                                    <p
-                                    style={{
-                                        margin: 0,
-                                        color: "#999",
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                    }}
-                                    >
-                                    Mỗi tài khoản chỉ liên kết được với một email
-                                    </p>
-                                </div>
-
-                                <button
-                                    style={{
-                                    border: "1px solid black",
-                                    backgroundColor: "white",
-                                    borderRadius: 8,
-                                    padding: "8px 16px",
-                                    fontWeight: 700,
-                                    cursor: "pointer",
-                                    }}
-                                    onClick={() => setIsEditing(true)} // Bật editing email
-                                >
-                                    Thay đổi email
-                                </button>
-                            </div>
-                                <input
-                                type="email"
-                                value={email}
-                                disabled={!isEditing}
-                                onChange={(e) => setEmail(e.target.value)}
-                                style={{
-                                    marginTop: 10,
-                                    paddingTop: 10,
-                                    borderTop: '1px #878787 solid',
-                                    fontSize: 16,
-                                    fontWeight: 700,
-                                    width: '100%',
-                                    border: 'none',
-                                    backgroundColor: isEditing ? '#fff' : '#f0f0f0'
-                                }}/>
-                        </div>
-
-                        {/* PHONE SECTION */}
-                        <div
-                        style={{
-                        position: 'absolute',
-                        top: 930,
-                        left: 0,
-                        border: '1px #878787 solid',
-                        borderRadius: 12,
-                        padding: "16px 20px",
-                        width: 867,
-                        boxSizing: 'border-box'
-                        }}
-                        >
-                            <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                            }}
-                            >
-                                <div>
-                                    <h3
-                                    style={{
-                                        margin: 0,
-                                        fontSize: 18,
-                                        fontWeight: 700,
-                                    }}
-                                    >
-                                    Số di động
-                                    </h3>
-                                    <p
-                                    style={{
-                                        margin: 0,
-                                        color: "#999",
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                    }}
-                                    >
-                                    Mỗi tài khoản chỉ được thêm tối đa 1 số di động
-                                    </p>
-                                </div>
-
-                            <button
-                                style={{
-                                border: "1px solid black",
-                                backgroundColor: "white",
-                                borderRadius: 8,
-                                padding: "8px 16px",
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                }}
-                                onClick={() => {
-                                const newPhone = prompt("Nhập số di động:");
-                                if (newPhone) setPhone(newPhone);
-                                }}
-                            >
-                                Thêm số di động
-                            </button>
-                            </div>
-
-                            {/* Appears only when phone exists */}
-                            {phone && (
-                            <div
-                                style={{
-                                marginTop: 10,
-                                paddingTop: 10,
-                                borderTop: '1px #878787 solid',
-                                fontSize: 16,
-                                fontWeight: 700,
-                                }}
-                            >
-                                {phone}
-                            </div>
-                            )}
-                        </div>
-
-                    </div>
+                    <OwnerProfileDetails/>
                 </div>
             )}
 
@@ -963,7 +416,20 @@ export default function TravellerProfile() {
 
             {activeSection === "bookCalen" && (
                 <div>
-                    
+                    <h1 style={{
+                        fontSize: 24, 
+                         
+                        fontWeight: '700', 
+                        letterSpacing: 1.20,
+                        color: 'rgba(173, 0, 0, 1)',
+                        position: 'absolute',
+                        left: 19,
+                        top: 10,
+                        zIndex: 1
+                    }}>
+                        Lịch đặt phòng
+                    </h1>
+                    <BookingList/>
                 </div>
             )}
             

@@ -4,11 +4,14 @@ import Avatar from '../images/Avatar.png';
 import home from '../images/Home.svg';
 import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
+import defaultAvatar from "../images/avatar-default.svg"
 
 export default function Navbar() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
+  const hasAvatar = false;
+  const avatarImage = hasAvatar ? Avatar : defaultAvatar; // REMEMBER TO ALTER
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -49,12 +52,12 @@ export default function Navbar() {
         
         <div ref={menuRef}>
           <img
-          src={Avatar}
+          src={avatarImage}
           alt="Avatar"
           onClick={() => setOpen(!open)}
           style={{
-            height: 45,
-            width: 45,
+            height: 35,
+            width: 35,
             borderRadius: '50%',
             objectFit: 'cover',
             boxShadow: '0 1px 2px rgba(0,0,0,0.25)',

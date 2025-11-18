@@ -61,7 +61,6 @@ export default function TravellerProfile() {
             if (!token) {
               setError("Bạn chưa đăng nhập.");
               setLoading(false);
-              navigate("/"); // Chuyển về trang đăng nhập nếu không có token
               return;
             }
 
@@ -270,7 +269,7 @@ export default function TravellerProfile() {
                     top: 162,
                     textAlign: "center",
                     fontSize: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontWeight: "700",
                     color: "white",
                     letterSpacing: 1.25,
@@ -317,7 +316,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 245,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -333,7 +332,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 310,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -349,7 +348,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 375,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -365,7 +364,7 @@ export default function TravellerProfile() {
                     position: "absolute",
                     top: 450,
                     left: 25,
-                    fontFamily: "Montserrat",
+                    
                     fontSize: 24,
                     letterSpacing: 1.20,
                     fontWeight: '700',
@@ -762,7 +761,7 @@ export default function TravellerProfile() {
                             }}>{isEditing ? "Lưu chỉnh sửa" : "Chỉnh sửa thông tin" }</h1>
                         </button>
 
-                        <div style={{ fontFamily: "Montserrat", width: 600 }}>
+                        <div style={{  width: 600 }}>
                             {/* EMAIL SECTION */}
                             <div
                                 style={{

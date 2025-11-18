@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 function RoomCard({ image, category, categoryColor, name, price, isAvailable }) {
   const [available, setAvailable] = useState(isAvailable);
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div style={{
@@ -159,17 +174,53 @@ function RoomCard({ image, category, categoryColor, name, price, isAvailable }) 
             </span>
           </div>
 
-          {/* Three Dots Menu */}
-          <button style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '20px',
-            cursor: 'pointer',
-            padding: '0 5px',
-            color: '#666'
-          }}>
-            ⋮
-          </button>
+          <div ref={menuRef}>
+            {/* Three Dots Menu */}
+            <button 
+            onClick={() => setOpen(!open)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '20px',
+              cursor: 'pointer',
+              padding: '0 5px',
+              color: '#666'
+            }}>
+              ⋮
+            </button>
+
+            {open && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "280px",
+                  right: -10  ,
+                  backgroundColor: "white",
+                  borderRadius: "8px",
+                  width: "100px",
+                  padding: "10px 0",
+                  zIndex: 1000,
+                  marginRight: 40
+                }}
+              >
+                <div
+                  onMouseEnter={(e) => e.target.style.color = '#DC143C'}
+                  onMouseLeave={(e) => e.target.style.color = '#000000ff'}
+                  style={{
+                    padding: "10px 15px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    color: "#333",
+                  }}
+                  onClick={() => navigate("/ModifyAccommodationForm")}
+                >
+                  Chỉnh sửa
+                </div>
+              </div>
+            )}
+
+          </div>
+
         </div>
       </div>
     </div>
