@@ -123,7 +123,7 @@ function SignUpPage() {
             marginBottom: '20px',
             fontSize: '24px',
             fontWeight: '700',
-            fontFamily: 'Montserrat'
+    
           }}>Đăng ký</h1>
 
           {/* Username */}
@@ -131,7 +131,7 @@ function SignUpPage() {
             marginBottom: '5px',
             fontSize: '15px',
             fontWeight: '450',
-            fontFamily: 'Montserrat'
+      
           }}>Tên đăng nhập</label>
 
           {/* ✅ THÊM: required để bắt buộc nhập */}
@@ -148,7 +148,7 @@ function SignUpPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '15px',
-              fontFamily: 'Montserrat',
+       
               fontSize: '15px'
             }}
           />
@@ -167,7 +167,7 @@ function SignUpPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '15px',
-              fontFamily: 'Montserrat',
+       
               fontSize: '15px'
             }}
           />
@@ -175,7 +175,7 @@ function SignUpPage() {
           {/* Password */}
           <label style={{
             marginBottom: '5px',
-            fontFamily: 'Montserrat',
+      
             fontWeight: '450',
             fontSize: '15px'
           }}>Mật khẩu</label>
@@ -194,7 +194,7 @@ function SignUpPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '10px',
-              fontFamily: 'Montserrat',
+     
               fontSize: '15px'
             }}
           />
@@ -202,7 +202,7 @@ function SignUpPage() {
           {/* Confirm Password */}
           <label style={{
             marginBottom: '5px',
-            fontFamily: 'Montserrat',
+ 
             fontWeight: '450',
             fontSize: '15px'
           }}>Xác nhận mật khẩu</label>
@@ -220,7 +220,7 @@ function SignUpPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '10px',
-              fontFamily: 'Montserrat',
+ 
               fontSize: '15px'
             }}
           />
@@ -230,7 +230,7 @@ function SignUpPage() {
           {error && (
             <p style={{
               color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand thay vì 'red'
-              fontFamily: 'Montserrat',
+      
               marginBottom: '10px',
               fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size từ 14px xuống 13px
               textAlign: 'center',
@@ -245,7 +245,7 @@ function SignUpPage() {
             marginTop: '5px',
             marginBottom: '10px',
             fontSize: '14px',
-            fontFamily: 'Montserrat'
+   
           }}>
             Bạn đã có tài khoản?{" "}
             {/* ✅ SỬA: Đổi thành button type="button" để tránh submit form */}
@@ -258,7 +258,7 @@ function SignUpPage() {
                 color: '#B01C29',
                 cursor: 'pointer',
                 textDecoration: 'underline',
-                fontFamily: 'Montserrat'
+       
               }}
             >
               Đăng nhập tại đây.
@@ -278,7 +278,7 @@ function SignUpPage() {
               width: '100%',
               marginBottom: '25px',
               marginTop: '1px',
-              fontFamily: 'Montserrat',
+     
               fontSize: '14px'
             }}
           >
@@ -303,7 +303,7 @@ function SignUpPage() {
               width: '100%',
               cursor: loading ? 'not-allowed' : 'pointer', // ✅ THÊM
               fontWeight: 'bold',
-              fontFamily: 'Montserrat',
+
               transition: 'background-color 0.3s' // ✅ MỚI THÊM: Smooth transition
             }}
           >
@@ -314,7 +314,7 @@ function SignUpPage() {
           {/* Cautions */}
           {/* ✅ MỚI CẬP NHẬT: Thêm color: '#666' và cursor pointer cho link */}
           <p style={{
-            fontFamily: 'Montserrat',
+    
             fontSize: '11px',
             textAlign: 'center',
             marginTop: '19px',
