@@ -43,8 +43,7 @@ export default function App() {
         <Route path="/booking" element={<BookingDetailPage/>} />
         <Route path="/confirm" element={<BookingConfirmPage/>} />
         <Route path="/formpage" element={<BookingFormPage/>} />
-        <Route path="/ModifyAccommodationForm" element={<ModifyAccommodationForm/>} />
-        
+        <Route path="/modify-accommodation/:id" element={<ModifyAccommodationForm/>} />        
         {/* Route 404 (Tùy chọn: Bắt các link sai) */}
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>

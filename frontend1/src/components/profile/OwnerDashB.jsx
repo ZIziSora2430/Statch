@@ -1,12 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function RoomCard({ image, category, categoryColor, name, price, isAvailable }) {
+function RoomCard({id, image, category, categoryColor, name, price, isAvailable }) {
   const [available, setAvailable] = useState(isAvailable);
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setAvailable(isAvailable);
+  }, [isAvailable]);
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -111,7 +117,7 @@ function RoomCard({ image, category, categoryColor, name, price, isAvailable }) 
             fontWeight: 'bold',
             color: '#DC143C'
           }}>
-            {price}
+            {Number(price).toLocaleString('vi-VN')} VNĐ
           </p>
         </div>
 
@@ -212,8 +218,7 @@ function RoomCard({ image, category, categoryColor, name, price, isAvailable }) 
                     fontSize: "14px",
                     color: "#333",
                   }}
-                  onClick={() => navigate("/ModifyAccommodationForm")}
-                >
+                  onClick={() => navigate(`/modify-accommodation/${id}`)}                >
                   Chỉnh sửa
                 </div>
               </div>
@@ -227,212 +232,81 @@ function RoomCard({ image, category, categoryColor, name, price, isAvailable }) 
   );
 }
 
-export default function RoomListingGrid() {
-  const rooms = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400',
-      category: 'Khách sạn',
-      categoryColor: '#8B0000',
-      name: 'FiveStar Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: true
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
-      category: 'Villa',
-      categoryColor: '#006B7D',
-      name: 'Luxury Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: true
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: true
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400',
-      category: 'Khách sạn',
-      categoryColor: '#8B0000',
-      name: 'FiveStar Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400',
-      category: 'Villa',
-      categoryColor: '#006B7D',
-      name: 'Luxury Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400',
-      category: 'Căn hộ',
-      categoryColor: '#B8860B',
-      name: 'Nicey Hotel',
-      price: '800000 VNĐ/Đêm',
-      isAvailable: false
-    }
-  ];
+export default function OwnerDashB() {
+  const navigate = useNavigate();
+  // 1. Thay mảng cứng bằng State
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Hàm helper chọn màu cho loại phòng
+  const getCategoryColor = (type) => {
+    const colors = {
+        'Khách sạn': '#8B0000',
+        'Biệt thự': '#006B7D',
+        'Căn hộ': '#B8860B',
+        'Homestay': '#2E8B57',
+        'Resort': '#4B0082'
+    };
+    return colors[type] || '#006B7D'; // Màu mặc định
+  };
+
+
+  // 2. Fetch API khi component load
+  useEffect(() => {
+    const fetchAccommodations = async () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+          setLoading(false);
+          return;
+      }
+
+      try {
+        // Gọi Endpoint lấy danh sách nhà của Owner
+        const response = await fetch(`${API_URL}/api/owner/accommodations/`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Data fetched:", data);
+
+            // 3. MAP DỮ LIỆU: Backend (snake_case) -> Frontend (camelCase)
+            const mappedData = data.map(item => ({
+                id: item.accommodation_id,          // Backend: accommodation_id
+                image: item.picture_url,            // Backend: picture_url
+                name: item.title,                   // Backend: title
+                price: item.price,                  // Backend: price (số)
+                category: item.property_type,       // Backend: property_type
+                categoryColor: getCategoryColor(item.property_type), // Tự sinh màu
+                isAvailable: item.status === 'available' // Chuyển status thành boolean
+            }));
+
+            setRooms(mappedData);
+        } else {
+            console.error("Failed to fetch accommodations");
+        }
+      } catch (error) {
+        console.error("Error fetching accommodations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccommodations();
+  }, []);
 
   const handleClick = (e) => {
     e.stopPropagation();
-    window.location.href = '/AddAccommodationForm';
+    navigate('/AddAccommodationForm'); // Dùng navigate thay vì window.location để mượt hơn
   }
+
+  // Hiển thị khi đang tải
+  if (loading) return <div style={{textAlign: 'center', padding: 50}}>Đang tải danh sách chỗ ở...</div>;
+
 
   return (
     <div style={{
@@ -444,30 +318,34 @@ export default function RoomListingGrid() {
     }}>
 
       {/* Grid of Room Cards */}
-<div
-  style={{
-    position: "relative", // ✅ Not absolute — so it grows naturally
-    margin: "80px auto",
-    width: "880px",
-    maxHeight: 1000, // limit height instead of forcing
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-    gap: "20px",
-    overflowY: "auto",
-    padding: "20px",
-    boxSizing: "border-box",
-    backgroundColor: "#fff",
-    borderRadius: "16px",
-  }}
->
-  {rooms.map((room, index) => (
-    <RoomCard key={index} {...room} />
-  ))}
-</div>
-
-
-
-
+      <div
+        style={{
+          position: "relative", // ✅ Not absolute — so it grows naturally
+          margin: "80px auto",
+          width: "880px",
+          maxHeight: 1000, // limit height instead of forcing
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+          gap: "20px",
+          overflowY: "auto",
+          padding: "20px",
+          boxSizing: "border-box",
+          backgroundColor: "#fff",
+          borderRadius: "16px",
+        }}
+      >
+        {/* Kiểm tra nếu có dữ liệu thì render, không thì báo trống */}
+        {rooms.length > 0 ? (
+            rooms.map((room) => (
+                <RoomCard key={room.id} {...room} />
+            ))
+        ) : (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", color: "#888", marginTop: 50 }}>
+                <h3>Bạn chưa có chỗ ở nào.</h3>
+                <p>Bấm nút "+" để đăng bài đầu tiên!</p>
+            </div>
+        )}
+      </div>
 
       {/* Add Button */}
       <button style={{

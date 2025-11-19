@@ -6,7 +6,7 @@ from . import schemas
 from .security_helpers import hash_password, verify_password
 
 
-# --- Các hàm logic nghiệp vụ (tách ra từ router) ---
+# --- Các hàm logic nghiệp vụ ---
 
 def get_user_by_username(db: Session, username: str):
     return db.scalar(select(models.User).where(models.User.username == username))

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 
 # Import các thành phần từ các file "trung tâm"
 from .. import models, database  # Import từ thư mục app/
@@ -136,3 +137,18 @@ def update_accommodation_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Không thể cập nhật chỗ ở: {str(e)}"
         )
+
+
+@router.get(
+    "/", 
+    response_model=List[schemas.AccommodationRead]
+)
+def get_my_accommodations_endpoint(
+    db: Session = Depends(database.get_db),
+    current_owner: models.User = Depends(get_current_active_owner)
+):
+    """
+    API lấy danh sách nhà của chính Owner đang đăng nhập.
+    URL thực tế: GET /api/owner/accommodations/
+    """
+    return service.get_accommodations_by_owner(db, owner_id=current_owner.id)
