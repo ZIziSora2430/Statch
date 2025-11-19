@@ -1,6 +1,6 @@
 import React from 'react';
-import SuccessBookingbg from "../images/SuccessBookingbg.svg"
-import Avatar from "../images/Avatar.png"
+import SuccessBookingbg from "../../images/SuccessBookingbg.svg";
+import Avatar from "../../images/Avatar.png"
 
 // Separate component for Confirmed Status
 function ConfirmedStatus() {

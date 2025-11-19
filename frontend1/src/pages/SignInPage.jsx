@@ -108,14 +108,14 @@ function SignInPage() {
             marginBottom: '20px',
             fontSize: '24px',
             fontWeight: '700',
-            fontFamily: 'Montserrat'
+            
           }}>Đăng nhập</h1>
 
           <h1 style={{
             marginBottom: '5px',
             fontSize: '15px',
             fontWeight: '450',
-            fontFamily: 'Montserrat'
+            
           }}>Tên đăng nhập</h1>
 
           {/* ✅ THÊM: value và onChange để lưu username vào state */}
@@ -131,14 +131,14 @@ function SignInPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '15px',
-              fontFamily: 'Montserrat',
+             
               fontSize: '15px'
             }}
           />
 
           <label style={{
             marginBottom: '5px',
-            fontFamily: 'Montserrat',
+         
             fontWeight: '450',
             fontSize: '15px'
           }}>Mật khẩu</label>
@@ -156,7 +156,7 @@ function SignInPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '10px',
-              fontFamily: 'Montserrat',
+             
               fontSize: '15px'
             }}
           />
@@ -166,7 +166,7 @@ function SignInPage() {
           {error && (
             <p style={{
               color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand
-              fontFamily: 'Montserrat',
+       
               marginBottom: '10px',
               fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size
               textAlign: 'center',
@@ -189,7 +189,7 @@ function SignInPage() {
               color: '#333',
               textDecoration: 'none',
               marginBottom: '20px',
-              fontFamily: 'Montserrat',
+        
               cursor: 'pointer'
             }}
           >
@@ -210,7 +210,7 @@ function SignInPage() {
               width: '100%',
               cursor: loading ? 'not-allowed' : 'pointer', // ✅ THÊM: Đổi cursor khi loading
               fontWeight: 'bold',
-              fontFamily: 'Montserrat',
+     
               transition: 'background-color 0.3s' // ✅ MỚI THÊM: Smooth transition
             }}
           >
@@ -222,7 +222,7 @@ function SignInPage() {
             textAlign: 'center',
             marginTop: '15px',
             fontSize: '14px',
-            fontFamily: 'Montserrat'
+    
           }}>
             Bạn không có tài khoản?{" "}
             {/* ✅ SỬA: Đổi từ <a> thành <button> với type="button" để tránh submit form */}
@@ -235,7 +235,7 @@ function SignInPage() {
                 color: '#B01C29',
                 cursor: 'pointer',
                 textDecoration: 'underline',
-                fontFamily: 'Montserrat'
+          
               }}
             >
               Đăng ký tại đây.
