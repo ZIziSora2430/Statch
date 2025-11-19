@@ -35,7 +35,7 @@ export default function TravellerProfile() {
     const [month, setMonth] = useState("1");
     const [year, setYear] = useState("2000");
     const [city, setCity] = useState("DATA TU USER")
-    const [preference, setPreference] = useState("testingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtesting")
+    const [preference, setPreference] = useState("Hãy ghi sở thích cá nhân của bạn ở đây...");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     
@@ -75,12 +75,32 @@ export default function TravellerProfile() {
                 setEmail(data.email || "");       // service.py có 'email'
                 setID(data.id || "");             // service.py có 'id' (thường là số)
 
-                // ⚠️ Các trường (sex, city, phone, preference, dob) không có 
-                // trong 'models.User' của bạn, nên chúng sẽ là giá trị default ("")
-                // setSex(data.sex || "nam"); 
-                // setCity(data.city || "");
-                // ...
-              } else {
+                setPhone(data.phone || "");
+                setSex(data.sex || "nam"); // 'nam' là giá trị default
+                setCity(data.city || "");
+                setPreference(data.preference || "");
+
+                // Xử lý DOB (Date of Birth)
+                if (data.dob) {
+                    // data.dob sẽ là "YYYY-MM-DD"
+                    // Dùng getUTCDate để tránh lỗi timezone
+                    const dobDate = new Date(data.dob); 
+                    const apiDay = dobDate.getUTCDate();
+                    const apiMonth = dobDate.getUTCMonth() + 1; // JS tháng từ 0-11
+                    const apiYear = dobDate.getUTCFullYear();
+                    
+                    setDay(apiDay);
+                    setMonth(apiMonth);
+                    setYear(apiYear);
+
+                    // Lưu giá trị gốc
+                    setOriginalDay(apiDay);
+                    setOriginalMonth(apiMonth);
+                    setOriginalYear(apiYear);
+                } 
+            }   
+            
+            else {
                 setError(data.detail || "Không thể tải thông tin cá nhân.");
                 if (response.status === 401) {
                     navigate("/"); // Token hết hạn hoặc không hợp lệ
@@ -105,13 +125,19 @@ export default function TravellerProfile() {
             setError("Lỗi xác thực. Vui lòng đăng nhập lại.");
             return;
         }
+        const formattedMonth = String(month).padStart(2, '0');
+        const formattedDay = String(day).padStart(2, '0');
+        const dobString = `${year}-${formattedMonth}-${formattedDay}`;
 
         // Dựa trên service.py, hàm update_user chỉ nhận full_name và email
         const payload = {
             full_name: fullName,
             email: email,
-            // ⚠️ Các trường khác (city, sex, v.v.) sẽ không được lưu
-            // trừ khi bạn cập nhật schemas.UserUpdate và service.py
+            phone: phone,         
+            sex: sex,          
+            city: city,           
+            preference: preference,
+            dob: dobString
         };
 
         console.log("🚀 Đang gửi dữ liệu cập nhật:", payload);
@@ -130,9 +156,20 @@ export default function TravellerProfile() {
 
             if (response.ok) {
                 alert("Cập nhật thông tin thành công!");
-                // Cập nhật lại state từ dữ liệu trả về (nếu cần)
-                setFullName(data.full_name || "");
+              setFullName(data.full_name || "");
                 setEmail(data.email || "");
+                setPhone(data.phone || "");
+                setSex(data.sex || "nam");
+                setCity(data.city || "");
+                setPreference(data.preference || "");
+
+                if (data.dob) {
+                    const dobDate = new Date(data.dob);
+                    setDay(dobDate.getUTCDate());
+                    setMonth(dobDate.getUTCMonth() + 1);
+                    setYear(dobDate.getUTCFullYear());
+                }
+                
                 setIsEditing(false); // Tắt chế độ chỉnh sửa
             } else {
                  // Xử lý lỗi, ví dụ email đã tồn tại

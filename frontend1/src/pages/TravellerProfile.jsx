@@ -31,7 +31,7 @@ export default function TravellerProfile() {
 
 
     const isOwner = localStorage.getItem("user_role") === "owner";
-    const role = isOwner ? "Người cho thuê" : "Người thuê";
+    const role = isOwner ? "Cho thuê" : "Người thuê";
 
 
     const [sex, setSex] = useState("nam")
@@ -39,7 +39,7 @@ export default function TravellerProfile() {
     const [month, setMonth] = useState("1");
     const [year, setYear] = useState("2000");
     const [city, setCity] = useState("DATA TU USER")
-    const [preference, setPreference] = useState("testingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtestingtesting")
+    const [preference, setPreference] = useState("Hãy ghi sở thích cá nhân của bạn ở đây...");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
 
@@ -48,7 +48,14 @@ export default function TravellerProfile() {
     const [originalFullName, setOriginalFullName] = useState("");
     const [originalEmail, setOriginalEmail] = useState("");
     const [originalPhone, setOriginalPhone] = useState("");
-    
+
+    const [originalSex, setOriginalSex] = useState("nam");
+    const [originalDay, setOriginalDay] = useState("1");
+    const [originalMonth, setOriginalMonth] = useState("1");
+    const [originalYear, setOriginalYear] = useState("2000");
+    const [originalCity, setOriginalCity] = useState("");
+    const [originalPreference, setOriginalPreference] = useState("");
+        
     // useEffect để fetch data khi component được tải
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -84,15 +91,38 @@ export default function TravellerProfile() {
                 setEmail(data.email || "");       
                 setID(data.id || "");             
 
+                setPhone(data.phone || "");
+                setSex(data.sex || "nam"); // 'nam' là giá trị default
+                setCity(data.city || "");
+                setPreference(data.preference || "");
+
+                // Xử lý DOB (Date of Birth)
+                if (data.dob) {
+                    // data.dob sẽ là "YYYY-MM-DD"
+                    // Dùng getUTCDate để tránh lỗi timezone
+                    const dobDate = new Date(data.dob); 
+                    const apiDay = dobDate.getUTCDate();
+                    const apiMonth = dobDate.getUTCMonth() + 1; // JS tháng từ 0-11
+                    const apiYear = dobDate.getUTCFullYear();
+                    
+                    setDay(apiDay);
+                    setMonth(apiMonth);
+                    setYear(apiYear);
+
+                    // Lưu giá trị gốc
+                    setOriginalDay(apiDay);
+                    setOriginalMonth(apiMonth);
+                    setOriginalYear(apiYear);
+                }
+
                 // 4. Lưu giá trị gốc
                 setOriginalFullName(data.full_name || "");
                 setOriginalEmail(data.email || "");
+                setOriginalPhone(data.phone || "");
+                setOriginalSex(data.sex || "nam");
+                setOriginalCity(data.city || "");
+                setOriginalPreference(data.preference || "");
 
-                // ⚠️ Các trường (sex, city, phone, preference, dob) không có 
-                // trong 'models.User', nên chúng sẽ là giá trị default
-
-                // setPhone(data.phone || ""); // Bỏ comment nếu backend có
-                // setOriginalPhone(data.phone || ""); // Bỏ comment nếu backend có
               } else {
                 setError(data.detail || "Không thể tải thông tin cá nhân.");
                 if (response.status === 401) {
@@ -120,11 +150,22 @@ export default function TravellerProfile() {
             return;
         }
 
+        // --- BỔ SUNG: GỘP NGÀY SINH ---
+        // Đảm bảo 2 chữ số (ví dụ: '1' -> '01')
+        const formattedMonth = String(month).padStart(2, '0');
+        const formattedDay = String(day).padStart(2, '0');
+        // Format chuẩn YYYY-MM-DD mà API/DB hiểu
+        const dobString = `${year}-${formattedMonth}-${formattedDay}`;
+
         // hàm update_user chỉ nhận full_name và email
         const payload = {
             full_name: fullName,
             email: email,
-            // ⚠️ Các trường (city, sex, phone, v.v.) sẽ KHÔNG được lưu
+            phone: phone,         
+            sex: sex,          
+            city: city,           
+            preference: preference,
+            dob: dobString    
         };
 
         try {
@@ -141,12 +182,37 @@ export default function TravellerProfile() {
 
             if (response.ok) {
                 alert("Cập nhật thông tin thành công!");
-                // Cập nhật lại state và state gốc
+                // Cập nhật lại state và state gốc TỪ PHẢN HỒI API
                 setFullName(data.full_name || "");
                 setEmail(data.email || "");
+                setPhone(data.phone || "");
+                setSex(data.sex || "nam");
+                setCity(data.city || "");
+                setPreference(data.preference || "");
+
+                // Xử lý DOB
+                if (data.dob) {
+                    const dobDate = new Date(data.dob);
+                    const apiDay = dobDate.getUTCDate();
+                    const apiMonth = dobDate.getUTCMonth() + 1;
+                    const apiYear = dobDate.getUTCFullYear();
+                    
+                    setDay(apiDay);
+                    setMonth(apiMonth);
+                    setYear(apiYear);
+                    setOriginalDay(apiDay);
+                    setOriginalMonth(apiMonth);
+                    setOriginalYear(apiYear);
+                }
+
+                // Cập nhật giá trị gốc
                 setOriginalFullName(data.full_name || "");
                 setOriginalEmail(data.email || "");
-                
+                setOriginalPhone(data.phone || "");
+                setOriginalSex(data.sex || "nam");
+                setOriginalCity(data.city || "");
+                setOriginalPreference(data.preference || "");
+
                 setIsEditing(false); // Tắt chế độ chỉnh sửa
             } else {
                  if (response.status === 400) {
@@ -168,11 +234,12 @@ export default function TravellerProfile() {
         setFullName(originalFullName);
         setEmail(originalEmail);
         setPhone(originalPhone);
-        
-        // Reset các giá trị local (nếu muốn)
-        // setSex("nam");
-        // setCity("");
-        // ...
+        setSex(originalSex);
+        setCity(originalCity);
+        setPreference(originalPreference);
+        setDay(originalDay);
+        setMonth(originalMonth);
+        setYear(originalYear);
     };
 
 
@@ -740,7 +807,14 @@ export default function TravellerProfile() {
                         </div>
                         
                         <button
-                        onClick={() => setIsEditing(!isEditing)}>
+                            onClick={() => {
+                                if (isEditing) {
+                                    handleSave(); // Gọi API lưu dữ liệu
+                                } else {
+                                    setIsEditing(true); // Bật chế độ chỉnh sửa
+                                }
+                            }}
+                        >
                             <h1
                             style={{
                                 position: 'absolute',

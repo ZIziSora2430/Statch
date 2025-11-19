@@ -56,12 +56,11 @@ def read_me(current_user: models.User = Depends(get_current_user)):
 def update_me(payload: schemas.UserUpdate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     
     current_user = service.update_user(db, current_user, payload)
-
+    
     if not current_user:
         raise HTTPException(status_code=400, detail="Email already used")
     
     return current_user
-
 
 # ======= Example protected routes =======
 @router.get("/owner/dashboard")
