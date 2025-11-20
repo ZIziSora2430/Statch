@@ -17,9 +17,14 @@ export default function BookingFormPage() {
     pricePerNight = 1450000,
     checkin = "20/11/2025",
     checkout = "22/11/2025",
-    guests = 2,
+    guests: initialGuests = 2,
+    rooms: initialRooms = 1,    // ⬅️ thêm rooms nhận từ trước
     nights = 2,
   } = dataFromDetail;
+
+  // state chỉnh được số khách / số phòng
+  const [numGuests, setNumGuests] = useState(initialGuests);
+  const [numRooms, setNumRooms] = useState(initialRooms);
 
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
@@ -33,7 +38,8 @@ export default function BookingFormPage() {
       maximumFractionDigits: 0,
     }).format(value);
 
-  const totalPrice = pricePerNight * nights;
+  // tổng tiền theo số phòng
+  const totalPrice = pricePerNight * nights * numRooms;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -45,10 +51,12 @@ export default function BookingFormPage() {
       pricePerNight,
       checkin,
       checkout,
-      guests,
+      guests: numGuests,      // ⬅️ dùng số khách đã chỉnh
+      rooms: numRooms,        // ⬅️ số phòng đã chỉnh
       nights,
       totalPrice,
-      bookingCode: "STATCH-" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      bookingCode:
+        "STATCH-" + Math.random().toString(36).substring(2, 8).toUpperCase(),
       guestName,
       guestEmail,
       guestPhone,
@@ -90,7 +98,10 @@ export default function BookingFormPage() {
               <span className="font-semibold">Check-out:</span> {checkout}
             </p>
             <p>
-              <span className="font-semibold">Số khách:</span> {guests} người
+              <span className="font-semibold">Số khách:</span> {numGuests} người
+            </p>
+            <p>
+              <span className="font-semibold">Số phòng:</span> {numRooms} phòng
             </p>
             <p>
               <span className="font-semibold">Số đêm:</span> {nights} đêm
@@ -98,6 +109,30 @@ export default function BookingFormPage() {
             <p className="font-semibold text-[#BF1D2D] mt-1">
               Tổng tạm tính: {formatCurrency(totalPrice)}
             </p>
+          </div>
+
+          {/* Chỉnh số khách / số phòng */}
+          <div className="flex flex-wrap gap-4 items-center text-sm sm:text-base">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Số khách:</span>
+              <input
+                type="number"
+                min={1}
+                value={numGuests}
+                onChange={(e) => setNumGuests(Math.max(1, Number(e.target.value) || 1))}
+                className="w-20 px-2 py-1 border rounded-lg text-center"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Số phòng:</span>
+              <input
+                type="number"
+                min={1}
+                value={numRooms}
+                onChange={(e) => setNumRooms(Math.max(1, Number(e.target.value) || 1))}
+                className="w-20 px-2 py-1 border rounded-lg text-center"
+              />
+            </div>
           </div>
 
           {/* Form thông tin khách */}

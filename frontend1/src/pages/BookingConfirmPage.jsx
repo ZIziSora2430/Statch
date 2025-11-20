@@ -1,3 +1,4 @@
+// src/pages/BookingConfirmPage.jsx
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -7,8 +8,8 @@ export default function BookingConfirmPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Nếu bạn navigate từ trang chi tiết phòng bằng state,
-  // có thể lấy dữ liệu ở đây:
+  // Nếu bạn navigate từ trang trước có truyền state thì lấy ra,
+  // nếu không sẽ dùng dữ liệu mặc định để không bị lỗi trắng trang.
   const bookingData = location.state || {
     roomName: "Phòng Deluxe Hướng Biển",
     hotelLocation: "Đà Nẵng, Việt Nam",
@@ -132,7 +133,11 @@ export default function BookingConfirmPage() {
                 Giá mỗi đêm ({bookingData.nights} đêm x{" "}
                 {formatCurrency(bookingData.pricePerNight)})
               </span>
-              <span>{formatCurrency(bookingData.pricePerNight * bookingData.nights)}</span>
+              <span>
+                {formatCurrency(
+                  bookingData.pricePerNight * bookingData.nights
+                )}
+              </span>
             </div>
             <div className="flex justify-between font-semibold text-gray-900 text-base sm:text-lg">
               <span>Tổng thanh toán</span>
@@ -152,6 +157,15 @@ export default function BookingConfirmPage() {
 
           {/* Action buttons */}
           <div className="flex flex-wrap justify-end gap-3 pt-2">
+            {/* NÚT ĐẶT PHÒNG KHÁC  */}
+            <button
+              type="button"
+              onClick={() => navigate("/booking")} // route tới trang chọn phòng
+              className="px-4 py-2 rounded-full border border-[#BF1D2D] text-sm sm:text-base text-[#BF1D2D] hover:bg-red-50 transition"
+            >
+              Đặt phòng khác
+            </button>
+
             <button
               type="button"
               onClick={() => navigate(-1)}
