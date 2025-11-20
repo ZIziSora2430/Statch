@@ -3,6 +3,7 @@
 # ========================================
 from pydantic import BaseModel, EmailStr, ConfigDict
 from enum import Enum
+from datetime import date  
 
 # Enum cho role (khớp với models.UserRole)
 class RoleEnum(str, Enum):
@@ -25,6 +26,13 @@ class UserResponse(BaseModel):
     role: RoleEnum
     full_name: str | None = None
 
+    #Bổ sung các trường mới
+    sex: str | None = None
+    dob: date | None = None
+    city: str | None = None
+    phone: str | None = None
+    preference: str | None = None
+
     model_config = ConfigDict(from_attributes=True)  # ✅ Pydantic v2 syntax
 
 # Schema đăng nhập
@@ -42,3 +50,9 @@ class Token(BaseModel):
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     full_name: str | None = None
+    
+    sex: str | None = None
+    dob: date | None = None
+    city: str | None = None
+    phone: str | None = None
+    preference: str | None = None

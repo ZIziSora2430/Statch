@@ -22,6 +22,10 @@ class User(Base):
     role = Column(Enum(UserRole), nullable=False, default=UserRole.traveler)
     full_name = Column(String(100), nullable=True)
 
+    sex = Column(String(20), nullable=True)
+    dob = Column(DATE, nullable=True) # dob = Date of Birth     
+    phone = Column(String(20), nullable=True, unique=True)
+    preference = Column(TEXT, nullable=True)
 
     # --- Bổ sung Relationships ---
     # Một User (owner) có thể có nhiều Accommodation

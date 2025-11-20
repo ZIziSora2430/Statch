@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ImageUpload from '../components/CloudinaryUpload.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -36,25 +36,72 @@ const MOCK_TYPES = [
     { value: 'hotel', label: 'Khách sạn' },
 ];
 
-export default function AddAccommodationForm() {
+export default function ModifyAccommodationForm() {
     const navigate = useNavigate();
 
-    // === STATE KHỚP CHÍNH XÁC VỚI schemas.AccommodationCreate ===
-    const [title, setTitle] = useState('');           
-    const [location, setLocation] = useState('');     // location (Địa chỉ)
-    const [price, setPrice] = useState(0);            // price (Giá)
-    const [maxGuests, setMaxGuests] = useState(1);    // max_guests (Số khách tối đa)
-    const [propertyType, setPropertyType] = useState('apartment'); // property_type (Loại chỗ ở)
-    const [description, setDescription] = useState('');// description (Mô tả)
-    // Cần phải có giá trị mặc định cho các trường bắt buộc nhưng chưa có input UI
-    const [pictureUrl, setPictureUrl] = useState("");    
-    const [latitude, setLatitude] = useState(10.77);  // MOCK: Tọa độ mặc định (TP HCM)
-    const [longitude, setLongitude] = useState(106.69); // MOCK: Tọa độ mặc định (TP HCM)
+    // Lấy accommodationId từ location state (nếu có)
+    const { id } = useParams();
+    const accommodationId = id;
 
+
+    // === STATE ===
+    const [title, setTitle] = useState('');           
+    const [location, setLocation] = useState('');     
+    const [price, setPrice] = useState(0);            
+    const [maxGuests, setMaxGuests] = useState(1);    
+    const [propertyType, setPropertyType] = useState('Khách sạn'); 
+    const [description, setDescription] = useState('');
+    const [pictureUrl, setPictureUrl] = useState(""); 
+    
+    // Giữ nguyên tọa độ nếu user không đổi địa chỉ
+    const [latitude, setLatitude] = useState(null);  
+    const [longitude, setLongitude] = useState(null);
     // State UI
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(true); // Loading khi lấy dữ liệu ban đầu
+    useEffect(() => {
+        if (!accommodationId) {
+            alert("Không tìm thấy ID chỗ ở cần sửa!");
+            navigate('/profile'); // Quay về profile nếu lỗi
+            return;
+        }
+        const fetchDetails = async () => {
+            try {
+                const token = localStorage.getItem("access_token");
+                // Gọi API lấy chi tiết (dùng endpoint public hoặc owner đều được)
+                const response = await fetch(`${API_URL}/api/accommodations/${accommodationId}`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // "Đổ" dữ liệu vào form
+                    setTitle(data.title || '');
+                    setLocation(data.location || '');
+                    setPrice(data.price || 0);
+                    setMaxGuests(data.max_guests || 1);
+                    setPropertyType(data.property_type || 'Khách sạn');
+                    setDescription(data.description || '');
+                    setPictureUrl(data.picture_url || '');
+                    setLatitude(data.latitude);
+                    setLongitude(data.longitude);
+                } else {
+                    setError("Không thể tải thông tin chỗ ở.");
+                }
+            } catch (err) {
+                console.error(err);
+                setError("Lỗi kết nối khi tải dữ liệu.");
+            } finally {
+                setFetching(false);
+            }
+        };
+
+        fetchDetails();
+    }, [accommodationId, navigate]);
 
     // Ham xu ly submit form
     const handleSubmit = async (e) => {
@@ -76,16 +123,18 @@ export default function AddAccommodationForm() {
             price: parseFloat(price), 
             max_guests: parseInt(maxGuests), 
             property_type: propertyType,
-            description: description || null, // Gửi null nếu trống (vì Optional)
-            picture_url: pictureUrl, // Dùng URL mặc định/mock
-            latitude: parseFloat(latitude), 
-            longitude: parseFloat(longitude),
+            description: description || null, 
+            picture_url: pictureUrl || null,
+            // Giữ nguyên tọa độ cũ (backend sẽ tự tính lại nếu location đổi)
+            latitude: latitude, 
+            longitude: longitude,
         };
+
 
         try {
             // Gọi API đến endpoint đã định nghĩa trong owner_router.py
-            const response = await fetch(`${API_URL}/api/owner/accommodations/`, { 
-                method: "POST",
+            const response = await fetch(`${API_URL}/api/owner/accommodations/${accommodationId}`, { 
+                method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
@@ -96,24 +145,26 @@ export default function AddAccommodationForm() {
             const data = await response.json();
 
             if (response.ok) {
-                setSuccess(`Đăng chỗ ở "${data.title}" thành công!`);                // Reset form sau khi đăng thành công
-                setTitle(''); setLocation(''); setPrice(0); setMaxGuests(1); setDescription('');
+                setSuccess(`Cập nhật chỗ ở thành công!`);
+
             } else {
-                const detail = data.detail || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
+                const detail = data.detail || "Lỗi cập nhật";
                 setError(`Lỗi (${response.status}): ${JSON.stringify(detail)}`);
             }
 
         } catch (err) {
-            console.error("Submit accommodation error:", err);
-            setError("Lỗi kết nối. Không thể gửi dữ liệu lên server.");
+            console.error("Update error:", err);
+            setError("Lỗi kết nối server.");
         } finally {
             setLoading(false);
         }
     };
 
     const handleCancel = () => {
-        navigate('/profile');
+        navigate('/profile'); // Quay về trang danh sách
     };
+
+    if (fetching) return <div style={{textAlign: 'center', padding: 50}}>Đang tải thông tin...</div>;
 
         return (
         <div style={{ 
@@ -129,7 +180,7 @@ export default function AddAccommodationForm() {
                 color: '#333', 
                 marginBottom: '10px' 
             }}>
-                Thêm chỗ ở mới
+                Thay đổi thông tin
             </h1>
             
             <p style={{ 
@@ -140,7 +191,7 @@ export default function AddAccommodationForm() {
                 borderBottom: '1px solid #ccc',
                 paddingBottom: '10px'
             }}>
-                *Vui lòng điền đầy đủ các thông tin sau
+
             </p>
 
             {/* Messages */}
@@ -246,14 +297,15 @@ export default function AddAccommodationForm() {
                 </div>
                 
                 {/* 7. UPLOAD ẢNH (picture_url) */}
-                <div style={{ marginBottom: '30px' }}>
+                <div style={{ marginBottom: 20 }}>
                     <label style={labelStyle}>Hình ảnh</label>
+                    
                     <ImageUpload 
-                        // 3. Logic mới: Khi nhận mảng url từ con, gộp thành chuỗi ngăn cách dấu phẩy
-                        onUploadSuccess={(urlsArray) => setPictureUrl(urlsArray.join(','))} 
-                        
-                        // Truyền chuỗi hiện tại vào để hiển thị lại nếu cần
+                        // Truyền ảnh cũ từ DB vào để hiển thị
                         defaultImages={pictureUrl}
+                        
+                        // Khi thêm/xóa ảnh, cập nhật lại chuỗi URL
+                        onUploadSuccess={(urlsArray) => setPictureUrl(urlsArray.join(','))}
                     />
                 </div>
 

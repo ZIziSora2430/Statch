@@ -1,3 +1,4 @@
+from fastapi import HTTPException, status 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from .. import models
@@ -5,13 +6,16 @@ from . import schemas
 from .security_helpers import hash_password, verify_password
 
 
-# --- Các hàm logic nghiệp vụ (tách ra từ router) ---
+# --- Các hàm logic nghiệp vụ ---
 
 def get_user_by_username(db: Session, username: str):
     return db.scalar(select(models.User).where(models.User.username == username))
 
 def get_user_by_email(db: Session, email: str):
     return db.scalar(select(models.User).where(models.User.email == email))
+
+def get_user_by_phone(db: Session, phone: str):
+    return db.scalar(select(models.User).where(models.User.phone == phone))
 
 def create_user(db: Session, user_in: schemas.UserCreate):
     # Logic từ endpoint /signup
@@ -46,21 +50,29 @@ def login_user(db: Session, form_data: schemas.UserLogin):
 
 def update_user(db: Session, current_user: models.User, payload: schemas.UserUpdate):
     # Logic từ endpoint /users/me
-    changed = False
-    if payload.full_name is not None:
-        current_user.full_name = payload.full_name
-        changed = True
-        
-    if payload.email is not None:
-        existing = get_user_by_email(db, payload.email)
+    # 1. Lấy dữ liệu frontend gửi (exclude_unset=True để bỏ qua cái nào không gửi)
+    update_data = payload.model_dump(exclude_unset=True)
+
+    # Nếu không có dữ liệu gì thì trả về luôn
+    if not update_data:
+        return current_user 
+
+    # 2. Logic check trùng Email (chỉ chạy nếu user đổi email)
+    if "email" in update_data:
+        existing = get_user_by_email(db, update_data["email"])
         if existing and existing.id != current_user.id:
-            # Trả về False để router raise lỗi
-            return None 
-        current_user.email = payload.email
-        changed = True
+            return None # Trả về None để router báo lỗi
         
-    if changed:
+    # 3. VÒNG LẶP THẦN THÁNH: Tự động cập nhật mọi trường (sex, city, dob...)
+    for key, value in update_data.items():
+        setattr(current_user, key, value)
+        
+    # 4. Lưu xuống Database
+    try:
         db.add(current_user)
         db.commit()
         db.refresh(current_user)
-    return current_user
+        return current_user 
+    except Exception as e:
+        db.rollback()
+        raise e

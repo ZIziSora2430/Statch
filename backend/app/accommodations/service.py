@@ -4,8 +4,31 @@ from .. import models
 from . import schemas
 from typing import Optional
 from decimal import Decimal
+from geopy.geocoders import Nominatim
 
-
+# Hàm helper để Geocode địa chỉ sang tọa độ
+def _get_coordinates_for_location(address: str):
+    """
+    Chuyển đổi địa chỉ text sang tọa độ (Lat, Lng) dùng OpenStreetMap.
+    """
+    try:
+        # Khởi tạo Nominatim với user_agent riêng
+        geolocator = Nominatim(user_agent="statch_project_student_hcmus_2025")
+        
+        # Gọi API để lấy tọa độ (timeout 10s để tránh treo)
+        location = geolocator.geocode(address, timeout=10)
+        
+        if location:
+            print(f"📍 Đã tìm thấy tọa độ cho '{address}': {location.latitude}, {location.longitude}")
+            return Decimal(location.latitude), Decimal(location.longitude)
+        else:
+            print(f"⚠️ Không tìm thấy địa chỉ '{address}'. Dùng tọa độ mặc định (TP.HCM).")
+            return Decimal(10.7769), Decimal(106.7009)
+            
+    except Exception as e:
+        print(f"❌ Lỗi Geocoding: {e}")
+        # Trả về tọa độ mặc định nếu lỗi mạng hoặc API
+        return Decimal(10.7769), Decimal(106.7009)
 
 # ĐỊNH NGHĨA HÀM MÀ ROUTER ĐANG TÌM
 def create_new_accommodation(
@@ -150,3 +173,12 @@ def search_accommodations(
     
     # Đơn giản hóa logic trả về
     return [row[0] for row in results]
+
+
+def get_accommodations_by_owner(db: Session, owner_id: int):
+    """
+    Lấy danh sách tất cả chỗ ở của một owner cụ thể.
+    """
+    return db.query(models.Accommodation).filter(
+        models.Accommodation.owner_id == owner_id
+    ).all()
