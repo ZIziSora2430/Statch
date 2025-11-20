@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function RoomCard({id, image, category, categoryColor, name, price, isAvailable }) {
+function RoomCard({id, image, category, categoryColor, name, price, isAvailable, onDelete }) {
   const [available, setAvailable] = useState(isAvailable);
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
@@ -24,6 +24,7 @@ function RoomCard({id, image, category, categoryColor, name, price, isAvailable 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -40,7 +41,7 @@ function RoomCard({id, image, category, categoryColor, name, price, isAvailable 
         overflow: 'hidden'
       }}>
         <img 
-          src={image}
+          src={image || 'https://via.placeholder.com/300x200?text=No+Image'}
           alt={name}
           style={{
             width: '100%',
@@ -50,7 +51,11 @@ function RoomCard({id, image, category, categoryColor, name, price, isAvailable 
         />
         
         {/* Delete Button */}
-        <button style={{
+        <button onClick={(e) => {
+          e.stopPropagation(); 
+          onDelete(); 
+        }}
+        style={{
           position: 'absolute',
           top: '10px',
           right: '10px',
@@ -275,15 +280,22 @@ export default function OwnerDashB() {
             console.log("Data fetched:", data);
 
             // 3. MAP DỮ LIỆU: Backend (snake_case) -> Frontend (camelCase)
-            const mappedData = data.map(item => ({
-                id: item.accommodation_id,          // Backend: accommodation_id
-                image: item.picture_url,            // Backend: picture_url
-                name: item.title,                   // Backend: title
-                price: item.price,                  // Backend: price (số)
-                category: item.property_type,       // Backend: property_type
-                categoryColor: getCategoryColor(item.property_type), // Tự sinh màu
-                isAvailable: item.status === 'available' // Chuyển status thành boolean
-            }));
+            const mappedData = data.map(item => {
+                const images = item.picture_url ? item.picture_url.split(',') : [];
+    
+                // 2. Lấy ảnh đầu tiên (nếu có), không thì để rỗng
+                const firstImage = images.length > 0 ? images[0] : "";
+
+                return {
+                    id: item.accommodation_id,          // Backend: accommodation_id
+                    image: firstImage || item.picture_url || '',            // Backend: picture_url
+                    name: item.title,                   // Backend: title
+                    price: item.price,                  // Backend: price (số)
+                    category: item.property_type,       // Backend: property_type
+                    categoryColor: getCategoryColor(item.property_type), // Tự sinh màu
+                    isAvailable: item.status === 'available' // Chuyển status thành boolean
+                };
+            });
 
             setRooms(mappedData);
         } else {
@@ -307,6 +319,43 @@ export default function OwnerDashB() {
   // Hiển thị khi đang tải
   if (loading) return <div style={{textAlign: 'center', padding: 50}}>Đang tải danh sách chỗ ở...</div>;
 
+  const handleDeleteRoom = async (id) => {
+    // 1. Xác nhận người dùng muốn xóa
+    if (!window.confirm("Bạn có chắc chắn muốn xóa chỗ ở này không? Hành động này không thể hoàn tác.")) {
+        return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+        alert("Phiên đăng nhập hết hạn.");
+        return;
+    }
+
+    try {
+        // 2. Gọi API Delete theo đúng route trong owner_router.py
+        const response = await fetch(`${API_URL}/api/owner/accommodations/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                // Không cần Content-Type vì DELETE thường không có body
+            }
+        });
+
+        // 3. Xử lý kết quả
+        if (response.ok || response.status === 204) {
+            // Xóa thành công trên server -> Cập nhật giao diện ngay lập tức
+            setRooms((prevRooms) => prevRooms.filter((room) => room.id !== id));
+            alert("Đã xóa thành công!");
+        } else {
+            // Xử lý lỗi từ backend trả về
+            const errorData = await response.json();
+            alert(`Lỗi: ${errorData.detail || "Không thể xóa"}`);
+        }
+    } catch (error) {
+        console.error("Error deleting accommodation:", error);
+        alert("Lỗi kết nối đến server.");
+    }
+  };
 
   return (
     <div style={{
@@ -337,7 +386,12 @@ export default function OwnerDashB() {
         {/* Kiểm tra nếu có dữ liệu thì render, không thì báo trống */}
         {rooms.length > 0 ? (
             rooms.map((room) => (
-                <RoomCard key={room.id} {...room} />
+                <RoomCard 
+                key={room.id} 
+                {...room} 
+                onDelete={() => handleDeleteRoom(room.id)}
+                
+                />
             ))
         ) : (
             <div style={{ gridColumn: "1 / -1", textAlign: "center", color: "#888", marginTop: 50 }}>

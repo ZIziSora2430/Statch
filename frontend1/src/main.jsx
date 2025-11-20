@@ -5,10 +5,11 @@ import './index.css'
 import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+    <>
     {/* Bọc App trong BrowserRouter để App.jsx có thể dùng Routes */}
     <BrowserRouter>
       <App />
     </BrowserRouter>
-  </StrictMode>
+    </>
+    
 )

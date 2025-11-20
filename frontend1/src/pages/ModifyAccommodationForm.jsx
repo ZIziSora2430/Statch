@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ImageUpload from '../components/CloudinaryUpload.jsx';
+import LocationPicker from '../components/LocationPicker.jsx';
+
+import { geocodeAddress, reverseGeocode } from '../utils/geocoding.js';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-
 const BASE_FONT = 'Montserrat';
 
 const formGroupStyle = {
@@ -61,6 +63,14 @@ export default function ModifyAccommodationForm() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true); // Loading khi lấy dữ liệu ban đầu
+
+    // State cho Map
+    const [isMapUpdating, setIsMapUpdating] = useState(false); // Cờ chặn vòng lặp
+    const [isSearching, setIsSearching] = useState(false);     // Trạng thái loading tìm kiếm
+    const [searchError, setSearchError] = useState("");        // Lỗi tìm kiếm
+
+    const initialDbLocation = useRef("");
+
     useEffect(() => {
         if (!accommodationId) {
             alert("Không tìm thấy ID chỗ ở cần sửa!");
@@ -79,6 +89,8 @@ export default function ModifyAccommodationForm() {
 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    initialDbLocation.current = data.location || '';
                     // "Đổ" dữ liệu vào form
                     setTitle(data.title || '');
                     setLocation(data.location || '');
@@ -103,6 +115,67 @@ export default function ModifyAccommodationForm() {
         fetchDetails();
     }, [accommodationId, navigate]);
 
+    // === 2. XỬ LÝ KHI THẢ GHIM (Map -> Input) ===
+    const handleLocationSelect = async (lat, lng) => {
+        setLatitude(lat);
+        setLongitude(lng);
+        
+        setIsMapUpdating(true); // Báo hiệu: "Tao đang update từ Map nha, Input đừng chạy"
+
+        const addressName = await reverseGeocode(lat, lng);
+        if (addressName) {
+            setLocation(addressName);
+        }
+        
+        setTimeout(() => setIsMapUpdating(false), 1000);
+    };
+
+    // === 3. XỬ LÝ KHI GÕ ĐỊA CHỈ (Input -> Map) ===
+    useEffect(() => {
+        if (isMapUpdating || !location) return;
+        if (location === initialDbLocation.current) {
+            return;
+        }
+
+        let isActive = true; // Biến cờ để xử lý Race Condition
+        setSearchError(""); 
+
+        const timerId = setTimeout(async () => {
+            setIsSearching(true);
+            console.log("🔍 Đang tìm tọa độ cho:", location);
+            
+            try {
+                const coords = await geocodeAddress(location);
+                
+                if (isActive) {
+                    if (coords) {
+                        setLatitude(coords.lat);
+                        setLongitude(coords.lng);
+
+                        setLocation(coords.display_name); 
+                        setTimeout(() => setIsMapUpdating(false), 1000);
+                        setSearchError(""); 
+                    } else {
+                        // Chỉ báo lỗi nếu không phải là đang load dữ liệu ban đầu (fetching = false)
+                        if (!fetching) {
+                            setSearchError("Không tìm thấy địa chỉ này trên bản đồ. Vui lòng ghim thủ công.");
+                        }
+                    }
+                }
+            } catch (err) {
+                if (isActive) setSearchError("Lỗi kết nối định vị.");
+            } finally {
+                if (isActive) setIsSearching(false);
+            }
+        }, 1500); 
+
+        return () => {
+            isActive = false;
+            clearTimeout(timerId);
+        };
+    }, [location, isMapUpdating]); // Bỏ dependency 'fetching' để tránh chạy lại không cần thiết
+
+    
     // Ham xu ly submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -232,8 +305,35 @@ export default function ModifyAccommodationForm() {
                         onChange={(e) => setLocation(e.target.value)}
                         required
                         style={inputStyle}
-                        placeholder="Nhập địa chỉ chính xác"
                     />
+
+                    {/* UI Thông báo trạng thái tìm kiếm */}
+                    {isSearching && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', color: '#007bff', fontSize: '14px' }}>
+                            <span>⏳ Đang tìm vị trí trên bản đồ...</span>
+                        </div>
+                    )}
+
+                    {searchError && !isSearching && (
+                        <div style={{ marginTop: '8px', color: '#B01C29', fontSize: '14px', fontWeight: '500' }}>
+                            ⚠️ {searchError}
+                        </div>
+                    )}
+                    
+                    {/* HIỂN THỊ BẢN ĐỒ VỚI VỊ TRÍ CŨ */}
+                    {/* Chỉ render bản đồ khi đã có dữ liệu tọa độ (để tránh nhảy về biển Đông) */}
+                    {latitude && longitude && (
+                        <div style={{ marginTop: '15px' }}>
+                            <label style={{ fontSize: '14px', color: '#666', fontWeight: '600' }}>
+                                📍 Cập nhật vị trí bản đồ:
+                            </label>
+                            <LocationPicker 
+                                defaultLat={parseFloat(latitude)} 
+                                defaultLng={parseFloat(longitude)} 
+                                onLocationSelect={handleLocationSelect}
+                            />
+                        </div>
+                )}
                 </div>
 
                 {/* 3. Giá (price) */}
@@ -245,7 +345,7 @@ export default function ModifyAccommodationForm() {
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         min="0"
-                        step="0.01" // Cho phép nhập số thập phân nhỏ
+                        step="100000" 
                         required
                         style={inputStyle}
                         placeholder="Ví dụ: 500000"

@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUpload from '../components/CloudinaryUpload.jsx';
+import LocationPicker from '../components/LocationPicker.jsx';
+
+import { geocodeAddress, reverseGeocode } from '../utils/geocoding.js'
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -51,10 +54,76 @@ export default function AddAccommodationForm() {
     const [latitude, setLatitude] = useState(10.77);  // MOCK: Tọa độ mặc định (TP HCM)
     const [longitude, setLongitude] = useState(106.69); // MOCK: Tọa độ mặc định (TP HCM)
 
+
     // State UI
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isSearching, setIsSearching] = useState(false); // Trạng thái đang tìm
+    const [searchError, setSearchError] = useState("");    // Nội dung lỗi
+
+    // State để tránh vòng lặp vô tận (Map update Input, Input update Map...)
+    const [isMapUpdating, setIsMapUpdating] = useState(false);
+
+    // --- A. XỬ LÝ KHI THẢ GHIM TRÊN BẢN ĐỒ (Map -> Input) ---
+    const handleLocationSelect = async (lat, lng) => {
+        setLatitude(lat);
+        setLongitude(lng);
+        
+        // Đánh dấu là Map đang update để useEffect bên dưới không chạy đè lại
+        setIsMapUpdating(true); 
+
+        // Gọi API lấy tên đường
+        const addressName = await reverseGeocode(lat, lng);
+        if (addressName) {
+            setLocation(addressName); // Tự động điền vào ô input
+        }
+        
+        // Reset cờ sau khi update xong
+        setTimeout(() => setIsMapUpdating(false), 1000);
+    };
+
+    // --- B. XỬ LÝ KHI GÕ ĐỊA CHỈ (Input -> Map) ---
+    // Dùng useEffect để lắng nghe thay đổi của 'location'
+    useEffect(() => {
+        // Nếu thay đổi này do Map gây ra thì bỏ qua (tránh loop)
+        if (isMapUpdating || !location) return;
+        let isActive = true;
+        setSearchError("");
+        
+
+        // Kỹ thuật Debounce: Chờ người dùng ngừng gõ 1.5s mới tìm (để đỡ lag)
+        const timerId = setTimeout(async () => {
+            setIsSearching(true);
+            console.log("🔍 Đang tìm tọa độ cho:", location);
+
+            try{
+            const coords = await geocodeAddress(location);
+            //console.log(coords);
+                if (isActive) {
+                    if (coords) {
+                        setLatitude(coords.lat);
+                        setLongitude(coords.lng);
+                        setLocation(coords.display_name);
+
+                    } else {
+                        // Không tìm thấy
+                        setSearchError("Không tìm thấy địa chỉ này trên bản đồ. Vui lòng thử địa chỉ khác hoặc ghim thủ công.")
+                    }
+                }
+            } catch (err) {
+                setSearchError("Lỗi kết nối định vị.")
+            } finally {
+                setIsSearching(false);
+            }
+            
+        }, 1500); // Chờ 1.5 giây
+
+        return () => {
+            isActive = false; 
+            clearTimeout(timerId); // Xóa timer cũ nếu người dùng gõ tiếp
+        };
+    }, [location]);
 
     // Ham xu ly submit form
     const handleSubmit = async (e) => {
@@ -181,8 +250,39 @@ export default function AddAccommodationForm() {
                         onChange={(e) => setLocation(e.target.value)}
                         required
                         style={inputStyle}
-                        placeholder="Nhập địa chỉ chính xác"
+                        placeholder="Nhập địa chỉ hoặc chọn trên bản đồ..."
                     />
+
+                    {/* Trạng thái Đang tìm kiếm */}
+                    {isSearching && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', color: '#007bff', fontSize: '14px' }}>
+                            {/* Bạn có thể thêm icon Spinner xoay xoay ở đây nếu muốn */}
+                            <span>⏳ Đang tìm vị trí trên bản đồ...</span>
+                        </div>
+                    )}
+
+                    {/* Trạng thái Lỗi */}
+                    {searchError && !isSearching && (
+                        <div style={{ marginTop: '8px', color: '#B01C29', fontSize: '14px', fontWeight: '500' }}>
+                            ⚠️ {searchError}
+                        </div>
+                    )}
+
+                    <div style={{ marginTop: '15px' }}>
+                        <label style={{ fontSize: '14px', color: '#666', fontWeight: '600' }}>
+                            📍 Ghim vị trí chính xác trên bản đồ:
+                        </label>
+                        <LocationPicker 
+                            defaultLat={latitude} 
+                            defaultLng={longitude} 
+                            onLocationSelect={handleLocationSelect}
+                        />
+
+                        {/* Hiển thị tọa độ nhỏ bên dưới*/}
+                        <p style={{fontSize: 12, color: '#999', marginTop: 5}}>
+                            Lat: {latitude.toFixed(6)}, Lng: {longitude.toFixed(6)}
+                        </p>
+                    </div>
                 </div>
 
                 {/* 3. Giá (price) */}
