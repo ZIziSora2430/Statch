@@ -195,18 +195,6 @@ export default function RoomDetailPage() {
 
             {/* THÔNG SỐ CƠ BẢN */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700 mt-3">
-              <div>
-                <p className="font-semibold text-gray-900">Số khách tối đa</p>
-                <p>{room.maxGuests} người</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Diện tích</p>
-                <p>{room.size} m²</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Giường</p>
-                <p>{room.bed}</p>
-              </div>
             </div>
           </div>
 
