@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
+import ImageUpload from '../components/CloudinaryUpload.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -297,25 +297,16 @@ export default function ModifyAccommodationForm() {
                 </div>
                 
                 {/* 7. UPLOAD ẢNH (picture_url) */}
-                <div style={{
-                    backgroundColor: '#E0E0E0',
-                    height: '350px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: '30px',
-                    marginBottom: '50px',
-                    border: '2px dashed #999'
-                }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#555' }}>
-                        UPLOAD ẢNH
-                    </h2>
-                    <p style={{ color: '#777', marginTop: '10px' }}>
-                        (URL mặc định được gửi lên: {pictureUrl})
-                    </p>
-                    {/* Input file thực tế sẽ được xử lý ở đây */}
+                <div style={{ marginBottom: 20 }}>
+                    <label style={labelStyle}>Hình ảnh</label>
+                    
+                    <ImageUpload 
+                        // Truyền ảnh cũ từ DB vào để hiển thị
+                        defaultImages={pictureUrl}
+                        
+                        // Khi thêm/xóa ảnh, cập nhật lại chuỗi URL
+                        onUploadSuccess={(urlsArray) => setPictureUrl(urlsArray.join(','))}
+                    />
                 </div>
 
 

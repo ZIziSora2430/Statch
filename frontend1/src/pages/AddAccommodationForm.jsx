@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ImageUpload from '../components/CloudinaryUpload.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -35,6 +37,8 @@ const MOCK_TYPES = [
 ];
 
 export default function AddAccommodationForm() {
+    const navigate = useNavigate();
+
     // === STATE KHỚP CHÍNH XÁC VỚI schemas.AccommodationCreate ===
     const [title, setTitle] = useState('');           
     const [location, setLocation] = useState('');     // location (Địa chỉ)
@@ -43,7 +47,7 @@ export default function AddAccommodationForm() {
     const [propertyType, setPropertyType] = useState('apartment'); // property_type (Loại chỗ ở)
     const [description, setDescription] = useState('');// description (Mô tả)
     // Cần phải có giá trị mặc định cho các trường bắt buộc nhưng chưa có input UI
-    const [pictureUrl, setPictureUrl] = useState("https://default-image.com/default.jpg"); 
+    const [pictureUrl, setPictureUrl] = useState("");    
     const [latitude, setLatitude] = useState(10.77);  // MOCK: Tọa độ mặc định (TP HCM)
     const [longitude, setLongitude] = useState(106.69); // MOCK: Tọa độ mặc định (TP HCM)
 
@@ -92,8 +96,7 @@ export default function AddAccommodationForm() {
             const data = await response.json();
 
             if (response.ok) {
-                setSuccess(`Đăng chỗ ở "${data.title}" thành công! Vui lòng chờ phê duyệt.`);
-                // Reset form sau khi đăng thành công (Tùy chọn)
+                setSuccess(`Đăng chỗ ở "${data.title}" thành công!`);                // Reset form sau khi đăng thành công
                 setTitle(''); setLocation(''); setPrice(0); setMaxGuests(1); setDescription('');
             } else {
                 const detail = data.detail || "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
@@ -109,9 +112,7 @@ export default function AddAccommodationForm() {
     };
 
     const handleCancel = () => {
-        // TODO: Cần thêm logic để chuyển về tab "Danh sách chỗ ở"
-        // Ví dụ: setOwnerActiveSection('accoList'); (nếu có state đó)
-        alert("Đã hủy bỏ việc đăng chỗ ở. Các thay đổi sẽ không được lưu.");
+        navigate('/profile');
     };
 
         return (
@@ -245,25 +246,15 @@ export default function AddAccommodationForm() {
                 </div>
                 
                 {/* 7. UPLOAD ẢNH (picture_url) */}
-                <div style={{
-                    backgroundColor: '#E0E0E0',
-                    height: '350px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: '30px',
-                    marginBottom: '50px',
-                    border: '2px dashed #999'
-                }}>
-                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#555' }}>
-                        UPLOAD ẢNH
-                    </h2>
-                    <p style={{ color: '#777', marginTop: '10px' }}>
-                        (URL mặc định được gửi lên: {pictureUrl})
-                    </p>
-                    {/* Input file thực tế sẽ được xử lý ở đây */}
+                <div style={{ marginBottom: '30px' }}>
+                    <label style={labelStyle}>Hình ảnh</label>
+                    <ImageUpload 
+                        // 3. Logic mới: Khi nhận mảng url từ con, gộp thành chuỗi ngăn cách dấu phẩy
+                        onUploadSuccess={(urlsArray) => setPictureUrl(urlsArray.join(','))} 
+                        
+                        // Truyền chuỗi hiện tại vào để hiển thị lại nếu cần
+                        defaultImages={pictureUrl}
+                    />
                 </div>
 
 
