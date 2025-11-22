@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from .. import ai_service
 
 # Import các thành phần từ các file "trung tâm"
 from .. import models, database  # Import từ thư mục app/
@@ -27,7 +28,6 @@ router = APIRouter(
 def create_accommodation_endpoint(
     accommodation_data: schemas.AccommodationCreate, 
     db: Session = Depends(database.get_db),
-    # Chúng ta lấy current_owner từ dependency ở trên
     current_owner: models.User = Depends(get_current_active_owner)
 ):
     """
@@ -35,11 +35,21 @@ def create_accommodation_endpoint(
     'current_owner' đã được xác thực là role 'owner'.
     """
     try:
+        # Logic: Lấy description và location từ dữ liệu gửi lên để AI phân tích
+        print("🤖 Đang nhờ AI trích xuất tags...")
+        generated_tags = ai_service.generate_tags_from_desc(
+            description=accommodation_data.description,
+            location=accommodation_data.location
+        )
+        print(f"✅ Tags AI tạo ra: {generated_tags}")
+
+
         # Gọi service để xử lý logic
         return service.create_new_accommodation(
             db=db, 
             accommodation_data=accommodation_data, 
-            owner_id=current_owner.id # Lấy ID từ user đã xác thực
+            owner_id=current_owner.id, # Lấy ID từ user đã xác thực
+            ai_tags=generated_tags
         )
     except Exception as e:
         raise HTTPException(

@@ -43,6 +43,7 @@ def create_new_accommodation(
     db_accommodation = models.Accommodation(
         **accommodation_data.model_dump(),
         owner_id=owner_id,  # Gán ID của chủ sở hữu
+        tags=ai_tags
         
     )
     

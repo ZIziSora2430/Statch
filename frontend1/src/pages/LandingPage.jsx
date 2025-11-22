@@ -10,17 +10,82 @@ import CanTho from "../images/Can-Tho.jpg";
 import HoiAn from "../images/Hoi-An.jpg";
 import TPHCM from "../images/TPHCM.jpg";
 
+import { useNavigate } from "react-router-dom"; 
 import React, { useState, useEffect } from "react"; 
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function LandingPage() {
   const [currentUserName, setCurrentUserName] = useState("bạn");
+  const [accommodations, setAccommodations] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const navigate = useNavigate(); // Hook để chuyển trang
 
   useEffect(() => {
+    const token = localStorage.getItem("access_token");
     const storedUsername = localStorage.getItem("username"); 
+    // 3. KIỂM TRA ĐĂNG NHẬP
+    // Nếu không có token -> Đá về trang login ngay
+    if (!token) {
+      alert("Bạn cần đăng nhập để sử dụng tính năng này!");
+      navigate("/login"); 
+      return; // Dừng chạy tiếp
+    }
+
     if (storedUsername) {
       setCurrentUserName(storedUsername);
     }
-  }, []);
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/accommodations/search/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            // QUAN TRỌNG: Gửi token dạng "Bearer <token>"
+            "Authorization": `Bearer ${token}`
+          }
+        });
+
+        // 4. Xử lý lỗi HTTP (Fetch không tự catch lỗi 4xx/5xx như Axios)
+        if (!response.ok) {
+          // Nếu lỗi 401 (Unauthorized) -> Token hết hạn hoặc sai
+          if (response.status === 401) {
+            alert("Phiên đăng nhập hết hạn.");
+            localStorage.removeItem("access_token"); // Xóa token rác
+            navigate("/login"); // Đá về login
+            return;
+          }
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // 5. Parse JSON
+        const data = await response.json();
+        setAccommodations(data);
+
+      } catch (error) {
+        console.error("Lỗi khi fetch dữ liệu:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
+
+  // Hàm format tiền
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  };
+
+  // Nếu đang check login hoặc đang load thì hiện màn hình chờ
+  if (isLoading) {
+      return <div className="flex justify-center items-center h-screen">Đang tải dữ liệu...</div>;
+  }
+
+  
 
   return (
     <div>
@@ -32,6 +97,45 @@ export default function LandingPage() {
         <div className="md:mb-8 lg:mb-10">
           <SearchingBar />
         </div>
+
+        {/* --- PHẦN DANH SÁCH TỪ DATABASE --- */}
+          <p className="mb-6 text-black text-4xl font-bold text-left">
+            Gợi ý chỗ ở dành cho bạn
+          </p>
+          
+          {/* Grid hiển thị */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+            {accommodations.length > 0 ? (
+              accommodations.map((item) => (
+                <div key={item.id || item.accommodation_id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
+                   {/* Ảnh */}
+                  <div className="h-48 w-full bg-gray-200">
+                    <img 
+                      src={item.picture_url || "https://via.placeholder.com/400"} 
+                      alt={item.title}
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  {/* Thông tin */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg truncate">{item.title}</h3>
+                    <p className="text-gray-500 text-sm mb-2 truncate">📍 {item.location}</p>
+                    <div className="flex justify-between items-center">
+                        <span className="text-blue-600 font-bold text-lg">
+                           {formatCurrency(item.price)}
+                        </span>
+                        <button className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200">
+                           Chi tiết
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="col-span-3 text-center text-gray-500">Không tìm thấy chỗ ở nào trong Database.</p>
+            )}
+          </div>
+        
 
         <div className="p-6 max-w-6xl mx-auto flex flex-col gap-4">
           <p className="mb-6 ml-13 text-black text-4xl font-bold text-left">

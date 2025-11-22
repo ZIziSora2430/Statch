@@ -55,6 +55,7 @@ class Accommodation(Base):
     price = Column(DECIMAL(10, 2), nullable=False)
     status = Column(String(50), default='available')
     picture_url = Column(String(255))
+    tags = Column(String(500), nullable=True)
 
     # CỘT MỚI ĐỂ LƯU TỌA ĐỘ
     # DECIMAL(10, 8) đủ chính xác cho vĩ độ

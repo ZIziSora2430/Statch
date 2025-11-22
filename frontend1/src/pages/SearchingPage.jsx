@@ -2,12 +2,13 @@ import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ResultBar from "../components/ResultBar";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const API_BASE_URL = "http://localhost:8000";
 
 export default function SearchingPage() {
   const [searchParamsURL] = useSearchParams();
+  const navigate = useNavigate(); 
 
   // State UI trạng thái
   const [results, setResults] = useState([]); // Kết quả tìm kiếm thực tế
@@ -139,10 +140,16 @@ export default function SearchingPage() {
     if (price === null || price === undefined) return null;
     if (typeof price === "number") return price;
     if (typeof price === "string") {
-      const digits = price.replace(/[^\d]/g, "");
-      return digits ? Number(digits) : null;
+      const parsed = parseFloat(price);
+      return isNaN(parsed) ? null : parsed;
     }
     return null;
+  };
+
+  // Hàm helper để chuyển chuỗi "A, B, C" thành mảng ["A", "B", "C"]
+  const parseTags = (tagString) => {
+    if (!tagString) return [];
+    return tagString.split(",").map(t => t.trim());
   };
 
   // Áp dụng filter lên results (client-side) – HIỆN TẠI chỉ lọc theo giá
@@ -219,6 +226,7 @@ export default function SearchingPage() {
           throw new Error(errorData.detail || `Lỗi HTTP: ${response.status}`);
         }
         const data = await response.json();
+        console.log("Dữ liệu API trả về:", data); // <--- KIỂM TRA Ở CONSOLE (F12)
         setResults(data);
       } catch (err) {
         console.error("Lỗi khi tìm kiếm chỗ ở:", err);
@@ -493,18 +501,17 @@ export default function SearchingPage() {
                 filteredResults.map((item) => (
                   <ResultBar
                     key={item.accommodation_id || item.id}
-                    image={item.thumb || "https://placehold.co/1200x800"}
+                    image={item.picture_url || "https://placehold.co/1200x800"}
                     title={item.title}
                     location={item.location}
                     ratingText={"Rất tốt"}
                     ratingCount={0}
                     ratingScore={9.0}
                     stars={4}
-                    tags={["Chưa phân loại"]}
-                    categories={["Khách sạn"]}
-                    dateRangeLabel="T5, 20 tháng 11 - T6, 21 tháng 11"
-                    summary="1 đêm, 2 người lớn"
-                    priceLabel={item.price || "Liên hệ"}
+                    tags={parseTags(item.tags)}
+                    categories={item.property_type ? [item.property_type] : []}
+                    summary={(item.max_guests)}
+                    priceLabel={formatVnd(item.price)}
                     priceNote="Đã bao gồm thuế và phí"
                     onClick={() =>
                       console.log("Xem chi tiết:", item.accommodation_id || item.id)
