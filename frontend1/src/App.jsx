@@ -15,6 +15,8 @@ import BookingDetailPage from './pages/Booking.jsx';
 import BookingConfirmPage from './pages/BookingConfirmPage.jsx';
 import BookingFormPage from './pages/BookingFormPage.jsx';
 import ModifyAccommodationForm from './pages/ModifyAccommodationForm.jsx';
+import CommunityPage from './pages/CommunityPage.jsx';
+import PostDetailPage from './pages/PostDetailPage.jsx';
 
 export default function App() {
   return (
@@ -43,7 +45,10 @@ export default function App() {
         <Route path="/booking" element={<BookingDetailPage/>} />
         <Route path="/confirm" element={<BookingConfirmPage/>} />
         <Route path="/formpage" element={<BookingFormPage/>} />
-        <Route path="/modify-accommodation/:id" element={<ModifyAccommodationForm/>} />        
+        <Route path="/modify-accommodation/:id" element={<ModifyAccommodationForm/>} />   
+        <Route path="/community" element={<CommunityPage/>} />
+        <Route path="/post/:id" element={<PostDetailPage />} />    
+             
         {/* Route 404 (Tùy chọn: Bắt các link sai) */}
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>

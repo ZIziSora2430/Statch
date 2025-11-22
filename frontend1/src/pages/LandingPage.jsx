@@ -3,6 +3,7 @@ import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
 import Banner from "../components/Banner";
+import Community from "../components/JoinCommunity";
 
 import ConDao from "../images/Con-Dao.jpg";
 import HaNoi from "../images/Ha-Noi.jpg";  
@@ -129,6 +130,7 @@ export default function LandingPage() {
             <Promo />
           </div>
         </div>
+        <Community />
       </main>
 
       <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
