@@ -4,13 +4,15 @@ from typing import List, Optional
 from datetime import date
 from decimal import Decimal
 
+from .. import ai_service
+
 # Import từ thư mục app/
 from .. import models, database
 # Import từ thư mục accommodations/ hiện tại
 from . import schemas, service 
 
 # Import dependency (bảo mật)
-from ..feature_login.security_helpers import get_current_user
+from ..feature_login.security_helpers import get_current_active_owner, get_current_user
 
 router = APIRouter(
     prefix="/api/accommodations",
@@ -18,6 +20,41 @@ router = APIRouter(
     # Yêu cầu tất cả API trong file này phải đăng nhập
     dependencies=[Depends(get_current_user)]
 )
+
+@router.get("/recommendations", response_model=List[schemas.AccommodationRead]) # Bạn cần update schema để có field score
+async def get_smart_recommendations(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. Lấy sở thích user
+    preference = current_user.preference
+    if not preference:
+        # Nếu không có sở thích, trả về random hoặc top rate
+        return service.get_top_accommodations(db, limit=6)
+
+    # 2. Lấy danh sách ứng viên thô từ DB (Lấy khoảng 10-20 cái mới nhất/tốt nhất để AI lọc)
+    # Không nên gửi toàn bộ DB cho AI vì tốn tiền/chậm
+    candidates = service.get_random_accommodations(db, limit=10) 
+    
+    # 3. Nhờ AI chấm điểm
+    ai_scores = await ai_service.calculate_match_score(preference, candidates)
+    
+    # 4. Ghép điểm số vào object kết quả
+    final_results = []
+    for acc in candidates:
+        # Tìm kết quả chấm điểm tương ứng
+        match = next((item for item in ai_scores if item["id"] == acc.accommodation_id), None)
+        
+        if match:
+            # Gán thêm thuộc tính ảo (bạn cần thêm field này vào Schema nếu muốn trả về FE)
+            acc.match_score = match['score']
+            acc.match_reason = match['reason']
+            final_results.append(acc)
+    
+    # 5. Sắp xếp theo điểm số AI giảm dần
+    final_results.sort(key=lambda x: x.match_score, reverse=True)
+    
+    return final_results[:3] # Chỉ lấy Top 3 cái hợp nhất
 
 # API TÌM KIẾM
 @router.get(
@@ -86,3 +123,4 @@ def get_accommodation_details_endpoint(
             detail="Không tìm thấy chỗ ở."
         )
     return accommodation
+

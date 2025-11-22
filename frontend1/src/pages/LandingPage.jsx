@@ -3,6 +3,7 @@ import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
 import Banner from "../components/Banner";
+import SkeletonCard from "../components/SkeletonCard";
 
 import ConDao from "../images/Con-Dao.jpg";
 import HaNoi from "../images/Ha-Noi.jpg";  
@@ -39,7 +40,7 @@ export default function LandingPage() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/accommodations/search/`, {
+        const response = await fetch(`${API_URL}/api/accommodations/recommendations/`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -81,7 +82,32 @@ export default function LandingPage() {
 
   // Nếu đang check login hoặc đang load thì hiện màn hình chờ
   if (isLoading) {
-      return <div className="flex justify-center items-center h-screen">Đang tải dữ liệu...</div>;
+      return (
+      <div>
+        <Navbar />
+        {/* Giữ nguyên Banner để layout không bị giật */}
+        <Banner username={currentUserName} />
+
+        <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-16">
+          
+          {/* Vẫn hiện thanh tìm kiếm */}
+          <div className="md:mb-8 lg:mb-10">
+            <SearchingBar />
+          </div>
+
+          <p className="mb-6 text-black text-4xl font-bold text-left">
+            Đang tìm gợi ý tốt nhất cho bạn...
+          </p>
+          
+          {/* --- HIỂN THỊ 3 CÁI SKELETON --- */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </main>
+      </div>
+    );
   }
 
   
@@ -106,7 +132,20 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
             {accommodations.length > 0 ? (
               accommodations.map((item) => (
-                <div key={item.id || item.accommodation_id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
+                <div 
+                  key={item.id || item.accommodation_id} 
+                  className="relative bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+                  onClick={() => navigate(`/accommodations/${item.accommodation_id || item.id}`)}
+                >
+                  {/*  HIỂN THỊ ĐIỂM SỐ AI (BADGE) */}
+                  {item.match_score && (
+                      <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur px-2 py-1 rounded-lg shadow border border-green-200 flex items-center gap-1">
+                          <span className="text-green-600 font-bold text-sm">{item.match_score}% phù hợp</span>
+                          {/* Tooltip hoặc Icon AI */}
+                          <span>✨</span>
+                      </div>
+                  )}
+
                    {/* Ảnh */}
                   <div className="h-48 w-full bg-gray-200">
                     <img 
@@ -118,6 +157,14 @@ export default function LandingPage() {
                   {/* Thông tin */}
                   <div className="p-4">
                     <h3 className="font-bold text-lg truncate">{item.title}</h3>
+                    {/* 🔥 HIỂN THỊ LÝ DO TẠI SAO HỢP */}
+                    {item.match_reason && (
+                        <div className="mt-2 mb-2 bg-purple-50 p-2 rounded-md border border-purple-100">
+                            <p className="text-xs text-purple-700 italic">
+                              "{item.match_reason}"
+                            </p>
+                        </div>
+                    )}
                     <p className="text-gray-500 text-sm mb-2 truncate">📍 {item.location}</p>
                     <div className="flex justify-between items-center">
                         <span className="text-blue-600 font-bold text-lg">
@@ -131,7 +178,7 @@ export default function LandingPage() {
                 </div>
               ))
             ) : (
-              <p className="col-span-3 text-center text-gray-500">Không tìm thấy chỗ ở nào trong Database.</p>
+              <p className="col-span-3 text-center text-gray-500">Không tìm thấy chỗ ở nào.</p>
             )}
           </div>
         

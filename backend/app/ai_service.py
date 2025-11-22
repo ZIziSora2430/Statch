@@ -127,3 +127,68 @@ async def generate_description_text(title: str, property_type: str, location: st
     except Exception as e:
         print(f"❌ LỖI HỆ THỐNG AI: {str(e)}")
         return f"Lỗi hệ thống: {str(e)}"
+    
+import json
+
+async def calculate_match_score(user_preference: str, accommodations: list) -> list:
+    """
+    Dùng AI để chấm điểm độ phù hợp.
+    Phiên bản Fix Lỗi JSON + Prompt khéo léo.
+    """
+    try:
+        # 1. Chuẩn bị dữ liệu rút gọn
+        candidates = []
+        for acc in accommodations:
+            candidates.append({
+                "id": acc.accommodation_id,
+                "title": acc.title,
+                "desc": acc.description,
+                "tags": acc.tags
+            })
+
+        # 2. Prompt "Cứng rắn về định dạng" nhưng "Mềm mỏng về nội dung"
+        prompt = f"""
+        Vai trò: Bạn là một API Backend chỉ trả về JSON.
+        Nhiệm vụ: So khớp sở thích người dùng với danh sách chỗ ở.
+
+        Input:
+        - Sở thích: "{user_preference}"
+        - Ứng viên: {json.dumps(candidates, ensure_ascii=False)}
+
+        Yêu cầu Logic (Copywriter):
+        - Viết lý do ngắn gọn (dưới 20 từ) giải thích tại sao chỗ này "có liên quan" đến sở thích.
+        - CẤM dùng từ phủ định (VD: "không có núi", "thiếu hồ bơi").
+        - Nếu không khớp hoàn toàn, hãy tìm điểm chung về "cảm giác" (Vd: Leo núi -> Cần thiên nhiên -> Nhà vườn cây xanh).
+        - Điểm số (score): 0-100.
+
+        Yêu cầu Output (BẮT BUỘC):
+        - Chỉ trả về một mảng JSON thuần túy (Array of Objects).
+        - Key bắt buộc: "id" (int), "score" (int), "reason" (string).
+        - KHÔNG viết thêm bất kỳ lời dẫn, markdown hay giải thích nào khác.
+        """
+
+        # 3. Cấu hình ép buộc JSON (Quan trọng)
+        generation_config = genai.types.GenerationConfig(
+            temperature=0.5, # Tăng nhẹ để văn hay hơn
+            response_mime_type="application/json" # <--- THẦN CHÚ: Ép AI trả về JSON chuẩn 100%
+        )
+
+        # 4. Gọi AI
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=generation_config
+        )
+        
+        # 5. Xử lý kết quả
+        raw_text = response.text.strip()
+        
+        # DEBUG: In ra xem AI trả về cái gì (Nếu lỗi thì nhìn vào terminal biết ngay)
+        print(f"🤖 AI Raw Output: {raw_text[:100]}...") 
+
+        match_results = json.loads(raw_text)
+        return match_results
+
+    except Exception as e:
+        print(f"❌ Lỗi AI Matchmaker: {e}")
+        # Fallback: Nếu AI lỗi, trả về list rỗng (code router sẽ tự fallback về top rate)
+        return []

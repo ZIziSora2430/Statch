@@ -5,6 +5,7 @@ from . import schemas
 from typing import Optional
 from decimal import Decimal
 from geopy.geocoders import Nominatim
+from sqlalchemy.sql.expression import func 
 
 # Hàm helper để Geocode địa chỉ sang tọa độ
 def _get_coordinates_for_location(address: str):
@@ -217,3 +218,22 @@ def get_accommodations_by_owner(db: Session, owner_id: int):
     return db.query(models.Accommodation).filter(
         models.Accommodation.owner_id == owner_id
     ).all()
+
+def get_random_accommodations(db: Session, limit: int = 10):
+    """
+    Lấy ngẫu nhiên một số chỗ ở để làm ứng viên cho AI chấm điểm.
+    """
+    return db.query(models.Accommodation)\
+        .order_by(func.random())\
+        .limit(limit)\
+        .all()
+
+# 👇 THÊM HÀM NÀY (Dùng khi user chưa có sở thích)
+def get_top_accommodations(db: Session, limit: int = 6):
+    """
+    Lấy danh sách chỗ ở mới nhất (hoặc top rate nếu có cột rating).
+    """
+    return db.query(models.Accommodation)\
+        .order_by(models.Accommodation.accommodation_id.desc())\
+        .limit(limit)\
+        .all()
