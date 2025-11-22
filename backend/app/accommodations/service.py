@@ -34,7 +34,8 @@ def _get_coordinates_for_location(address: str):
 def create_new_accommodation(
     db: Session, 
     accommodation_data: schemas.AccommodationCreate, 
-    owner_id: int
+    owner_id: int,
+    ai_tags: str = None
 ):
     """
     Hàm logic để tạo một chỗ ở mới trong database.

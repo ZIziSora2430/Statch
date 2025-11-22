@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ImageUpload from '../components/CloudinaryUpload.jsx';
 import LocationPicker from '../components/LocationPicker.jsx';
 
-import { geocodeAddress, reverseGeocode } from '../utils/geocoding.js';
+import { geocodeAddress } from '../utils/geocoding.js';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const BASE_FONT = 'Montserrat';
@@ -14,18 +14,18 @@ const formGroupStyle = {
 
 const inputStyle = {
     width: '100%',
-    padding: '12px 15px', // Tăng padding để input trông lớn hơn
+    padding: '12px 15px',
     border: '1px solid #ccc',
-    borderRadius: '8px', // Làm tròn hơn so với trước
+    borderRadius: '8px',
     boxSizing: 'border-box',
-    fontSize: '18px', // Font lớn hơn
+    fontSize: '18px',
     fontFamily: BASE_FONT,
 };
 
 const labelStyle = {
     display: 'block',
     marginBottom: '8px',
-    fontWeight: '700', // Đậm hơn
+    fontWeight: '700',
     fontSize: '18px',
     color: '#333',
     fontFamily: BASE_FONT,
@@ -40,47 +40,47 @@ const MOCK_TYPES = [
 
 export default function ModifyAccommodationForm() {
     const navigate = useNavigate();
-
-    // Lấy accommodationId từ location state (nếu có)
     const { id } = useParams();
     const accommodationId = id;
 
-
     // === STATE ===
     const [title, setTitle] = useState('');           
-    const [location, setLocation] = useState('');     
+    const [location, setLocation] = useState('');     // Địa chỉ lưu DB
     const [price, setPrice] = useState(0);            
     const [maxGuests, setMaxGuests] = useState(1);    
-    const [propertyType, setPropertyType] = useState('Khách sạn'); 
+    const [propertyType, setPropertyType] = useState('hotel'); 
     const [description, setDescription] = useState('');
     const [pictureUrl, setPictureUrl] = useState(""); 
     
-    // Giữ nguyên tọa độ nếu user không đổi địa chỉ
     const [latitude, setLatitude] = useState(null);  
     const [longitude, setLongitude] = useState(null);
+    
+    // State mới cho tìm kiếm Map (Tách biệt với location)
+    const [searchQuery, setSearchQuery] = useState('');
+
     // State UI
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(true); // Loading khi lấy dữ liệu ban đầu
+    const [fetching, setFetching] = useState(true); 
 
-    // State cho Map
-    const [isMapUpdating, setIsMapUpdating] = useState(false); // Cờ chặn vòng lặp
-    const [isSearching, setIsSearching] = useState(false);     // Trạng thái loading tìm kiếm
-    const [searchError, setSearchError] = useState("");        // Lỗi tìm kiếm
+    // State Map Searching
+    const [isSearching, setIsSearching] = useState(false);     
+    const [searchError, setSearchError] = useState("");        
 
-    const initialDbLocation = useRef("");
+    // State AI
+    const [isGenerating, setIsGenerating] = useState(false);
 
+    // --- 1. LẤY DỮ LIỆU CŨ TỪ DB ---
     useEffect(() => {
         if (!accommodationId) {
             alert("Không tìm thấy ID chỗ ở cần sửa!");
-            navigate('/profile'); // Quay về profile nếu lỗi
+            navigate('/profile'); 
             return;
         }
         const fetchDetails = async () => {
             try {
                 const token = localStorage.getItem("access_token");
-                // Gọi API lấy chi tiết (dùng endpoint public hoặc owner đều được)
                 const response = await fetch(`${API_URL}/api/accommodations/${accommodationId}`, {
                     headers: {
                         "Authorization": `Bearer ${token}`
@@ -90,13 +90,12 @@ export default function ModifyAccommodationForm() {
                 if (response.ok) {
                     const data = await response.json();
                     
-                    initialDbLocation.current = data.location || '';
-                    // "Đổ" dữ liệu vào form
+                    // Đổ dữ liệu vào form
                     setTitle(data.title || '');
                     setLocation(data.location || '');
                     setPrice(data.price || 0);
                     setMaxGuests(data.max_guests || 1);
-                    setPropertyType(data.property_type || 'Khách sạn');
+                    setPropertyType(data.property_type || 'hotel');
                     setDescription(data.description || '');
                     setPictureUrl(data.picture_url || '');
                     setLatitude(data.latitude);
@@ -115,68 +114,101 @@ export default function ModifyAccommodationForm() {
         fetchDetails();
     }, [accommodationId, navigate]);
 
-    // === 2. XỬ LÝ KHI THẢ GHIM (Map -> Input) ===
+    // --- 2. XỬ LÝ KHI THẢ GHIM (Map -> Input) ---
     const handleLocationSelect = async (lat, lng) => {
         setLatitude(lat);
         setLongitude(lng);
-        
-        setIsMapUpdating(true); // Báo hiệu: "Tao đang update từ Map nha, Input đừng chạy"
-
-        const addressName = await reverseGeocode(lat, lng);
-        if (addressName) {
-            setLocation(addressName);
-        }
-        
-        setTimeout(() => setIsMapUpdating(false), 1000);
+        // KHÔNG cập nhật lại text địa chỉ để tránh mất dữ liệu user nhập
+        console.log("Đã cập nhật tọa độ mới:", lat, lng);
     };
 
-    // === 3. XỬ LÝ KHI GÕ ĐỊA CHỈ (Input -> Map) ===
+    // --- 3. XỬ LÝ KHI GÕ TÌM KIẾM (Search Input -> Map) ---
     useEffect(() => {
-        if (isMapUpdating || !location) return;
-        if (location === initialDbLocation.current) {
-            return;
-        }
-
-        let isActive = true; // Biến cờ để xử lý Race Condition
-        setSearchError(""); 
+        if (!searchQuery) return;
+        
+        let isActive = true;
+        setSearchError("");
 
         const timerId = setTimeout(async () => {
             setIsSearching(true);
-            console.log("🔍 Đang tìm tọa độ cho:", location);
-            
             try {
-                const coords = await geocodeAddress(location);
+                const coords = await geocodeAddress(searchQuery);
                 
-                if (isActive) {
-                    if (coords) {
-                        setLatitude(coords.lat);
-                        setLongitude(coords.lng);
-
-                        setLocation(coords.display_name); 
-                        setTimeout(() => setIsMapUpdating(false), 1000);
-                        setSearchError(""); 
-                    } else {
-                        // Chỉ báo lỗi nếu không phải là đang load dữ liệu ban đầu (fetching = false)
-                        if (!fetching) {
-                            setSearchError("Không tìm thấy địa chỉ này trên bản đồ. Vui lòng ghim thủ công.");
-                        }
-                    }
+                if (isActive && coords) {
+                    setLatitude(coords.lat);
+                    setLongitude(coords.lng);
+                    // KHÔNG sửa biến 'location' của người dùng
+                } else if (isActive) {
+                    setSearchError("Không tìm thấy địa điểm này.");
                 }
             } catch (err) {
-                if (isActive) setSearchError("Lỗi kết nối định vị.");
+                setSearchError("Lỗi kết nối định vị.");
             } finally {
-                if (isActive) setIsSearching(false);
+                setIsSearching(false);
             }
-        }, 1500); 
+        }, 1500);
 
         return () => {
-            isActive = false;
+            isActive = false; 
             clearTimeout(timerId);
         };
-    }, [location, isMapUpdating]); // Bỏ dependency 'fetching' để tránh chạy lại không cần thiết
+    }, [searchQuery]);
 
-    
-    // Ham xu ly submit form
+    // --- 4. HÀM AI GENERATE ---
+    const handleAIGenerate = async () => {
+        if (!description || description.trim().length < 5) {
+            alert("Vui lòng nhập vài từ khóa vào ô Mô tả trước (Ví dụ: view biển, yên tĩnh, gần chợ...)");
+            return;
+        }
+        if (!title || !location) {
+            alert("Vui lòng nhập Tên và Địa chỉ trước!");
+            return;
+        }
+
+        setIsGenerating(true);
+        const token = localStorage.getItem("access_token");
+
+        try {
+            const response = await fetch(`${API_URL}/api/owner/accommodations/generate-description`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: title,
+                    property_type: propertyType,
+                    location: location,
+                    features: description 
+                })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.generated_description && !data.generated_description.startsWith("Lỗi")) {
+                    setDescription(data.generated_description);
+                } else {
+                    alert(data.generated_description || "AI không trả về kết quả.");
+                }
+            } else {
+                alert("Lỗi Server: " + (data.detail || response.statusText));
+            }
+        } catch (err) {
+            console.error("AI Error:", err);
+            alert("Lỗi kết nối đến Server.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    // Hàm format tiền tệ
+    const formatCurrency = (value) => {
+        if (!value) return "";
+        const number = value.replace(/\D/g, ""); 
+        return new Intl.NumberFormat('vi-VN').format(number);
+    };
+
+    // --- 5. SUBMIT FORM ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -198,14 +230,11 @@ export default function ModifyAccommodationForm() {
             property_type: propertyType,
             description: description || null, 
             picture_url: pictureUrl || null,
-            // Giữ nguyên tọa độ cũ (backend sẽ tự tính lại nếu location đổi)
             latitude: latitude, 
             longitude: longitude,
         };
 
-
         try {
-            // Gọi API đến endpoint đã định nghĩa trong owner_router.py
             const response = await fetch(`${API_URL}/api/owner/accommodations/${accommodationId}`, { 
                 method: "PUT",
                 headers: {
@@ -219,7 +248,8 @@ export default function ModifyAccommodationForm() {
 
             if (response.ok) {
                 setSuccess(`Cập nhật chỗ ở thành công!`);
-
+                // Có thể navigate về profile sau 1s
+                // setTimeout(() => navigate('/profile'), 1500);
             } else {
                 const detail = data.detail || "Lỗi cập nhật";
                 setError(`Lỗi (${response.status}): ${JSON.stringify(detail)}`);
@@ -234,12 +264,12 @@ export default function ModifyAccommodationForm() {
     };
 
     const handleCancel = () => {
-        navigate('/profile'); // Quay về trang danh sách
+        navigate('/profile'); 
     };
 
     if (fetching) return <div style={{textAlign: 'center', padding: 50}}>Đang tải thông tin...</div>;
 
-        return (
+    return (
         <div style={{ 
             padding: '20px 40px', 
             maxWidth: '923px',
@@ -264,7 +294,7 @@ export default function ModifyAccommodationForm() {
                 borderBottom: '1px solid #ccc',
                 paddingBottom: '10px'
             }}>
-
+                *Chỉnh sửa các thông tin bên dưới
             </p>
 
             {/* Messages */}
@@ -281,7 +311,7 @@ export default function ModifyAccommodationForm() {
             )}
 
             <form onSubmit={handleSubmit}>
-                {/* 1. Tên chỗ ở (title) */}
+                {/* 1. Tên chỗ ở */}
                 <div style={formGroupStyle}>
                     <label htmlFor="title" style={labelStyle}>Tên chỗ ở</label>
                     <input
@@ -295,64 +325,95 @@ export default function ModifyAccommodationForm() {
                     />
                 </div>
 
-                {/* 2. Địa chỉ (location) */}
+                {/* 2. Địa chỉ & Bản đồ (Cấu trúc mới giống AddForm) */}
                 <div style={formGroupStyle}>
-                    <label htmlFor="location" style={labelStyle}>Địa chỉ</label>
-                    <input
-                        type="text"
-                        id="location"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        required
-                        style={inputStyle}
-                    />
+                    <label style={labelStyle}>Địa chỉ</label>
 
-                    {/* UI Thông báo trạng thái tìm kiếm */}
-                    {isSearching && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', color: '#007bff', fontSize: '14px' }}>
-                            <span>⏳ Đang tìm vị trí trên bản đồ...</span>
-                        </div>
-                    )}
+                    {/* A. Ô CHI TIẾT (Lưu DB) */}
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{fontSize: '14px', color: '#666', marginBottom: '4px', display:'block'}}>
+                            *Địa chỉ chính xác hiển thị cho khách (bao gồm số nhà, hẻm, phường...)
+                        </label>
+                        <input
+                            type="text"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            required
+                            style={inputStyle}
+                            placeholder="Ví dụ: 11 Công trường Mê Linh, Bến Nghé, Quận 1..."
+                        />
+                    </div>
 
-                    {searchError && !isSearching && (
-                        <div style={{ marginTop: '8px', color: '#B01C29', fontSize: '14px', fontWeight: '500' }}>
-                            ⚠️ {searchError}
-                        </div>
-                    )}
+                    {/* B. CÔNG CỤ TÌM MAP (Chỉ dùng để search) */}
+                    <div style={{ 
+                        padding: '15px', 
+                        backgroundColor: '#f8f9fa', 
+                        borderRadius: '8px', 
+                        border: '1px dashed #ccc' 
+                    }}>
+                        <label style={{fontSize: '15px', fontWeight: '600', color: '#007bff', marginBottom: '8px', display: 'block'}}>
+                            🔍 Công cụ thay đổi vị trí bản đồ
+                        </label>
+                        <input
+                            type="text"
+                            value={searchQuery} 
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{...inputStyle, fontSize: '15px'}}
+                            placeholder="Nhập tên đường/khu vực để bản đồ bay tới đó (VD: Chợ Bến Thành)..."
+                        />
+                        {isSearching && <span style={{fontSize: '12px', color: '#e67e22'}}>⏳ Đang tìm map...</span>}
+                        {searchError && <span style={{fontSize: '12px', color: 'red'}}>{searchError}</span>}
+                    </div>
                     
-                    {/* HIỂN THỊ BẢN ĐỒ VỚI VỊ TRÍ CŨ */}
-                    {/* Chỉ render bản đồ khi đã có dữ liệu tọa độ (để tránh nhảy về biển Đông) */}
+                    {/* C. BẢN ĐỒ */}
                     {latitude && longitude && (
-                        <div style={{ marginTop: '15px' }}>
-                            <label style={{ fontSize: '14px', color: '#666', fontWeight: '600' }}>
-                                📍 Cập nhật vị trí bản đồ:
-                            </label>
+                        <div style={{ 
+                            marginTop: '15px', 
+                            border: '1px solid #ddd', 
+                            padding: '10px', 
+                            borderRadius: '8px',
+                            backgroundColor: '#f9f9f9'
+                        }}>
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'5px'}}>
+                                <label style={{ fontSize: '14px', fontWeight: '700', color: '#AD0000', margin:0 }}>
+                                    📍 Cập nhật vị trí chính xác
+                                </label>
+                                <span style={{fontSize: '12px', color: '#888'}}>
+                                    (Kéo ghim đỏ đến vị trí mới nếu muốn thay đổi)
+                                </span>
+                            </div>
                             <LocationPicker 
                                 defaultLat={parseFloat(latitude)} 
                                 defaultLng={parseFloat(longitude)} 
                                 onLocationSelect={handleLocationSelect}
                             />
+                             <p style={{fontSize: 12, color: '#999', marginTop: 5}}>
+                                Lat: {parseFloat(latitude).toFixed(6)}, Lng: {parseFloat(longitude).toFixed(6)}
+                            </p>
                         </div>
-                )}
+                    )}
                 </div>
 
-                {/* 3. Giá (price) */}
+                {/* 3. Giá (Có format) */}
                 <div style={formGroupStyle}>
                     <label htmlFor="price" style={labelStyle}>Giá (VNĐ/Đêm)</label>
                     <input
-                        type="number"
+                        type="text"
                         id="price"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        min="0"
-                        step="100000" 
+                        value={formatCurrency(String(price))}
+                        onChange={(e) => {
+                            const rawValue = e.target.value.replace(/\./g, "");
+                            if (!isNaN(rawValue)) {
+                                setPrice(rawValue); 
+                            }
+                        }}
                         required
                         style={inputStyle}
-                        placeholder="Ví dụ: 500000"
+                        placeholder="Ví dụ: 500.000"
                     />
                 </div>
 
-                {/* 4. Số khách tối đa (max_guests) */}
+                {/* 4. Số khách */}
                 <div style={formGroupStyle}>
                     <label htmlFor="maxGuests" style={labelStyle}>Số khách tối đa</label>
                     <input
@@ -363,11 +424,10 @@ export default function ModifyAccommodationForm() {
                         min="1"
                         required
                         style={inputStyle}
-                        placeholder="Nhập số lượng khách tối đa cho phép"
                     />
                 </div>
                 
-                {/* 5. Loại chỗ ở (property_type) */}
+                {/* 5. Loại chỗ ở */}
                 <div style={formGroupStyle}>
                     <label htmlFor="propertyType" style={labelStyle}>Loại chỗ ở</label>
                     <select
@@ -383,37 +443,67 @@ export default function ModifyAccommodationForm() {
                     </select>
                 </div>
                 
-                {/* 6. Mô tả (description) */}
+                {/* 6. Mô tả (Có nút AI) */}
                 <div style={formGroupStyle}>
                     <label htmlFor="description" style={labelStyle}>Mô tả</label>
-                    <textarea
-                        id="description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        rows="4"
-                        style={{ ...inputStyle, resize: 'vertical' }}
-                        placeholder="Mô tả chi tiết về chỗ ở, tiện ích và các quy tắc"
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows="6"
+                            style={{ 
+                                ...inputStyle, 
+                                resize: 'vertical',
+                                paddingBottom: '50px', // Chừa chỗ cho nút AI
+                                borderColor: isGenerating ? '#ec4899' : '#ccc',
+                                backgroundColor: isGenerating ? '#fff0f7' : 'white'
+                            }}
+                            placeholder="Mô tả chi tiết về chỗ ở..."
+                        />
+                        <button
+                            type="button"
+                            onClick={handleAIGenerate}
+                            disabled={isGenerating}
+                            style={{
+                                position: 'absolute',
+                                bottom: '12px', 
+                                right: '12px',
+                                zIndex: 10,
+                                background: isGenerating ? '#ccc' : 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)', 
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                opacity: 0.9
+                            }}
+                        >
+                            {isGenerating ? (
+                                <> <span className="animate-spin">⏳</span> Đang viết... </>
+                            ) : (
+                                <>✨ Viết lại bằng AI</>
+                            )}
+                        </button>
+                    </div>
                 </div>
                 
-                {/* 7. UPLOAD ẢNH (picture_url) */}
+                {/* 7. UPLOAD ẢNH */}
                 <div style={{ marginBottom: 20 }}>
                     <label style={labelStyle}>Hình ảnh</label>
-                    
                     <ImageUpload 
-                        // Truyền ảnh cũ từ DB vào để hiển thị
                         defaultImages={pictureUrl}
-                        
-                        // Khi thêm/xóa ảnh, cập nhật lại chuỗi URL
                         onUploadSuccess={(urlsArray) => setPictureUrl(urlsArray.join(','))}
                     />
                 </div>
 
-
                 {/* Nút HÀNH ĐỘNG */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '20px', paddingBottom: '20px' }}>
-                    
-                    {/* Nút Hủy */}
                     <button
                         type="button"
                         onClick={handleCancel}
@@ -426,14 +516,12 @@ export default function ModifyAccommodationForm() {
                             fontSize: '20px',
                             fontWeight: '700',
                             cursor: 'pointer',
-                            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)',
                             opacity: 0.9,
                         }}
                     >
                         Hủy
                     </button>
 
-                    {/* Nút Lưu (Submit) */}
                     <button
                         type="submit"
                         disabled={loading}
@@ -446,14 +534,12 @@ export default function ModifyAccommodationForm() {
                             fontSize: '20px',
                             fontWeight: '700',
                             cursor: loading ? 'not-allowed' : 'pointer',
-                            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)',
                         }}
                     >
-                        Lưu
+                        Lưu thay đổi
                     </button>
                 </div>
             </form>
         </div>
     );
-
 }

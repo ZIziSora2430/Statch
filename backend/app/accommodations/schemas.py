@@ -3,6 +3,12 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from decimal import Decimal # Sử dụng Decimal cho giá
 
+class GenerateDescRequest(BaseModel):
+    title: str
+    property_type: str
+    location: str
+    features: str = "" # Ví dụ: "Wifi mạnh, gần chợ, có hồ bơi"
+
 # --- Schema cho dữ liệu ĐẦU VÀO (từ React form) ---
 class AccommodationCreate(BaseModel):
     title: str               # "Tên chỗ ở"
@@ -49,3 +55,6 @@ class AccommodationUpdate(BaseModel):
     longitude: Optional[Decimal] = None
 
     model_config=ConfigDict(from_attributes=True)
+
+
+

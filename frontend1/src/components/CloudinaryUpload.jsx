@@ -71,11 +71,22 @@ export default function ImageUpload({ onUploadSuccess, defaultImages = "" }) {
             .filter(img => !img.isUploading)
             .map(img => img.url);
             
-        onUploadSuccess(realUrls); // Gửi về cha dạng mảng ['url1', 'url2']
         
         return nextState;
     });
   };
+
+  useEffect(() => {
+        // Bỏ qua lần render đầu nếu chưa có dữ liệu gì
+        if (imageList.length === 0 && defaultImages === "") return;
+
+        const isUploading = imageList.some(img => img.isUploading);
+        if (!isUploading) {
+            const realUrls = imageList.map(img => img.url);
+            onUploadSuccess(realUrls);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [imageList]);
 
   // Hàm xóa ảnh
   const removeImage = (indexToRemove) => {

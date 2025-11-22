@@ -1,12 +1,19 @@
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold # 1. Import thêm cái này
 import os
+from dotenv import load_dotenv 
+
+load_dotenv()
 
 # Lấy API Key từ: https://aistudio.google.com/app/apikey
-# Bạn nên lưu trong biến môi trường, ví dụ: os.getenv("GEMINI_API_KEY")
 
-GOOGLE_API_KEY = os.getenv("AI_KEY") 
+GOOGLE_API_KEY = os.getenv("AI_KEY")
+
+if not GOOGLE_API_KEY:
+    print("⚠️ CẢNH BÁO: Chưa tìm thấy AI_KEY trong biến môi trường!")
 
 genai.configure(api_key=GOOGLE_API_KEY)
+model = genai.GenerativeModel('models/gemini-2.5-flash')
 
 def generate_tags_from_desc(description: str, location: str) -> str:
     """
@@ -34,31 +41,58 @@ def generate_tags_from_desc(description: str, location: str) -> str:
         # Fallback: Nếu AI lỗi thì trả về tag mặc định dựa trên vị trí
         return f"{location}, Du lịch"
     
-def generate_description_text(title: str, property_type: str, location: str, features: str) -> str:
-    """
-    Viết mô tả quảng cáo dựa trên thông tin đầu vào.
-    """
+async def generate_description_text(title: str, property_type: str, location: str, features: str) -> str:
     try:
-        model = genai.GenerativeModel('gemini-pro')
-        
+        # Prompt (Câu lệnh)
         prompt = f"""
-        Bạn là một copywriter chuyên nghiệp cho nền tảng đặt phòng du lịch (như Airbnb).
-        Hãy viết một đoạn mô tả hấp dẫn, lôi cuốn (khoảng 100-150 từ) bằng tiếng Việt cho chỗ ở sau:
-        
-        - Tên chỗ ở: {title}
+        Bạn là copywriter chuyên nghiệp. Viết một đoạn mô tả ngắn (khoảng 50 từ) cho chỗ ở du lịch:
+        - Tên: {title}
         - Loại hình: {property_type}
-        - Vị trí: {location}
-        - Các điểm nổi bật (features): {features}
+        - Địa chỉ: {location}
+        - Đặc điểm: {features}
         
-        Yêu cầu:
-        - Dùng giọng văn thân thiện, mời gọi khách du lịch.
-        - Nhấn mạnh vào các tiện ích và vị trí.
-        - Sử dụng emoji phù hợp để bài viết sinh động.
-        - Không cần chào hỏi, vào thẳng nội dung mô tả.
+        Yêu cầu: Tiếng Việt, giọng văn thân thiện, hấp dẫn, dùng emoji. Không cần tiêu đề.
         """
         
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        # 2. CẤU HÌNH AN TOÀN (Tắt bộ lọc để tránh bị chặn nhầm)
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+
+        # 3. GỌI API
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=2000, 
+                temperature=0.7
+            ),
+            safety_settings=safety_settings
+        )
+        
+        # 4. DEBUG: In phản hồi thô ra Terminal để kiểm tra (Quan trọng)
+        print(f"🔎 RAW RESPONSE: {response}")
+
+        # 5. THỬ LẤY TEXT MỘT CÁCH AN TOÀN
+        try:
+            # Thuộc tính .text sẽ tự động báo lỗi nếu bị chặn hoặc không có nội dung
+            return response.text.strip()
+        except ValueError:
+            # Nếu lỗi ValueError xảy ra, nghĩa là AI từ chối trả lời
+            feedback = response.prompt_feedback
+            reason = "Không rõ lý do"
+            
+            if feedback:
+                print(f"❌ Prompt Feedback: {feedback}")
+                reason = f"Bị chặn bởi bộ lọc (BlockReason: {feedback.block_reason})"
+            
+            if response.candidates and response.candidates[0].finish_reason:
+                reason += f" - Finish Reason: {response.candidates[0].finish_reason.name}"
+
+            return f"AI không thể tạo nội dung. ({reason})"
+
     except Exception as e:
-        print(f"Lỗi AI: {e}")
-        return f"Chào mừng bạn đến với {title} tại {location}. Đây là một {property_type} tuyệt vời với {features}."
+        print(f"❌ LỖI HỆ THỐNG AI: {str(e)}")
+        return f"Lỗi hệ thống: {str(e)}"

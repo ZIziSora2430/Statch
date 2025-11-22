@@ -57,6 +57,23 @@ def create_accommodation_endpoint(
             detail=f"Không thể tạo chỗ ở: {str(e)}"
         )
     
+@router.post("/generate-description")
+async def generate_description_api(
+    request_data: schemas.GenerateDescRequest,
+    current_owner: models.User = Depends(get_current_active_owner)
+):
+    """
+    API này nhận thông tin thô -> Trả về văn mẫu do AI viết.
+    """
+    description = await ai_service.generate_description_text(
+        title=request_data.title,
+        property_type=request_data.property_type,
+        location=request_data.location,
+        features=request_data.features
+    )
+    
+    return {"generated_description": description}
+
 #Xóa một chỗ ở
 @router.delete(
     "/{accommodation_id}",
@@ -162,3 +179,4 @@ def get_my_accommodations_endpoint(
     URL thực tế: GET /api/owner/accommodations/
     """
     return service.get_accommodations_by_owner(db, owner_id=current_owner.id)
+
