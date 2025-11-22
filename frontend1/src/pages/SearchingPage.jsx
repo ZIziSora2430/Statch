@@ -1,133 +1,47 @@
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+
+// Import Components
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ResultBar from "../components/ResultBar";
-import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function SearchingPage() {
   const [searchParamsURL] = useSearchParams();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-  // State UI trạng thái
-  const [results, setResults] = useState([]); // Kết quả tìm kiếm thực tế
-  const [isLoading, setIsLoading] = useState(true); // Trạng thái tải
-  const [error, setError] = useState(null); // Thông báo lỗi
+  // --- STATE DỮ LIỆU ---
+  const [results, setResults] = useState([]); // Dữ liệu gốc từ API
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // State tham số tìm kiếm (giữ nguyên logic cũ)
-  const [searchParams, setSearchParams] = useState({
-    lat: null,
-    lng: null,
-    radius: 10,
-    location_text: searchParamsURL.get("location_text") || "Thành phố Hồ Chí Minh",
-  });
-
-  const toScore10 = (r) => Math.round(r * 20) / 10;
-
-  // ⭐ Bộ lọc sidebar
+  // --- STATE BỘ LỌC (SIDEBAR) ---
   const PRICE_MIN_LIMIT = 0;
   const PRICE_MAX_LIMIT = 10000000; // 10 triệu
 
   const [filters, setFilters] = useState({
     priceMin: PRICE_MIN_LIMIT,
     priceMax: PRICE_MAX_LIMIT,
-
-    // Tiện nghi
-    amenities: {
-      wifi: false,
-      pool: false,
-      ac: false,
-      parking: false,
-    },
-
-    // Loại chỗ ở
     types: {
       hotel: false,
       homestay: false,
       villa: false,
       apartment: false,
     },
-
-    // Đánh giá khách hàng (min rating) – null = tất cả
+    amenities: {
+      wifi: false,
+      pool: false,
+      ac: false,
+      parking: false,
+    },
     minRating: null,
   });
 
-  const handleFilterChange = (field, rawValue) => {
-    setFilters((prev) => {
-      let value = Number(rawValue);
-      if (Number.isNaN(value)) value = 0;
-
-      let next = { ...prev, [field]: value };
-
-      // Đảm bảo không vượt giới hạn
-      next.priceMin = Math.max(PRICE_MIN_LIMIT, Math.min(next.priceMin, PRICE_MAX_LIMIT));
-      next.priceMax = Math.max(PRICE_MIN_LIMIT, Math.min(next.priceMax, PRICE_MAX_LIMIT));
-
-      // Đảm bảo min <= max
-      if (field === "priceMin" && next.priceMin > next.priceMax) {
-        next.priceMax = next.priceMin;
-      }
-      if (field === "priceMax" && next.priceMax < next.priceMin) {
-        next.priceMin = next.priceMax;
-      }
-
-      return next;
-    });
-  };
-
-  // Tick/untick tiện nghi
-  const handleAmenityChange = (name) => {
-    setFilters((prev) => ({
-      ...prev,
-      amenities: {
-        ...prev.amenities,
-        [name]: !prev.amenities[name],
-      },
-    }));
-  };
-
-  // Tick/untick loại chỗ ở
-  const handleTypeChange = (name) => {
-    setFilters((prev) => ({
-      ...prev,
-      types: {
-        ...prev.types,
-        [name]: !prev.types[name],
-      },
-    }));
-  };
-
-  // Chọn mức đánh giá tối thiểu
-  const handleRatingChange = (value) => {
-    setFilters((prev) => ({
-      ...prev,
-      minRating: value,
-    }));
-  };
-
-  const handleClearFilter = () => {
-    setFilters({
-      priceMin: PRICE_MIN_LIMIT,
-      priceMax: PRICE_MAX_LIMIT,
-      amenities: {
-        wifi: false,
-        pool: false,
-        ac: false,
-        parking: false,
-      },
-      types: {
-        hotel: false,
-        homestay: false,
-        villa: false,
-        apartment: false,
-      },
-      minRating: null,
-    });
-  };
-
+  // --- HELPER FUNCTIONS ---
   const formatVnd = (value) => {
-    if (value === null || value === undefined) return "";
+    if (value === null || value === undefined) return "0 ₫";
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
@@ -135,410 +49,319 @@ export default function SearchingPage() {
     }).format(Number(value));
   };
 
-  // Helper: parse giá về số
-  const parsePriceToNumber = (price) => {
-    if (price === null || price === undefined) return null;
-    if (typeof price === "number") return price;
-    if (typeof price === "string") {
-      const parsed = parseFloat(price);
-      return isNaN(parsed) ? null : parsed;
-    }
-    return null;
-  };
-
-  // Hàm helper để chuyển chuỗi "A, B, C" thành mảng ["A", "B", "C"]
   const parseTags = (tagString) => {
     if (!tagString) return [];
-    return tagString.split(",").map(t => t.trim());
+    return tagString.split(",").map((t) => t.trim()).filter(t => t !== "");
+};
+  // --- HANDLERS CHO BỘ LỌC ---
+  const handleFilterChange = (field, rawValue) => {
+    setFilters((prev) => {
+      let value = Number(rawValue);
+      if (Number.isNaN(value)) value = 0;
+
+      let next = { ...prev, [field]: value };
+      
+      // Validate min/max
+      if (field === "priceMin" && next.priceMin > next.priceMax) next.priceMax = next.priceMin;
+      if (field === "priceMax" && next.priceMax < next.priceMin) next.priceMin = next.priceMax;
+      
+      return next;
+    });
   };
 
-  // Áp dụng filter lên results (client-side) – HIỆN TẠI chỉ lọc theo giá
+  const handleTypeChange = (name) => {
+    setFilters((prev) => ({
+      ...prev,
+      types: { ...prev.types, [name]: !prev.types[name] },
+    }));
+  };
+
+  const handleAmenityChange = (name) => {
+    setFilters((prev) => ({
+      ...prev,
+      amenities: { ...prev.amenities, [name]: !prev.amenities[name] },
+    }));
+  };
+
+  const handleRatingChange = (value) => {
+    setFilters((prev) => ({ ...prev, minRating: value }));
+  };
+
+  const handleClearFilter = () => {
+    setFilters({
+      priceMin: PRICE_MIN_LIMIT,
+      priceMax: PRICE_MAX_LIMIT,
+      types: { hotel: false, homestay: false, villa: false, apartment: false },
+      amenities: { wifi: false, pool: false, ac: false, parking: false },
+      minRating: null,
+    });
+  };
+
+  // --- LOGIC LỌC KẾT QUẢ (CLIENT-SIDE) ---
   const applyFilters = (items) => {
     return items.filter((item) => {
-      const priceNumber = parsePriceToNumber(item.price);
-      if (priceNumber === null) return true; // nếu không có giá thì khỏi lọc
+      // 1. Lọc theo Giá
+      const price = parseFloat(item.price) || 0;
+      if (price < filters.priceMin || price > filters.priceMax) return false;
 
-      if (priceNumber < filters.priceMin) return false;
-      if (priceNumber > filters.priceMax) return false;
+      // 2. Lọc theo Loại chỗ ở (Property Type)
+      // Kiểm tra xem có checkbox nào được tick không
+      const activeTypes = Object.keys(filters.types).filter((key) => filters.types[key]);
+      if (activeTypes.length > 0) {
+        // Backend có thể trả về "Khách sạn", "Căn hộ"... hoặc "hotel", "apartment"
+        // Cần chuẩn hóa để so sánh tương đối
+        const itemTypeLower = (item.property_type || "").toLowerCase();
+        
+        // Logic mapping đơn giản: check xem type của item có chứa từ khóa đã tick không
+        // Ví dụ: itemType="Luxury Hotel" sẽ khớp với filter="hotel"
+        const isMatch = activeTypes.some(type => itemTypeLower.includes(type));
+        if (!isMatch) return false;
+      }
 
-      // ⭐ tiện nghi / loại chỗ ở / rating chưa dùng để lọc
+      // 3. Lọc theo Rating (Nếu backend có trả về rating)
+      // Giả sử item.ratingScore có tồn tại. Nếu chưa có thì bỏ qua.
+      if (filters.minRating !== null && item.ratingScore) {
+        if (item.ratingScore < filters.minRating) return false;
+      }
+
       return true;
     });
   };
 
   const filteredResults = applyFilters(results);
 
-  // useEffect gọi API (giữ nguyên logic cũ)
+  // --- GỌI API ---
   useEffect(() => {
-    const newLocationText = searchParamsURL.get("location_text") || "";
-    const currentLat = searchParamsURL.get("lat");
-    const currentLng = searchParamsURL.get("lng");
-    const currentRadius = searchParamsURL.get("radius");
-
-    const newParams = {
-      location_text: newLocationText,
-      lat: currentLat ? parseFloat(currentLat) : null,
-      lng: currentLng ? parseFloat(currentLng) : null,
-      radius: currentRadius ? parseInt(currentRadius) : 10,
-    };
-
-    const fetchAccommodations = async (paramsToFetch) => {
+    const fetchAccommodations = async () => {
       setIsLoading(true);
       setError(null);
       setResults([]);
 
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
-        setError("Vui lòng đăng nhập để xem kết quả tìm kiếm. Token không tìm thấy.");
+      const token = localStorage.getItem("access_token");
+      
+      // Lấy params từ URL
+      const params = new URLSearchParams();
+      const lat = searchParamsURL.get("lat");
+      const lng = searchParamsURL.get("lng");
+      const radius = searchParamsURL.get("radius");
+      const locationText = searchParamsURL.get("location_text");
+
+      if (lat && lng) {
+        params.append("lat", lat);
+        params.append("lng", lng);
+        params.append("radius", radius || 10);
+      } else if (locationText) {
+        params.append("location_text", locationText);
+      } else {
+        // Nếu không có gì cả thì không gọi API hoặc gọi mặc định
         setIsLoading(false);
         return;
       }
 
-      const newSearchParams = new URLSearchParams();
-
-      if (paramsToFetch.lat !== null && paramsToFetch.lng !== null) {
-        newSearchParams.append("lat", paramsToFetch.lat);
-        newSearchParams.append("lng", paramsToFetch.lng);
-        newSearchParams.append("radius", paramsToFetch.radius);
-      } else if (paramsToFetch.location_text) {
-        newSearchParams.append("location_text", paramsToFetch.location_text);
-      }
-
-      if (newSearchParams.toString() === "") {
-        setIsLoading(false);
-        return;
-      }
-
-      const url = `${API_BASE_URL}/api/accommodations/search/?${newSearchParams.toString()}`;
       try {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
+        // Nếu user chưa login, API search vẫn nên hoạt động (tùy logic backend)
+        // Nhưng code cũ của bạn yêu cầu token, nên ta giữ nguyên headers
+        const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
+        const response = await fetch(`${API_BASE_URL}/api/accommodations/search/?${params.toString()}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                ...headers
+            }
         });
+
         if (!response.ok) {
-          const errorData = await response.json();
-          if (response.status === 401) {
-            throw new Error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.");
-          }
-          throw new Error(errorData.detail || `Lỗi HTTP: ${response.status}`);
+            throw new Error(`Lỗi tải dữ liệu (${response.status})`);
         }
+
         const data = await response.json();
-        console.log("Dữ liệu API trả về:", data); // <--- KIỂM TRA Ở CONSOLE (F12)
+        console.log("API Results:", data);
         setResults(data);
+
       } catch (err) {
-        console.error("Lỗi khi tìm kiếm chỗ ở:", err);
+        console.error("Search Error:", err);
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    setSearchParams(newParams);
-
-    if (newLocationText || currentLat) {
-      fetchAccommodations(newParams);
-    } else {
-      setIsLoading(false);
-    }
+    fetchAccommodations();
   }, [searchParamsURL]);
 
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 font-sans">
       <Navbar />
 
-      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
-        <div className="mb-6 md:mb-8 lg:mb-10">
+      <main className="mx-auto w-[95%] md:w-[90%] max-w-7xl pt-6 pb-10">
+        {/* Thanh tìm kiếm giữ nguyên vị trí */}
+        <div className="mb-8">
           <SearchingBar />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          {/* Sidebar filter */}
-          <aside className="md:col-span-4 lg:col-span-3">
-            <div className="sticky top-6">
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-800">Bộ lọc</h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Chọn khoảng giá, loại chỗ ở và tiện nghi phù hợp với bạn.
-                </p>
-
-                {/* KHOẢNG GIÁ */}
-                <div className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">
-                      Khoảng giá (VND)
-                    </span>
-                    <span className="text-[11px] font-semibold text-[#BF1D2D] text-right">
-                      {formatVnd(filters.priceMin)}{" "}
-                      <span className="text-gray-400">–</span>{" "}
-                      {formatVnd(filters.priceMax)}
-                    </span>
-                  </div>
-
-                  {/* Slider min–max trên 1 track */}
-                  <div className="mt-4">
-                    <div className="range-slider h-3  ">
-                      <div className="range-slider__track" />
-
-                      {/* thumb min */}
-                      <input
-                        type="range"
-                        min={PRICE_MIN_LIMIT}
-                        max={PRICE_MAX_LIMIT}
-                        step={500000}
-                        value={filters.priceMin}
-                        onChange={(e) =>
-                          handleFilterChange("priceMin", e.target.value)
-                        }
-                        className="range-slider__range range-thumb-circle"
-                      />
-
-                      {/* thumb max */}
-                      <input
-                        type="range"
-                        min={PRICE_MIN_LIMIT}
-                        max={PRICE_MAX_LIMIT}
-                        step={500000}
-                        value={filters.priceMax}
-                        onChange={(e) =>
-                          handleFilterChange("priceMax", e.target.value)
-                        }
-                        className="range-slider__range range-thumb-circle"
-                      />
-                    </div>
-
-                    {/* Text min/max – bên dưới slider */}
-                    <div className="mt-2 flex justify-between text-[11px] text-gray-400">
-                      <span>{formatVnd(PRICE_MIN_LIMIT)}</span>
-                      <span>{formatVnd(PRICE_MAX_LIMIT)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* LOẠI CHỖ Ở */}
-                <div className="mt-6 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
-                    Loại chỗ ở
-                  </div>
-
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.types.hotel}
-                        onChange={() => handleTypeChange("hotel")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Khách sạn
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.types.homestay}
-                        onChange={() => handleTypeChange("homestay")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Homestay
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.types.villa}
-                        onChange={() => handleTypeChange("villa")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Villa
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.types.apartment}
-                        onChange={() => handleTypeChange("apartment")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Căn hộ
-                    </label>
-                  </div>
-                </div>
-
-                {/* ĐÁNH GIÁ CỦA KHÁCH HÀNG */}
-                <div className="mt-6 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
-                    Đánh giá của khách hàng
-                  </div>
-
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="ratingFilter"
-                        checked={filters.minRating === null}
-                        onChange={() => handleRatingChange(null)}
-                        className="w-4 h-4"
-                      />
-                      Tất cả
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="ratingFilter"
-                        checked={filters.minRating === 9}
-                        onChange={() => handleRatingChange(9)}
-                        className="w-4 h-4"
-                      />
-                      Từ 9.0 trở lên (Tuyệt vời)
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="ratingFilter"
-                        checked={filters.minRating === 8}
-                        onChange={() => handleRatingChange(8)}
-                        className="w-4 h-4"
-                      />
-                      Từ 8.0 trở lên (Rất tốt)
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="ratingFilter"
-                        checked={filters.minRating === 7}
-                        onChange={() => handleRatingChange(7)}
-                        className="w-4 h-4"
-                      />
-                      Từ 7.0 trở lên (Tốt)
-                    </label>
-                  </div>
-                </div>
-
-                {/* TIỆN NGHI */}
-                <div className="mt-6 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
-                    Tiện nghi
-                  </div>
-
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.amenities.wifi}
-                        onChange={() => handleAmenityChange("wifi")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Wifi miễn phí
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.amenities.pool}
-                        onChange={() => handleAmenityChange("pool")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Hồ bơi
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.amenities.ac}
-                        onChange={() => handleAmenityChange("ac")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Máy lạnh
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.amenities.parking}
-                        onChange={() => handleAmenityChange("parking")}
-                        className="w-4 h-4 rounded"
-                      />
-                      Chỗ đậu xe
-                    </label>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleClearFilter}
-                  className="mt-5 w-full rounded-xl border border-gray-300 text-gray-700 font-medium py-2.5 hover:bg-gray-50 active:scale-[.99] transition"
-                >
-                  Xóa bộ lọc
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* --- SIDEBAR BỘ LỌC --- */}
+          <aside className="lg:col-span-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm sticky top-24">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-800">Bộ lọc</h2>
+                <button onClick={handleClearFilter} className="text-sm text-blue-600 hover:underline">
+                    Đặt lại
                 </button>
+              </div>
+
+              {/* Filter: Giá */}
+              <div className="mb-6">
+                <label className="text-sm font-semibold text-gray-700 mb-2 block">Khoảng giá</label>
+                <div className="text-xs text-[#BF1D2D] font-bold mb-3 text-right">
+                   {formatVnd(filters.priceMin)} - {formatVnd(filters.priceMax)}
+                </div>
+                <input
+                  type="range"
+                  min={PRICE_MIN_LIMIT}
+                  max={PRICE_MAX_LIMIT}
+                  step={500000}
+                  value={filters.priceMax}
+                  onChange={(e) => handleFilterChange("priceMax", e.target.value)}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#BF1D2D]"
+                />
+              </div>
+
+              {/* Filter: Loại chỗ ở */}
+              <div className="mb-6 border-t pt-4">
+                <label className="text-sm font-semibold text-gray-700 mb-3 block">Loại chỗ ở</label>
+                <div className="space-y-2">
+                    {['hotel', 'homestay', 'villa', 'apartment'].map(type => (
+                        <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                checked={filters.types[type]}
+                                onChange={() => handleTypeChange(type)}
+                                className="rounded text-[#BF1D2D] focus:ring-[#BF1D2D]" 
+                            />
+                            <span className="text-sm text-gray-600 capitalize">
+                                {type === 'apartment' ? 'Căn hộ' : type}
+                            </span>
+                        </label>
+                    ))}
+                </div>
+              </div>
+
+              {/* Filter: Rating */}
+              <div className="mb-6 border-t pt-4">
+                <label className="text-sm font-semibold text-gray-700 mb-3 block">Đánh giá</label>
+                <div className="space-y-2">
+                    {[9, 8, 7].map(score => (
+                        <label key={score} className="flex items-center space-x-2 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="rating"
+                                checked={filters.minRating === score}
+                                onChange={() => handleRatingChange(score)}
+                                className="text-[#BF1D2D] focus:ring-[#BF1D2D]" 
+                            />
+                            <span className="text-sm text-gray-600">Từ {score}.0 trở lên</span>
+                        </label>
+                    ))}
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                        <input 
+                            type="radio" 
+                            name="rating"
+                            checked={filters.minRating === null}
+                            onChange={() => handleRatingChange(null)}
+                            className="text-[#BF1D2D] focus:ring-[#BF1D2D]" 
+                        />
+                        <span className="text-sm text-gray-600">Mọi đánh giá</span>
+                    </label>
+                </div>
               </div>
             </div>
           </aside>
 
-          {/* Kết quả */}
-          <section className="md:col-span-8 lg:col-span-9">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-800">Kết quả đề xuất</h3>
-              <div className="text-sm text-gray-500">
-                {filteredResults.length} chỗ ở (từ {results.length} kết quả)
-              </div>
+          {/* --- DANH SÁCH KẾT QUẢ --- */}
+          <section className="lg:col-span-9">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-800">
+                    Kết quả tìm kiếm
+                </h3>
+                <span className="text-sm text-gray-500">
+                    Tìm thấy {filteredResults.length} chỗ ở
+                </span>
             </div>
 
+            {/* Loading State */}
             {isLoading && (
-              <div className="mt-4 text-sm text-gray-500">Đang tải kết quả...</div>
-            )}
-            {error && !isLoading && (
-              <div className="mt-4 text-sm text-red-500">Lỗi: {error}</div>
+                <div className="flex flex-col items-center justify-center py-20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#BF1D2D]"></div>
+                    <p className="mt-4 text-gray-500">Đang tìm chỗ ở tốt nhất cho bạn...</p>
+                </div>
             )}
 
-            <div className="mt-4 space-y-5">
-              {!isLoading &&
-                !error &&
-                filteredResults.map((item) => (
-                  <ResultBar
-                    key={item.accommodation_id || item.id}
-                    image={item.picture_url || "https://placehold.co/1200x800"}
-                    title={item.title}
-                    location={item.location}
-                    ratingText={"Rất tốt"}
-                    ratingCount={0}
-                    ratingScore={9.0}
-                    stars={4}
-                    tags={parseTags(item.tags)}
-                    categories={item.property_type ? [item.property_type] : []}
-                    summary={(item.max_guests)}
-                    priceLabel={formatVnd(item.price)}
-                    priceNote="Đã bao gồm thuế và phí"
-                    onClick={() =>
-                      console.log("Xem chi tiết:", item.accommodation_id || item.id)
+            {/* Error State */}
+            {error && !isLoading && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong className="font-bold">Đã xảy ra lỗi! </strong>
+                    <span className="block sm:inline">{error}</span>
+                </div>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && filteredResults.length === 0 && (
+                <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+                    <div className="text-4xl mb-4">😕</div>
+                    <h3 className="text-lg font-medium text-gray-900">Không tìm thấy chỗ ở nào</h3>
+                    <p className="text-gray-500 mt-2">Thử thay đổi bộ lọc, mở rộng khu vực hoặc chọn ngày khác.</p>
+                    <button onClick={handleClearFilter} className="mt-4 text-[#BF1D2D] font-semibold hover:underline">
+                        Xóa bộ lọc tìm kiếm
+                    </button>
+                </div>
+            )}
+
+            {/* Results List */}
+            <div className="space-y-6">
+                {!isLoading && filteredResults.map((item) => {
+                    // --- XỬ LÝ ẢNH: Lấy ảnh đầu tiên trong chuỗi ---
+                    let displayImage = "https://placehold.co/600x400?text=No+Image";
+                    if (item.picture_url) {
+                         // Tách chuỗi url1,url2 thành mảng và lấy phần tử đầu
+                         const urls = item.picture_url.split(',');
+                         if (urls.length > 0 && urls[0].trim() !== "") {
+                             displayImage = urls[0].trim();
+                         }
                     }
-                  />
-                ))}
+
+                    return (
+                        <ResultBar
+                            key={item.accommodation_id || item.id}
+                            image={displayImage} // Đã xử lý
+                            title={item.title}
+                            location={item.location}
+                            
+                            // Mock dữ liệu rating vì API chưa có
+                            ratingText="Tuyệt vời"
+                            ratingScore={9.5}
+                            ratingCount={120}
+                            stars={4}
+                            
+                            tags={parseTags(item.tags || item.ai_tags || "")} // Hỗ trợ cả 2 tên trường tags
+                            categories={[item.property_type]}
+                            summary={`${item.max_guests} khách tối đa`}
+                            
+                            priceLabel={formatVnd(item.price)}
+                            priceNote="chưa bao gồm thuế"
+                            
+                            // SỰ KIỆN CLICK: Chuyển trang
+                            onClick={() => navigate(`/accommodations/${item.accommodation_id || item.id}`)}
+                        />
+                    );
+                })}
             </div>
           </section>
         </div>
       </main>
-
-      <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
-        <div className="container mx-auto">
-          <p className="text-sm">© 2025 Statch. All rights reserved.</p>
-          <div className="mt-2 flex justify-center gap-4">
-            <a href="#" className="hover:text-white transition">
-              Về chúng tôi
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Liên hệ
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Điều khoản
-            </a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

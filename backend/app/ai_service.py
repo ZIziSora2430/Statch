@@ -15,31 +15,62 @@ if not GOOGLE_API_KEY:
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('models/gemini-2.5-flash')
 
-def generate_tags_from_desc(description: str, location: str) -> str:
+async def generate_tags_from_desc(description: str, location: str) -> str:
     """
-    Dùng AI để đọc mô tả + vị trí và trả về string các tags ngăn cách bởi dấu phẩy.
+    Dùng AI để trích xuất 3-5 từ khóa (tags) quan trọng nhất.
+    Phiên bản Async + Prompt tối ưu + Xử lý chuỗi kỹ hơn.
     """
     try:
-        model = genai.GenerativeModel('gemini-pro')
-        
+        # 1. Prompt được cải tiến (Few-Shot Prompting - Cung cấp ví dụ mẫu)
         prompt = f"""
-        Bạn là một chuyên gia du lịch. Hãy trích xuất tối đa 5 từ khóa (tags) ngắn gọn, hấp dẫn bằng tiếng Việt dựa trên mô tả và vị trí dưới đây.
-        
-        Mô tả: "{description}"
-        Vị trí: "{location}"
-        
-        Yêu cầu:
-        - Chỉ trả về các từ khóa ngăn cách bởi dấu phẩy (Ví dụ: Gần biển, Yên tĩnh, BBQ).
-        - Không thêm lời dẫn, không thêm dấu chấm câu thừa.
-        - Tập trung vào tiện ích, không khí (vibe) hoặc vị trí đặc biệt.
+        Bạn là chuyên gia SEO du lịch. Nhiệm vụ: Trích xuất đúng 3 đến 5 từ khóa (tags) ngắn gọn nhất (2-4 từ/tag) mô tả tiện ích nổi bật và không khí của chỗ ở này.
+
+        Dữ liệu đầu vào:
+        - Mô tả: "{description}"
+        - Vị trí: "{location}"
+
+        Ví dụ mẫu (Hãy học theo định dạng này):
+        Input: Mô tả "Nhà có hồ bơi vô cực, view nhìn thẳng ra biển, rất hợp để nướng BBQ tối. Wifi mạnh." - Vị trí "Vũng Tàu"
+        Output: Hồ bơi vô cực, View biển, BBQ sân vườn, Wifi mạnh, Gần biển
+
+        Yêu cầu bắt buộc:
+        1. Chỉ trả về danh sách từ khóa ngăn cách bởi dấu phẩy.
+        2. KHÔNG xuống dòng, KHÔNG gạch đầu dòng, KHÔNG số thứ tự.
+        3. Ưu tiên các từ khóa thu hút khách du lịch (Vd: Gần trung tâm, Có bồn tắm, Chill, Yên tĩnh).
+        4. Tiếng Việt chuẩn.
         """
+
+        # 2. Cấu hình an toàn (Tránh bị chặn vì từ khóa nhạy cảm trong mô tả)
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+        }
+
+        # 3. Gọi Async để không chặn server
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=100, # Giới hạn ngắn thôi cho tiết kiệm
+                temperature=0.5        # Giảm độ sáng tạo để tags chính xác hơn
+            ),
+            safety_settings=safety_settings
+        )
         
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        # 4. Xử lý hậu kỳ (Clean text)
+        raw_text = response.text.strip()
+        # Loại bỏ các ký tự thừa nếu AI lỡ thêm vào (dấu chấm cuối câu, dấu xuống dòng)
+        clean_tags = raw_text.replace("\n", "").replace(".", "").replace("*", "")
+        
+        print(f"🏷️ Generated Tags: {clean_tags}")
+        return clean_tags
+
     except Exception as e:
-        print(f"Lỗi AI: {e}")
-        # Fallback: Nếu AI lỗi thì trả về tag mặc định dựa trên vị trí
-        return f"{location}, Du lịch"
+        print(f"⚠️ Lỗi tạo Tags: {e}")
+        # Fallback thông minh hơn: Lấy tên quận/thành phố từ location làm tag
+        short_loc = location.split(',')[-1].strip() if ',' in location else location
+        return f"Tiện nghi đầy đủ, {short_loc}, Du lịch"
     
 async def generate_description_text(title: str, property_type: str, location: str, features: str) -> str:
     try:

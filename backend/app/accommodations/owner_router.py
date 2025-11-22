@@ -125,45 +125,57 @@ def delete_accommodation_endpoint(
     "/{accommodation_id}",
     response_model=schemas.AccommodationRead # Trả về chỗ ở đã được cập nhật
 )
-def update_accommodation_endpoint(
-    accommodation_id: int, # Lấy ID từ URL
-    accommodation_data: schemas.AccommodationUpdate, # Lấy data mới từ Body
+async def update_accommodation_endpoint(  # <--- 1. Thêm async để gọi AI
+    accommodation_id: int,
+    accommodation_data: schemas.AccommodationUpdate,
     db: Session = Depends(database.get_db),
     current_owner: models.User = Depends(get_current_active_owner)
 ):
     """
-    API Endpoint để chủ sở hữu (owner) cập nhật chỗ ở của mình.
+    API Cập nhật chỗ ở. 
+    TỰ ĐỘNG: Nếu có thay đổi Description hoặc Location -> Gọi AI tạo lại Tags.
     """
     
-    # 1. Tìm chỗ ở
+    # 1. Lấy thông tin cũ từ DB
     accommodation = service.get_accommodation_by_id(db, accommodation_id)
     
-    # 2. Kiểm tra 404
     if not accommodation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Không tìm thấy chỗ ở."
-        )
+        raise HTTPException(status_code=404, detail="Không tìm thấy chỗ ở.")
     
-    # 3. Kiểm tra quyền sở hữu
     if accommodation.owner_id != current_owner.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bạn không có quyền sửa chỗ ở này."
-        )
+        raise HTTPException(status_code=403, detail="Không có quyền sửa chỗ ở này.")
+
+    # --- LOGIC AI CẬP NHẬT TAGS TỰ ĐỘNG ---
+    # Kiểm tra xem người dùng có gửi Description hoặc Location mới không
+    if accommodation_data.description is not None or accommodation_data.location is not None:
+        print("🔄 Phát hiện thay đổi nội dung, đang cập nhật Tags...")
         
-    # 4. Gọi service để cập nhật
-    try:
-        return service.update_accommodation(
-            db=db,
-            accommodation=accommodation,
-            update_data=accommodation_data
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Không thể cập nhật chỗ ở: {str(e)}"
-        )
+        # Lấy nội dung mới nhất (nếu user không gửi cái mới thì dùng cái cũ trong DB)
+        desc_to_use = accommodation_data.description if accommodation_data.description is not None else accommodation.description
+        loc_to_use = accommodation_data.location if accommodation_data.location is not None else accommodation.location
+
+        # Gọi AI (chỉ gọi nếu có đủ thông tin)
+        if desc_to_use and loc_to_use:
+            try:
+                new_tags = await ai_service.generate_tags_from_desc(
+                    description=desc_to_use, 
+                    location=loc_to_use
+                )
+                
+                # Gán trực tiếp vào object Database (SQLAlchemy)
+                # Service sẽ commit thay đổi này cùng với các trường khác
+                accommodation.tags = new_tags 
+                print(f"✅ Tags mới: {new_tags}")
+            except Exception as e:
+                print(f"⚠️ Lỗi cập nhật tags: {e}")
+                # Không raise lỗi để cho phép lưu các thông tin khác bình thường
+
+    # 2. Gọi Service để lưu các thay đổi còn lại (Title, Price...)
+    return service.update_accommodation(
+        db=db,
+        accommodation=accommodation,
+        update_data=accommodation_data
+    )
 
 
 @router.get(

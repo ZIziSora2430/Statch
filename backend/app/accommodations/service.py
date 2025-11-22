@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, text
+from sqlalchemy import select, func, text, and_
 from sqlalchemy.orm import Session
 from .. import models
 from . import schemas
@@ -123,7 +123,10 @@ def search_accommodations(
     lat: Optional[float],
     lng: Optional[float],
     radius: Optional[int], # Bán kính (km)
-    location_text: Optional[str]
+    location_text: Optional[str],
+    check_in_date: Optional[date] = None,
+    check_out_date: Optional[date] = None,
+    number_of_guests: Optional[int] = None
 ):
     """
     Hàm logic để tìm kiếm chỗ ở dựa trên tọa độ và bán kính.
@@ -168,8 +171,38 @@ def search_accommodations(
             # Dùng ilike (không phân biệt hoa thường)
             models.Accommodation.location.ilike(f"%{location_text}%")
         )
+
+    # Lọc theo Số lượng Khách
+    if number_of_guests is not None:
+        query = query.where(
+            models.Accommodation.max_guests >= number_of_guests
+        )
     
-    
+    # Lọc theo Ngày (Kiểm tra Availability - Model Booking của bạn)
+    if check_in_date is not None and check_out_date is not None:
+        
+        # 1. Tìm ra ID của các phòng ĐÃ BỊ ĐẶT và BỊ CHỒNG LẤN
+        # CHỒNG LẤN: Booking.date_end > check_in_date VÀ Booking.date_start < check_out_date
+        booked_accommodations_subquery = (
+            select(models.Booking.accommodation_id)
+            .where(
+                and_(
+                    models.Booking.date_end > check_in_date,
+                    models.Booking.date_start < check_out_date,
+                    # Chỉ loại trừ các booking đã được xác nhận hoặc chờ xử lý (tùy theo logic của bạn)
+                    models.Booking.status.in_(['confirmed', 'pending_confirmation'])
+                )
+            )
+            .subquery()
+        )
+        
+        # 2. Loại bỏ các phòng đã bị đặt (các ID có trong subquery)
+        # SỬ DỤNG models.Accommodation.accommodation_id vì đây là Primary Key của Model Accommodation
+        query = query.where(
+            models.Accommodation.accommodation_id.notin_(
+                select(booked_accommodations_subquery.c.accommodation_id)
+            )
+        )
     # --- Thực thi Query ---
     results = db.execute(query).all()
     

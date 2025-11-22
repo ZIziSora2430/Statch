@@ -88,13 +88,17 @@ export default function ResultBar({
             
             {/* Chips: Tags (Vị trí, tiện ích) */}
             <div className="flex flex-wrap items-center gap-2 mt-2">
-              {tags.map((t, idx) => (
-                 t ? (
-                  <Chip key={idx} className="bg-gray-100 text-gray-600 border border-gray-200">
-                    {t}
-                  </Chip>
-                 ) : null
+              {tags.slice(0, 4).map((tag, index) => ( // Chỉ lấy tối đa 4 tag để khỏi vỡ layout
+              <span 
+                key={index} 
+                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200"
+              >
+                {tag}
+              </span>
               ))}
+                {tags.length > 4 && (
+                  <span className="text-xs text-gray-400 self-center">+{tags.length - 4} khác</span>
+                )}
             </div>
           </div>
 

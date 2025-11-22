@@ -32,6 +32,7 @@ class AccommodationRead(AccommodationCreate):
     accommodation_id: int
     owner_id: int
     status: str # Trả về status (mặc định là 'available')
+    tags: Optional[str] = None
 
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None

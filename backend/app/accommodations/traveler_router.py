@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional 
+from datetime import date
 from decimal import Decimal
 
 # Import từ thư mục app/
@@ -30,6 +31,9 @@ def search_accommodations_endpoint(
     lng: Optional[float] = Query(None, description="Kinh độ của điểm tìm kiếm"),
     radius: Optional[int] = Query(10, description="Bán kính tìm kiếm (km)"),
     location_text: Optional[str] = Query(None, description="Tìm kiếm theo text (fallback)"),
+    check_in_date: Optional[date] = Query(None, description="Ngày nhận phòng (YYYY-MM-DD)"),
+    check_out_date: Optional[date] = Query(None, description="Ngày trả phòng (YYYY-MM-DD)"),
+    number_of_guests: Optional[int] = Query(None, description="Số lượng khách tối đa"),
 
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(get_current_user) # Lấy user
@@ -39,13 +43,21 @@ def search_accommodations_endpoint(
     API Endpoint cho traveler tìm kiếm chỗ ở dựa trên tọa độ (lat/lng)
     và bán kính (radius). Yêu cầu phải đăng nhập.
     """
+    if check_in_date and check_out_date and check_in_date >= check_out_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ngày nhận phòng phải trước ngày trả phòng."
+        )
     try:
         accommodations = service.search_accommodations(
             db=db,
             lat=lat,
             lng=lng,
             radius=radius,
-            location_text=location_text
+            location_text=location_text,
+            check_in_date=check_in_date,
+            check_out_date=check_out_date,
+            number_of_guests=number_of_guests
         )
         return accommodations
     except Exception as e:
