@@ -11,7 +11,7 @@ import UserProfile from './pages/UserProfile.jsx';
 
 // Các trang chức năng khác
 import AddAccommodationForm from './pages/AddAccommodationForm.jsx';
-import BookingDetailPage from './pages/Booking.jsx';
+import BookingDetailPage from './pages/RoomDetailPage.jsx';
 import BookingConfirmPage from './pages/BookingConfirmPage.jsx';
 import BookingFormPage from './pages/BookingFormPage.jsx';
 import ModifyAccommodationForm from './pages/ModifyAccommodationForm.jsx';

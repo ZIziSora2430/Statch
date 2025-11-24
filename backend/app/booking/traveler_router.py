@@ -26,8 +26,9 @@ def create_booking_endpoint(
             user_id=current_user.id,
             booking_data=payload
         )
-        # Convert booking → BookingRead
-        return service.get_bookings_for_user(db, current_user.id)[0]
+
+        # return booking vừa tạo
+        return service.get_booking_by_id(db, booking.booking_id)
 
     except ValueError as e:
         raise HTTPException(
@@ -58,4 +59,5 @@ def get_my_booking_detail_endpoint(
     if booking.user_id != current_user.id:
         raise HTTPException(403, "Không có quyền xem")
 
-    return service.get_bookings_for_user(db, current_user.id)[0]
+    return booking
+
