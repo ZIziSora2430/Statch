@@ -255,148 +255,19 @@ function HotelCard({
 
 // Example usage with multiple hotels
 export default function HotelBookingList() {
-  const hotels = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400',
-      name: 'Nicecy Hotel',
-      rating: 3,
-      location: 'TP. Hồ Chí Minh',
-      checkIn: '2, 18 tháng 11',
-      checkOut: '3, 19 tháng 11',
-      status: 'confirmed'
+  const [bookings, setBookings] = React.useState([]);
+  React.useEffect(() => {
+  fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'success'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'success'
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400',
-      name: 'The Secret Con Dao',
-      rating: 4,
-      location: 'Côn đảo',
-      checkIn: '5, 21 tháng 11',
-      checkOut: '6, 22 tháng 11',
-      status: 'cancelled'
-    }
-  ];
+  })
+    .then((res) => res.json())
+    .then((data) => setBookings(data))
+    .catch((err) => console.error("Error loading bookings:", err));
+}, []);
+
+  
 
   return (
     <div style={{
@@ -415,10 +286,19 @@ export default function HotelBookingList() {
         overflowY: 'auto',
         paddingRight: '10px'
       }}>
-        {hotels.map(hotel => (
-          <HotelCard key={hotel.id} {...hotel} />
-        ))}
-      </div>
-    </div>
-  );
-}
+        {bookings.map(b => (
+  <HotelCard
+    key={b.booking_id}
+    image={b.accommodation_image}
+    name={b.accommodation_title}
+    rating={4} 
+    location={b.accommodation_location}
+    checkIn={b.date_start}
+    checkOut={b.date_end}
+    status={b.status}
+  />
+))}
+      </div>  
+    </div>    
+  );           
+}    

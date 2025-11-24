@@ -3,30 +3,28 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export default function RoomDetailPage() {
   const navigate = useNavigate();
 
-  const room = {
-    name: "Phòng Deluxe Hướng Biển",
-    location: "Đà Nẵng, Việt Nam",
-    rating: 4.7, // thang 5
-    reviews: 128,
-    pricePerNight: 1450000,
-    maxGuests: 3,
-    size: 28,
-    bed: "1 giường Queen",
-    description:
-      "Phòng Deluxe rộng rãi với ban công hướng biển, nội thất hiện đại, phù hợp cho kỳ nghỉ thư giãn.",
-    amenities: [
-      "Wi-Fi miễn phí",
-      "Máy lạnh",
-      "TV màn hình phẳng",
-      "Mini bar",
-      "Bồn tắm",
-      "Bữa sáng miễn phí",
-      "View biển",
-    ],
+  const { id } = useParams();
+const [room, setRoom] = useState(null);
+
+useEffect(() => {
+  fetch(`${import.meta.env.VITE_API_URL}/api/accommodations/${id}`)
+    .then(res => res.json())
+    .then(data => setRoom(data))
+    .catch(err => console.error("Error loading room:", err));
+}, [id]);
+
+if (!room) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      Đang tải dữ liệu phòng...
+    </div>
+  );
   };
 
   const comments = [
@@ -91,7 +89,7 @@ export default function RoomDetailPage() {
         {/* Title + Location */}
         <section className="mb-4">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-            {room.name}
+            {room.title}
           </h1>
 
           {/* Địa điểm đặt dưới tiêu đề */}
@@ -131,7 +129,7 @@ export default function RoomDetailPage() {
             {/* Rating bên trái */}
             <div className="text-gray-700 text-sm sm:text-base">
               <span className="font-semibold text-gray-900">
-                {(room.rating * 2).toFixed(1)}
+                {room.rating ? (room.rating * 2).toFixed(1) : "9.2"}
               </span>
               /10 ({room.reviews} đánh giá)
             </div>
@@ -144,23 +142,21 @@ export default function RoomDetailPage() {
                 onClick={() =>
                   navigate("/formpage", {
                     state: {
-                      roomName: room.name,
+                      roomName: room.title,
                       hotelLocation: room.location,
-                      pricePerNight: room.pricePerNight,
-                      checkin: "20/11/2025", // sau này lấy từ search
-                      checkout: "22/11/2025",
-                      guests: 2,
-                      nights: 2,
+                      pricePerNight: Number(room.price),
+                      roomId: room.accommodation_id, 
                     },
                   })
                 }
+
               >
                 Đặt ngay
               </button>
 
               {/* Giá sát bên phải nút */}
               <div className="text-sm sm:text-base font-semibold text-[#BF1D2D]">
-                {formatCurrency(room.pricePerNight)}/đêm
+                {formatCurrency(room.price)}/đêm
               </div>
             </div>
           </div>
@@ -177,14 +173,16 @@ export default function RoomDetailPage() {
                 Tiện ích phòng
               </h3>
               <div className="flex flex-wrap gap-2">
-                {room.amenities.map((item) => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-xs sm:text-sm text-gray-800"
-                  >
-                    {item}
-                  </span>
-                ))}
+                {room.tags &&
+                  room.tags.split(",").map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-xs sm:text-sm text-gray-800"
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))}
+
               </div>
             </div>
 
@@ -272,7 +270,7 @@ export default function RoomDetailPage() {
                     <p className="text-xs sm:text-sm text-gray-700 mt-1">
                       Phòng tại {item.location.toLowerCase()} với mức giá phù
                       hợp, là lựa chọn thay thế cho{" "}
-                      {room.name.toLowerCase()}.
+                      {room.title.toLowerCase()}.
                     </p>
                     <p className="text-xs sm:text-sm font-semibold text-[#BF1D2D] mt-1">
                       {formatCurrency(item.pricePerNight)}/đêm

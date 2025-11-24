@@ -1,7 +1,7 @@
-
 from datetime import date
 from enum import Enum
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 
 class BookingStatusEnum(str, Enum):
@@ -13,29 +13,44 @@ class BookingStatusEnum(str, Enum):
 
 class BookingCreate(BaseModel):
     """
-    Schema cho traveler tạo booking mới.
+    Traveler gửi request tạo booking
     """
     accommodation_id: int
     date_start: date
     date_end: date
+    guests: int
+    rooms: int
 
 
 class BookingRead(BaseModel):
     """
-    Dùng để trả data booking ra cho frontend.
+    Dữ liệu trả về cho FE (Booking Detail, Booking List)
     """
     booking_id: int
+    booking_code: str
+    
     user_id: int
     accommodation_id: int
+
     date_start: date
     date_end: date
+    nights: int
+
+    guests: int
+    rooms: int
+
+    total_price: float
+    price_per_night: float
+
+    # Accommodation info for FE display
+    accommodation_title: str
+    accommodation_location: str
+    accommodation_image: str
+
     status: BookingStatusEnum
 
-    model_config = ConfigDict(from_attributes=True) 
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BookingUpdateStatus(BaseModel):
-    """
-    Owner dùng để cập nhật trạng thái booking (confirm/reject).
-    """
     status: BookingStatusEnum
