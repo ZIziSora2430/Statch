@@ -81,12 +81,21 @@ class Booking(Base):
     accommodation_id = Column(Integer, ForeignKey("Accommodation.accommodation_id"))
     date_start = Column(DATE, nullable=False)
     date_end = Column(DATE, nullable=False)
+
+    # ⭐⭐ CÁC CỘT MỚI THÊM VÀO ⭐⭐
+    guests = Column(Integer, nullable=False, default=1)  
+    rooms = Column(Integer, nullable=False, default=1)
+
+    total_price = Column(DECIMAL(10, 2), nullable=False, default=0)
+
+    booking_code = Column(String(50), unique=True, nullable=True)
+
+    # Trạng thái booking
     status = Column(String(50), nullable=False, default='pending_confirmation')
 
-    # --- Relationships ---
+    # Quan hệ ngược
     user = relationship("User", back_populates="bookings")
     accommodation = relationship("Accommodation", back_populates="bookings")
-
 
     # --- Bảng 4: Review ---
 class Review(Base):
