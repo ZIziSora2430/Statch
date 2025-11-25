@@ -2,6 +2,8 @@ import React from 'react';
 import SuccessBookingbg from "../../images/SuccessBookingbg.svg";
 import Avatar from "../../images/Avatar.png"
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 // Separate component for Confirmed Status
 function ConfirmedStatus() {
   return (
@@ -257,7 +259,7 @@ function HotelCard({
 export default function HotelBookingList() {
   const [bookings, setBookings] = React.useState([]);
   React.useEffect(() => {
-  fetch(`${import.meta.env.VITE_API_URL}/api/bookings`, {
+  fetch(`${API_URL}/api/bookings`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },

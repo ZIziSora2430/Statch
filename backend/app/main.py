@@ -12,6 +12,7 @@ from .accommodations.traveler_router import router as traveler_accommodation_rou
 from .accommodations.owner_router import router as owner_accommodation_router 
 from .booking.traveler_router import router as traveler_booking_router
 from .booking.owner_router import router as owner_booking_router
+from .reviews import router as reviews_router
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -40,6 +41,9 @@ app.include_router(owner_booking_router)
 
 #Login
 app.include_router(login_router)
+
+#Review
+app.include_router(reviews_router.router, prefix="/api")
 
 
 @app.get("/")

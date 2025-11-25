@@ -3,6 +3,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate } from "react-router-dom";
 import { geocodeAddress } from "../utils/geocoding";
+// Nếu bạn chưa cài lucide-react thì có thể bỏ dòng import icon này đi
+// npm install lucide-react
+import { MapPin, Calendar, Users, Search } from "lucide-react"; 
 
 export default function SearchingBar() {
   const [location, setLocation] = useState("");
@@ -18,101 +21,114 @@ export default function SearchingBar() {
     setIsSearching(true);
     const params = new URLSearchParams();
     
-    // --- LOGIC GEOCODING ---
     if (location) {
         params.append("location_text", location);
-        
-        // 2. GỌI HÀM TỪ FILE geocoding.js
         const coords = await geocodeAddress(location);
-        
         if (coords) {
-            // File geocoding.js của bạn trả về { lat, lng, display_name }
             params.append("lat", coords.lat);
             params.append("lng", coords.lng);
-            params.append("radius", 10); // Bán kính 10km
-            console.log("📍 Tìm thấy tọa độ:", coords.lat, coords.lng);
-        } else {
-            console.log("⚠️ Không tìm thấy tọa độ, sẽ tìm theo tên.");
+            params.append("radius", 10);
         }
     }
 
-    if (location) {
-        // Tham số location_text mà backend đang xử lý
-        params.append("location_text", location); 
-    }
-    // Bạn có thể thêm các tham số ngày và khách, mặc dù backend chưa xử lý chúng
-    if (startDate) {
-        params.append("checkin", startDate.toISOString().split('T')[0]);
-    }
-    if (endDate) {
-        params.append("checkout", endDate.toISOString().split('T')[0]);
-    }
+    if (startDate) params.append("checkin", startDate.toISOString().split('T')[0]);
+    if (endDate) params.append("checkout", endDate.toISOString().split('T')[0]);
     params.append("guests", guests);
     
-    // ⚠️ ĐIỀU HƯỚNG: Chuyển sang trang /search/ và truyền tham số
-    // Giả định URL cho trang kết quả là /search
     navigate(`/search/?${params.toString()}`);
+    setIsSearching(false); // Reset trạng thái tìm kiếm
   };
 
-  
   return (
-    <div className="w-full flex justify-center mt-10">
-      <div className="w-[90%] sm:w-[80%] md:w-[70%] bg-[#BF1D2D] rounded-lg py-1 px-1 shadow-lg">
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-nowrap items-center justify-between gap-1 sm:gap-1"
-        >
-          {/* Ô 1: Điểm đến */}
+    // 1. BỎ HOÀN TOÀN margin-top (mt-10) và wrapper canh giữa cũ
+    // Thay vào đó là w-full để nó bung lụa theo khung cha bên LandingPage
+    <div className="w-full">
+      <form
+        onSubmit={handleSubmit}
+        // 2. SỬ DỤNG CSS GRID:
+        // - Mobile: 1 cột (xếp chồng lên nhau)
+        // - Desktop (md): Chia tỉ lệ cột 4 - 4 - 3 - 1 (cho nút tìm)
+        className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
+      >
+        
+        {/* --- Ô 1: ĐIỂM ĐẾN (Chiếm 4 phần) --- */}
+        <div className="md:col-span-4 relative group">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#BF1D2D]">
+             <MapPin size={20} /> {/* Hoặc dùng <span>📍</span> */}
+          </div>
           <input
             type="text"
-            placeholder="Điểm đến"
+            placeholder="Bạn muốn đi đâu?"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className="flex-1 min-w-40 bg-white rounded-md px-4 py-3 h-12 text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-400"
+            className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-[#BF1D2D] focus:border-[#BF1D2D] block pl-10 p-3 outline-none hover:bg-gray-100 transition"
           />
+        </div>
 
-          {/* Ô 2: Khoảng ngày (Date Range Picker) */}
-          <DatePicker
-            selectsRange={true}
-            startDate={startDate}
-            endDate={endDate}
-            onChange={(update) => setDateRange(update)}
-            placeholderText="Chọn khoảng ngày"
-            className="flex-1 min-w-40 bg-white rounded-md px-4 py-3 h-12 text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-red-400"
-            dateFormat="dd/MM/yyyy"
-            minDate={new Date()} // Không cho chọn ngày quá khứ
-          />
-
-          {/* Ô 3: Số khách */}
-          <div className="flex items-center justify-between flex-1 min-w-40 h-12 bg-white rounded-md px-4 py-3 text-gray-800">
-            <span>Số khách: {guests}</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setGuests(Math.max(1, guests - 1))}
-                className="bg-[#BF1D2D] text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600"
-              >
-                −
-              </button>
-              <button
-                type="button"
-                onClick={() => setGuests(guests + 1)}
-                className="bg-[#BF1D2D] text-white rounded-full w-7 h-7 flex items-center justify-center hover:bg-red-600"
-              >
-                +
-              </button>
-            </div>
+        {/* --- Ô 2: NGÀY (Chiếm 4 phần) --- */}
+        <div className="md:col-span-4 relative group">
+           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10">
+             <Calendar size={20} /> {/* Hoặc dùng <span>📅</span> */}
           </div>
+          <div className="w-full">
+            <DatePicker
+                selectsRange={true}
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(update) => setDateRange(update)}
+                placeholderText="Nhận phòng - Trả phòng"
+                // className cho input bên trong DatePicker
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-[#BF1D2D] focus:border-[#BF1D2D] block pl-10 p-3 outline-none hover:bg-gray-100 transition"
+                dateFormat="dd/MM/yyyy"
+                minDate={new Date()}
+                wrapperClassName="w-full" // Quan trọng: Để DatePicker full width
+            />
+          </div>
+        </div>
 
-          {/* Nút Tìm */}
+        {/* --- Ô 3: SỐ KHÁCH (Chiếm 3 phần) --- */}
+        <div className="md:col-span-3 relative">
+            <div className="flex items-center justify-between w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg p-2 px-3 hover:bg-gray-100 transition h-[46px]">
+                <div className="flex items-center gap-2 text-gray-500">
+                    <Users size={20} /> {/* Hoặc dùng <span>👥</span> */}
+                    <span className="font-medium text-gray-700">{guests} khách</span>
+                </div>
+                
+                {/* Nút tăng giảm nhỏ gọn hơn */}
+                <div className="flex items-center gap-1">
+                <button
+                    type="button"
+                    onClick={() => setGuests(Math.max(1, guests - 1))}
+                    className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-white hover:border-[#BF1D2D] hover:text-[#BF1D2D] transition"
+                >
+                    -
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setGuests(guests + 1)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-300 text-gray-500 hover:bg-white hover:border-[#BF1D2D] hover:text-[#BF1D2D] transition"
+                >
+                    +
+                </button>
+                </div>
+            </div>
+        </div>
+
+        {/* --- NÚT TÌM (Chiếm 1 phần còn lại) --- */}
+        <div className="md:col-span-1 h-full">
           <button
             type="submit"
-            className="px-6 py-3 bg-[#BF1D2D] text-[#ffffff] font-semibold rounded-md hover:bg-[#881818] active:scale-95 transition"
+            className="w-full h-[46px] bg-[#BF1D2D] hover:bg-[#a01825] text-white font-medium rounded-lg text-sm flex items-center justify-center transition-all shadow-md hover:shadow-lg transform active:scale-95"
           >
-            {isSearching ? "..." : "Tìm"}
+            {isSearching ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+                <Search size={20} /> // Hoặc chữ "Tìm"
+            )}
           </button>
-        </form>
-      </div>
+        </div>
+
+      </form>
     </div>
   );
 }

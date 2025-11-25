@@ -6,14 +6,16 @@ import SearchingBar from "../components/SearchingBar";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 export default function RoomDetailPage() {
-  const navigate = useNavigate();
+ {/* const navigate = useNavigate();
 
   const { id } = useParams();
 const [room, setRoom] = useState(null);
 
 useEffect(() => {
-  fetch(`${import.meta.env.VITE_API_URL}/api/accommodations/${id}`)
+  fetch(`${API_URL}/api/accommodations/${id}`)
     .then(res => res.json())
     .then(data => setRoom(data))
     .catch(err => console.error("Error loading room:", err));
@@ -25,7 +27,11 @@ if (!room) {
       Đang tải dữ liệu phòng...
     </div>
   );
-  };
+  }; */}
+
+  
+  
+
 
   const comments = [
     {
