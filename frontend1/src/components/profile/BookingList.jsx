@@ -1,93 +1,7 @@
 import React, { useState } from 'react';
 
 export default function HotelBookingSchedule() {
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      date: '5/11 - 7/11/2025',
-      guest: 'Nguyễn Văn A',
-      people: 2,
-      roomType: 'Đặt chung (đã ghép đôi)',
-    },
-    {
-      id: 2,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 3,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 4,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 5,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 6,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 7,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 8,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 9,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 10,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 11,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    },
-    {
-      id: 12,
-      date: '10/11 - 11/11/2025',
-      guest: 'Nguyễn Thị B',
-      people: 1,
-      roomType: 'Đặt cả phòng',
-    }
-  ]);
-
+  const [bookingList, setBookingList] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [newBooking, setNewBooking] = useState({
     date: '',
@@ -95,6 +9,28 @@ export default function HotelBookingSchedule() {
     people: 1,
     roomType: 'Đặt cả phòng'
   });
+  
+  useEffect(() => {
+  const fetchBookings = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/owner/bookings`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setBookingList(data);
+    } catch (error) {
+      console.error("Lỗi load booking:", error);
+    }
+  };
+
+  fetchBookings();
+}, []);
+
 
   const handleAddBooking = () => {
     if (newBooking.date && newBooking.guest) {
