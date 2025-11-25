@@ -1,5 +1,7 @@
 from sqlalchemy import select, func, text, and_
 from sqlalchemy.orm import Session
+from datetime import date
+from datetime import datetime, date
 from .. import models
 from . import schemas
 from typing import Optional
