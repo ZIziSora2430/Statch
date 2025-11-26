@@ -1,306 +1,208 @@
-import React from 'react';
-import SuccessBookingbg from "../../images/SuccessBookingbg.svg";
-import Avatar from "../../images/Avatar.png"
+import React, { useEffect, useState } from 'react';
+import { Star } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-// Separate component for Confirmed Status
-function ConfirmedStatus() {
-  return (
-    <>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        backgroundColor: '#00C851',
-        borderRadius: '0px',
-        width: '217px',
-        height: '63px',
-        color: 'white', 
-        fontSize: 20, 
-        fontFamily: 'Montserrat', 
-        fontWeight: '800',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
-        Đã xác nhận
-      </div>
-      
-      <button style={{
-        position: 'absolute',
-        top: 75,
-        right: -7, 
-        width: 111,
-        height: 32,
-        background: '#9C9C9C', 
-        borderTopLeftRadius: 31.50, 
-        borderBottomLeftRadius: 31.50,
-        color: 'white', 
-        fontSize: 17, 
-        fontFamily: 'Montserrat', 
-        fontWeight: '600',
-        border: 'none',
-        cursor: 'pointer'
-      }}>
-        Hủy đặt
-      </button>
-      
-      <button style={{
-        position: 'absolute',
-        width: 80,
-        height: 16,
-        top: 116,
-        fontSize: 13, 
-        fontFamily: 'Montserrat', 
-        fontWeight: '500',
-        right: 10,
-        border: 'none',
-        background: 'transparent',
-        cursor: 'pointer',
-        color: '#333'
-      }}>
-        Xem chi tiết
-      </button>
-    </>
-  );
-}
+// 1. Helper: Render Hạng Sao
+const renderHotelClassStars = (starCount) => {
+    if (!starCount || starCount < 1) return null;
+    return (
+        <div className="flex items-center gap-0.5 mb-1">
+            {[...Array(starCount)].map((_, i) => (
+                <Star key={i} size={14} fill="#FFD700" stroke="#FFD700" />
+            ))}
+        </div>
+    );
+};
 
-// Separate component for Other Status
-function OtherStatus({ statusText, statusBg }) {
-  return (
-    <div style={{
-      position: 'absolute',
-        width: 217,
-        height: 114,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      top: 13,
-      right: -15
-    }}> 
-        {/* Background Image */}
-      <img 
-        src={SuccessBookingbg}
-        alt="status background" 
-        style={{
-          position: 'absolute',
-          objectFit: 'cover',
-        }}
-      />
-
-      {/* Text on top */}
-      <span style={{ 
-        color: 'white',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        {statusText}
-      </span>
-    </div>
-  );
-}
-
-function HotelCard({ 
-  image, 
-  name, 
-  rating, 
-  location, 
-  checkIn, 
-  checkOut, 
-  status 
-}) {
-  // Status can be: 'confirmed' (green), 'success' (red), 'cancelled' (black), 'pending' (gray)
-  const getStatusStyle = () => {
-    switch(status) {
-      case 'confirmed':
-        return { bg: '#00C851', text: 'Đã xác nhận' };
-      case 'success':
-        return { bg: '#DC143C', text: 'Đã thành công' };
-      case 'cancelled':
-        return { bg: '#000000', text: 'Đã Hủy' };
-      default:
-        return { bg: '#808080', text: 'Hủy đặt' };
+// 2. Helper: Config màu sắc
+const getStatusConfig = (status) => {
+    switch (status) {
+        case 'confirmed':
+            return { bg: 'bg-[#00C851]', label: 'Đã xác nhận' };
+        case 'success':
+        case 'completed':
+            return { bg: 'bg-gradient-to-br from-[#D50000] to-[#900000]', label: 'Đã thành công' };
+        case 'cancelled':
+            return { bg: 'bg-black', label: 'Đã Hủy' };
+        default:
+            return { bg: 'bg-gray-400', label: 'Chờ xử lý' };
     }
-  };
+};
 
-  const statusStyle = getStatusStyle();
+// 3. Component Booking Card
+const BookingCard = ({ booking }) => {
+    const navigate = useNavigate();
+    const config = getStatusConfig(booking.status);
+    
+    // Kiểm tra xem trạng thái có phải là "Đã xong/Hủy" không để phủ màu
+    const isInactive = ['success', 'completed', 'cancelled'].includes(booking.status);
+    
+    const imageUrl = booking.accommodation_image 
+        ? booking.accommodation_image.split(',')[0] 
+        : "https://via.placeholder.com/300x200?text=No+Image";
 
-  return (
-    <div style={{
-      display: 'flex',
-      backgroundColor: 'rgba(239, 238, 238, 1)',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      marginBottom: '15px',
-      boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-      height: '140px',
-      position: 'relative'
-    }}>
-      {/* Black overlay for the whole card (except status button) */}
-      {(status === 'success' || status === 'cancelled') && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: '160px',
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          zIndex: 1,
-          pointerEvents: 'none'
-        }} />
-      )}
-      
-      {/* Hotel Image */}
-      <div style={{
-        width: '300px',
-        minWidth: '220px',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        <img 
-          src={image} 
-          alt={name}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover'
-          }}
-        />
-      </div>
+    const formatDate = (dateStr) => {
+        if(!dateStr) return "";
+        const d = new Date(dateStr);
+        return `T${d.getDay() + 1}, ${d.getDate()} tháng ${d.getMonth() + 1}`;
+    };
 
-      {/* Hotel Info */}
-      <div style={{
-        left: 313,
-        position: 'absolute',
-      }}>
-        <div>
-          <h3 style={{
-            fontSize: 24, 
-            fontFamily: 'Montserrat', 
-            fontWeight: '800',
-            width: 330,
-            height: 20
-          }}>
-            {name}
-          </h3>
-          
-          {/* Star Rating */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <div style={{ display: 'flex', gap: '2px', position: 'absolute', top: 34}}>
-              {[...Array(5)].map((_, i) => (
-                <span key={i} style={{ color: i < rating ? 'rgba(255, 204, 0, 1)' : '#DDD', fontSize: '16px' }}>
-                  ★
-                </span>
-              ))}
+    const starCount = booking.accommodation_stars || 0;
+
+    return (
+        <div className="relative flex w-full bg-white rounded-2xl shadow-md overflow-hidden mb-6 h-40 border border-gray-100 transition-transform hover:-translate-y-1 duration-300 group">
+            {isInactive && (
+                <div className="absolute top-0 bottom-0 left-0 w-[72%] bg-black/40 z-20 pointer-events-none">
+                </div>
+            )}
+
+            {/* LEFT: Image */}
+            <div className="w-[35%] h-full relative overflow-hidden">
+                <img 
+                    src={imageUrl} 
+                    alt={booking.accommodation_title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
             </div>
-            <span style={{
-              fontSize: '13px',
-              color: '#666',
-              borderLeft: '1px solid #ddd',
-              paddingLeft: '8px',
-              position: 'absolute',
-              top: 37,
-              left: 80
-            }}>
-              {location}
-            </span>
-          </div>
+
+            {/* MIDDLE: Info */}
+            <div className="flex-1 py-3 px-5 flex flex-col justify-center z-0 relative">
+                <h3 className="text-lg font-extrabold text-gray-800 mb-0.5 line-clamp-1 uppercase">
+                    {booking.accommodation_title}
+                </h3>
+                
+                {renderHotelClassStars(starCount)}
+                
+                <div className="flex items-center gap-3 mb-3">
+                    <span className="text-gray-500 text-xs font-medium line-clamp-1">
+                         | {booking.accommodation_location || "Việt Nam"}
+                    </span>
+                </div>
+
+                <div className="inline-block bg-[#AD0000] text-white text-[11px] font-bold px-4 py-1 rounded-full w-fit shadow-sm">
+                    {formatDate(booking.date_start)} - {formatDate(booking.date_end)}
+                </div>
+            </div>
+
+            {/* RIGHT: Status Section */}
+            <div className={`relative w-[28%] h-full ${config.bg} flex flex-col items-center justify-center z-10`}>
+                
+                {/* SVG Separator */}
+                <div className="absolute top-0 bottom-0 -left-5 w-[21px] h-full overflow-hidden pointer-events-none">
+                     <svg viewBox="0 0 20 100" preserveAspectRatio="none" className="w-full h-full">
+                        <path d="M20,0 L20,100 L0,100 Q20,50 0,0 Z" 
+                              fill={
+                                  booking.status === 'confirmed' ? '#00C851' :
+                                  booking.status === 'cancelled' ? '#000000' :
+                                  '#D50000'
+                              } 
+                        />
+                     </svg>
+                </div>
+
+                {/* Text Status */}
+                <span className="text-white text-base md:text-lg font-extrabold tracking-wide text-center drop-shadow-sm relative z-10 px-2 leading-tight">
+                    {config.label}
+                </span>
+
+                {/* Action Buttons (Chỉ hiện khi Confirmed) */}
+                {booking.status === 'confirmed' && (
+                    <div className="mt-2 flex flex-col items-center gap-1 relative z-10 w-full px-2">
+                        <button 
+                            className="bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold py-1 px-3 rounded-full transition backdrop-blur-sm border border-white/20 w-fit"
+                            onClick={() => alert("Đã gửi yêu cầu hủy")}
+                        >
+                            Hủy đặt
+                        </button>
+                        <button 
+                            className="text-[9px] text-white/90 hover:text-white underline mt-1 cursor-pointer"
+                            onClick={() => navigate(`/accommodations/${booking.accommodation_id}`)}
+                        >
+                            Xem chi tiết &gt;&gt;
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
+    );
+};
 
-        {/* Date Badge */}
-        <div style={{
-          backgroundColor: 'rgba(173, 0, 0, 1)',
-          color: 'white',
-          padding: '4px 12px',
-          borderTopRightRadius: 19.50, 
-          borderBottomRightRadius: 19.50,
-          display: 'inline-block',
-          alignSelf: 'flex-start',
-          position: 'absolute',
-          top: 70,
-          left: -13,
-          width: "220px",
-          height: '32px',
-          fontSize: 13, 
-          fontFamily: 'Montserrat', 
-          fontWeight: '500',
-          justifyContent: 'center'
-        }}>
-          T{checkIn} - T{checkOut}
-        </div>
-      </div>
-
-      {/* Status Section */}
-      <div style={{
-        width: '160px',
-        minWidth: '160px',
-        backgroundColor: status === 'confirmed' ? 'white' : statusStyle.bg,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'absolute',
-        left: 650,
-        zIndex: 2
-      }}>
-        {status === 'confirmed' ? (
-          <ConfirmedStatus />
-        ) : (
-          <OtherStatus statusText={statusStyle.text} statusBg={statusStyle.bg} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Example usage with multiple hotels
 export default function HotelBookingList() {
-  const [bookings, setBookings] = React.useState([]);
-  React.useEffect(() => {
-  fetch(`${API_URL}/api/bookings`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  })
-    .then((res) => res.json())
-    .then((data) => setBookings(data))
-    .catch((err) => console.error("Error loading bookings:", err));
-}, []);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  
+    useEffect(() => {
+        const fetchBookings = async () => {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                setLoading(false); return;
+            }
 
-  return (
-    <div style={{
-        position: 'absolute',
-        top: 40,
-        left: 31,
-        padding: '20px',
-        backgroundColor: '#ffffffff',
-        height: '1150px',
-        width: "867px",
-        display: 'flex',
-        flexDirection: 'column'
-    }}>
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        paddingRight: '10px'
-      }}>
-        {bookings.map(b => (
-  <HotelCard
-    key={b.booking_id}
-    image={b.accommodation_image}
-    name={b.accommodation_title}
-    rating={4} 
-    location={b.accommodation_location}
-    checkIn={b.date_start}
-    checkOut={b.date_end}
-    status={b.status}
-  />
-))}
-      </div>  
-    </div>    
-  );           
-}    
+            try {
+                const response = await fetch(`${API_URL}/api/bookings/`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setBookings(Array.isArray(data) ? data : []);
+                } else {
+                    setBookings([]);
+                }
+            } catch (error) {
+                console.error(error);
+                setBookings([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBookings();
+    }, []);
+
+    // Render Loading
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center h-64">
+            <div className="w-10 h-10 border-4 border-[#AD0000] border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p className="text-gray-500 font-medium text-sm">Đang tải lịch sử...</p>
+        </div>
+    );
+
+    // Render khi không có dữ liệu
+    if (bookings.length === 0) return (
+        <div className="flex flex-col items-center justify-center h-[500px] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
+            <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                <Hotel size={48} className="text-gray-300" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">Chưa có chuyến đi nào</h3>
+            <p className="text-gray-500 text-sm max-w-xs mx-auto mb-6">
+                Bạn chưa đặt phòng nào cả. Hãy khám phá những địa điểm tuyệt vời ngay thôi!
+            </p>
+            <button className="bg-[#AD0000] text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+                Khám phá ngay
+            </button>
+        </div>
+    );
+
+    return (
+        <div className="w-full h-auto pb-10 px-6 md:px-8 pt-4 -mt-10 relative">
+            {/* Header Section */}
+            <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+                <div className="w-1.5 h-8 bg-[#AD0000] rounded-full"></div>
+                <div>
+                    <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">Chỗ ở đã đặt</h1>
+                    <p className="text-gray-500 text-xs font-medium mt-0.5">
+                        Bạn có <span className="text-[#AD0000] font-bold">{bookings.length}</span> đơn đặt phòng
+                    </p>
+                </div>
+            </div>
+
+            {/* Danh sách Booking */}
+            <div className="flex flex-col gap-6">
+                {bookings.map((b) => (
+                    <BookingCard key={b.booking_id} booking={b} />
+                ))}
+            </div>
+        </div>
+    );
+}

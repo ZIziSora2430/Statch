@@ -1,5 +1,5 @@
 import Navbar from "../components/Navbar";
-import Footer from "../components/profile/Footer";
+import Footer from "../components/Footer";
 import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
@@ -18,18 +18,24 @@ import { MapPin, Star, Sparkles, ArrowRight } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
+
 export default function LandingPage() {
   const [currentUserName, setCurrentUserName] = useState("bạn");
   const [accommodations, setAccommodations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const navigate = useNavigate(); 
 
-  const navigate = useNavigate(); // Hook để chuyển trang
+  const handleDestinationClick = (location) => {
+    setSelectedDestination(location);
+    // Cuộn mượt lên đầu trang (nơi có thanh tìm kiếm)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const storedUsername = localStorage.getItem("username"); 
     // 3. KIỂM TRA ĐĂNG NHẬP
-    // Nếu không có token -> Đá về trang login ngay
     if (!token) {
       alert("Bạn cần đăng nhập để sử dụng tính năng này!");
       navigate("/login"); 
@@ -46,7 +52,6 @@ export default function LandingPage() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            // QUAN TRỌNG: Gửi token dạng "Bearer <token>"
             "Authorization": `Bearer ${token}`
           }
         });
@@ -82,11 +87,12 @@ export default function LandingPage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  // --- COMPONENT PHỤ: Destination Card để tái sử dụng và code gọn hơn ---
-  const DestinationCard = ({ img, title, className }) => (
+  // --- COMPONENT PHỤ ---
+  const DestinationCard = ({ img, title, className, onClick }) => (
   <div 
     className={`relative group rounded-2xl overflow-hidden shadow-md cursor-pointer ${className}`}
     style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
+    onClick={onClick}
   >
     {/* 3. DÙNG THẺ IMG TRỰC TIẾP (Thay cho ImageFrame) */}
     <img 
@@ -118,9 +124,8 @@ export default function LandingPage() {
         <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20 relative z-10 -mt-8">
           {/* Thanh tìm kiếm nổi lên trên */}
           <div className="bg-white rounded-xl shadow-xl p-4 mb-12 max-w-4xl mx-auto">
-            <SearchingBar />
+            <SearchingBar initialLocation={selectedDestination} />
           </div>
-
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
@@ -152,7 +157,7 @@ export default function LandingPage() {
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
         
         <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 mb-12 max-w-5xl mx-auto border border-gray-100">
-          <SearchingBar />
+          <SearchingBar initialLocation={selectedDestination} />
         </div>
 
         {/* --- PHẦN 1: GỢI Ý CHỖ Ở (AI RECOMMENDATIONS) --- */}
@@ -187,11 +192,11 @@ export default function LandingPage() {
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
 
                   {/* Nội dung Card */}
-                  <div className="p-5 flex flex-col flex-grow">
+                  <div className="p-5 flex flex-col grow">
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="font-bold text-xl text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
                             {item.title}
@@ -248,15 +253,40 @@ export default function LandingPage() {
           {/* Grid Layout thay thế cho Flexbox cứng nhắc */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
              {/* Hàng trên: 2 ảnh lớn */}
-             <DestinationCard img={ConDao} title="Côn Đảo" className="h-64 md:h-80" />
-             <DestinationCard img={HaNoi} title="Hà Nội" className="h-64 md:h-80" />
+             <DestinationCard 
+             img={ConDao} 
+             title="Côn Đảo" 
+             className="h-64 md:h-80" 
+             onClick={() => handleDestinationClick("Côn Đảo")}
+             />
+             <DestinationCard 
+             img={HaNoi} 
+             title="Hà Nội" 
+             className="h-64 md:h-80" 
+             onClick={() => handleDestinationClick("Hà Nội")}
+             />
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
              {/* Hàng dưới: 3 ảnh nhỏ */}
-             <DestinationCard img={TPHCM} title="TP. Hồ Chí Minh" className="h-56 md:h-64" />
-             <DestinationCard img={HoiAn} title="Hội An" className="h-56 md:h-64" />
-             <DestinationCard img={CanTho} title="Cần Thơ" className="h-56 md:h-64" />
+             <DestinationCard 
+             img={TPHCM} s
+             title="TP. Hồ Chí Minh" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("TP. Hồ Chí Minh")}
+             />
+             <DestinationCard 
+             img={HoiAn} 
+             title="Hội An" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("Hội An")}
+             />
+             <DestinationCard 
+             img={CanTho} 
+             title="Cần Thơ" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("Cần Thơ")} 
+             />
           </div>
         </section>
 

@@ -11,7 +11,7 @@ import UserProfile from './pages/UserProfile.jsx';
 
 // Các trang chức năng khác
 import AddAccommodationForm from './pages/AddAccommodationForm.jsx';
-import BookingDetailPage from './pages/RoomDetailPage.jsx';
+import RoomDetailPage from './pages/RoomDetailPage.jsx';
 import BookingConfirmPage from './pages/BookingConfirmPage.jsx';
 import BookingFormPage from './pages/BookingFormPage.jsx';
 import ModifyAccommodationForm from './pages/ModifyAccommodationForm.jsx';
@@ -40,7 +40,7 @@ export default function App() {
 
         {/* --- Booking & Accommodation Management --- */}
         <Route path="/AddAccommodationForm" element={<AddAccommodationForm/>} />
-        <Route path="/booking" element={<BookingDetailPage/>} />
+        <Route path="/accommodation/:id" element={<RoomDetailPage/>} />
         <Route path="/confirm" element={<BookingConfirmPage/>} />
         <Route path="/formpage" element={<BookingFormPage/>} />
         <Route path="/modify-accommodation/:id" element={<ModifyAccommodationForm/>} />        

@@ -5,11 +5,12 @@ import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import Footer from "../components/Footer";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function RoomDetailPage() {
- {/* const navigate = useNavigate();
+ const navigate = useNavigate();
 
   const { id } = useParams();
 const [room, setRoom] = useState(null);
@@ -27,11 +28,7 @@ if (!room) {
       Đang tải dữ liệu phòng...
     </div>
   );
-  }; */}
-
-  
-  
-
+  };
 
   const comments = [
     {
@@ -274,7 +271,7 @@ if (!room) {
                       {item.location}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-700 mt-1">
-                      Phòng tại {item.location.toLowerCase()} với mức giá phù
+                      Phòng tại {item.location?.toLowerCase()} với mức giá phù
                       hợp, là lựa chọn thay thế cho{" "}
                       {room.title.toLowerCase()}.
                     </p>
@@ -289,23 +286,7 @@ if (!room) {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-6 mt-4 text-center">
-        <div className="container mx-auto">
-          <p className="text-sm">© 2025 Statch. All rights reserved.</p>
-          <div className="mt-2 flex justify-center gap-4 text-xs sm:text-sm">
-            <a href="#" className="hover:text-white transition">
-              Về chúng tôi
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Liên hệ
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Điều khoản
-            </a>
-          </div>
-        </div>
-      </footer>
+    <Footer/>
     </div>
   );
 }

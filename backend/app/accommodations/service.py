@@ -8,6 +8,15 @@ from typing import Optional
 from decimal import Decimal
 from geopy.geocoders import Nominatim
 from sqlalchemy.sql.expression import func 
+import unicodedata
+
+#Hàm helper xóa dấu
+def remove_accents(input_str):
+    if not input_str: return ""
+    # Chuyển đổi đ -> d, Đ -> D thủ công vì thư viện chuẩn bỏ qua
+    s = input_str.replace("đ", "d").replace("Đ", "D")
+    nfkd_form = unicodedata.normalize('NFKD', s)
+    return "".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 # Hàm helper để Geocode địa chỉ sang tọa độ
 def _get_coordinates_for_location(address: str):
@@ -135,45 +144,8 @@ def search_accommodations(
     Hàm logic để tìm kiếm chỗ ở dựa trên tọa độ và bán kính.
     Sử dụng công thức Haversine.
     """
+    print(f"🔍 SEARCH START: Text='{location_text}', Lat={lat}, Lng={lng}")
     query = select(models.Accommodation)
-
-    # Nếu không có tọa độ, trả về tất cả
-    if lat is not None and lng is not None and radius is not None:
-        # Đảm bảo chỉ tìm các chỗ ở CÓ tọa độ
-        query = query.where(
-            models.Accommodation.latitude.isnot(None),
-            models.Accommodation.longitude.isnot(None)
-        )
-
-    # --- Công thức Haversine để tính khoảng cách ---
-    # Công thức Haversine
-        # 6371 là bán kính Trái Đất (km)
-        distance_col = (
-            6371 * func.acos(
-                func.cos(func.radians(lat)) *
-                func.cos(func.radians(models.Accommodation.latitude)) *
-                func.cos(func.radians(models.Accommodation.longitude) - func.radians(lng)) +
-                func.sin(func.radians(lat)) *
-                func.sin(func.radians(models.Accommodation.latitude))
-            )
-        ).label("distance") # Đặt tên cột là 'distance'
-        
-        # Thêm cột distance vào query
-        query = query.add_columns(distance_col)
-        
-        # Lọc theo bán kính (radius) PHẢI dùng .having()
-        query = query.having(distance_col <= radius)
-        
-        # Sắp xếp theo khoảng cách
-        query = query.order_by(distance_col)
-
-    # --- Lọc theo Text (fallback) ---
-    elif location_text:
-        # Chỉ tìm khi không có tọa độ
-        query = query.where(
-            # Dùng ilike (không phân biệt hoa thường)
-            models.Accommodation.location.ilike(f"%{location_text}%")
-        )
 
     # Lọc theo Số lượng Khách
     if number_of_guests is not None:
@@ -197,8 +169,7 @@ def search_accommodations(
                 )
             )
             .subquery()
-        )
-        
+        ) 
         # 2. Loại bỏ các phòng đã bị đặt (các ID có trong subquery)
         # SỬ DỤNG models.Accommodation.accommodation_id vì đây là Primary Key của Model Accommodation
         query = query.where(
@@ -206,11 +177,60 @@ def search_accommodations(
                 select(booked_accommodations_subquery.c.accommodation_id)
             )
         )
-    # --- Thực thi Query ---
-    results = db.execute(query).all()
+
+        # --- STRATEGY 1: TÌM THEO TỌA ĐỘ (Ưu tiên) ---
+    results = []
     
-    # Đơn giản hóa logic trả về
-    return [row[0] for row in results]
+    if lat is not None and lng is not None and radius is not None:
+        geo_query = query.where(
+            models.Accommodation.latitude.isnot(None),
+            models.Accommodation.longitude.isnot(None)
+        )
+        
+        distance_col = (
+            6371 * func.acos(
+                func.cos(func.radians(lat)) *
+                func.cos(func.radians(models.Accommodation.latitude)) *
+                func.cos(func.radians(models.Accommodation.longitude) - func.radians(lng)) +
+                func.sin(func.radians(lat)) *
+                func.sin(func.radians(models.Accommodation.latitude))
+            )
+        ).label("distance")
+
+        geo_query = geo_query.add_columns(distance_col).having(distance_col <= radius).order_by(distance_col)
+        
+        # Thực thi
+        geo_results = db.execute(geo_query).all()
+        results = [row[0] for row in geo_results]
+
+    # --- STRATEGY 2: FALLBACK SANG TEXT (Nếu Strategy 1 rỗng) ---
+    # Nếu không tìm thấy bằng tọa độ NHƯNG người dùng có nhập text -> Tìm bằng text match
+    if not results and location_text:
+        print(f"⚠️ Chuyển sang tìm text bằng Python Filter: '{location_text}'")
+        
+        # A. Lấy tất cả ứng viên từ DB (thỏa mãn điều kiện khách/ngày)
+        candidates_rows = db.execute(query).all()
+        candidates = [row[0] for row in candidates_rows]
+
+        # B. Chuẩn hóa từ khóa tìm kiếm 
+        search_normalized = remove_accents(location_text.lower())
+        
+        filtered_results = []
+        for acc in candidates:
+            if acc.location:
+                acc_loc_normalized = remove_accents(acc.location.lower())
+                # Kiểm tra có chứa từ khóa không
+                if search_normalized in acc_loc_normalized:
+                    filtered_results.append(acc)
+        
+        results = filtered_results
+        print(f"✅ Strategy 2 (Text Python): Found {len(results)} items matching '{search_normalized}'")
+    # --- Thực thi Query ---
+    if not results and lat is None and location_text is None:
+         all_results = db.execute(query).all()
+         results = [row[0] for row in all_results]
+
+    return results
 
 
 def get_accommodations_by_owner(db: Session, owner_id: int):
