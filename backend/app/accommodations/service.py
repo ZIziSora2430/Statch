@@ -239,3 +239,35 @@ def get_top_accommodations(db: Session, limit: int = 6):
         .order_by(models.Accommodation.accommodation_id.desc())\
         .limit(limit)\
         .all()
+
+# Thêm sau các hàm helper/CRUD hiện có
+def get_booking_details(db: Session, booking_id: int, user_id: int):
+    """
+    Hàm logic lấy chi tiết booking và kiểm tra quyền truy cập.
+    (Chỉ người đặt (user_id) hoặc chủ sở hữu chỗ ở (owner) mới có thể xem)
+    """
+    
+    # 1. Truy vấn Booking
+    booking = db.scalar(
+        select(models.Booking)
+        .where(models.Booking.booking_id == booking_id)
+    )
+    
+    if not booking:
+        return None # Booking không tồn tại
+
+    # 2. Kiểm tra quyền truy cập (Quan trọng)
+    # Lấy thông tin chỗ ở liên quan để xác định chủ sở hữu (Owner)
+    accommodation = db.scalar(
+        select(models.Accommodation)
+        .where(models.Accommodation.accommodation_id == booking.accommodation_id)
+    )
+
+    # Quyền xem:
+    # A. Nếu người dùng hiện tại là người đặt phòng đó (user_id)
+    # B. Nếu người dùng hiện tại là chủ sở hữu chỗ ở đó (owner_id)
+    if booking.user_id == user_id or (accommodation and accommodation.owner_id == user_id):
+        return booking
+    else:
+        # Không có quyền truy cập
+        return False

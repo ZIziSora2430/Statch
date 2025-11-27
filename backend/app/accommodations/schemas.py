@@ -2,6 +2,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from decimal import Decimal # Sử dụng Decimal cho giá
+from datetime import date
 
 class GenerateDescRequest(BaseModel):
     title: str
@@ -60,5 +61,19 @@ class AccommodationUpdate(BaseModel):
 
     model_config=ConfigDict(from_attributes=True)
 
+class BookingRead(BaseModel):
+    booking_id: int
+    accommodation_id: int
+    user_id: int
+    date_start: date
+    date_end: date
+    status: str
+    # Có thể thêm các trường tính toán:
+    # total_price: Decimal 
+    
+    # ⚠️ Tùy chọn: Nếu bạn muốn trả về thông tin chi tiết của chỗ ở kèm theo
+    # accommodation: AccommodationRead 
 
+    class Config:
+        model_config=ConfigDict(from_attributes=True)
 

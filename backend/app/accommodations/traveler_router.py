@@ -124,3 +124,38 @@ def get_accommodation_details_endpoint(
         )
     return accommodation
 
+# API Lấy Chi tiết Booking
+@router.get(
+    "/bookings/{booking_id}", 
+    response_model=schemas.BookingRead # Sử dụng schema mới
+)
+def get_booking_details_endpoint(
+    booking_id: int,
+    db: Session = Depends(database.get_db),
+    # Lấy user hiện tại để kiểm tra quyền truy cập
+    current_user: models.User = Depends(get_current_user) 
+):
+    """
+    API Endpoint cho traveler hoặc owner xem chi tiết một Booking cụ thể.
+    """
+    
+    booking = service.get_booking_details(
+        db=db, 
+        booking_id=booking_id, 
+        user_id=current_user.id
+    )
+    
+    if booking is False:
+        # Nếu user không có quyền truy cập
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bạn không có quyền xem chi tiết booking này."
+        )
+    elif booking is None:
+        # Nếu booking không tồn tại
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Không tìm thấy Booking."
+        )
+        
+    return booking
