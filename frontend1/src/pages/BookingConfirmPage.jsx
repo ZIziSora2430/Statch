@@ -10,20 +10,19 @@ export default function BookingConfirmPage() {
 
   // Nếu bạn navigate từ trang trước có truyền state thì lấy ra,
   // nếu không sẽ dùng dữ liệu mặc định để không bị lỗi trắng trang.
-  const bookingData = location.state || {
-    roomName: "Phòng Deluxe Hướng Biển",
-    hotelLocation: "Đà Nẵng, Việt Nam",
-    checkin: "20/11/2025",
-    checkout: "22/11/2025",
-    guests: 2,
-    pricePerNight: 1450000,
-    nights: 2,
-    totalPrice: 2900000,
-    bookingCode: "STATCH-ABC123",
-    guestName: "Nguyễn Văn A",
-    guestEmail: "nguyenvana@example.com",
-    guestPhone: "0123 456 789",
-  };
+  const [bookingData, setBookingData] = React.useState(null);
+
+  React.useEffect(() => {
+  if (!location.state?.bookingId) return;
+
+  fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${location.state.bookingId}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  })
+    .then(res => res.json())
+    .then(data => setBookingData(data))
+    .catch(err => console.error("Error loading booking:", err));
+}, []);
+
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
@@ -31,7 +30,9 @@ export default function BookingConfirmPage() {
       currency: "VND",
       maximumFractionDigits: 0,
     }).format(value);
-
+  if (!bookingData) {
+  return <div className="pt-20 text-center">Đang tải thông tin đặt phòng...</div>;
+}
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -68,8 +69,19 @@ export default function BookingConfirmPage() {
                 {bookingData.bookingCode}
               </span>
             </div>
-            <span className="inline-flex items-center px-3 py-1 text-xs sm:text-sm rounded-full bg-green-100 text-green-700 font-medium">
-              Đã xác nhận
+            <span className={
+              "inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium " +
+              (bookingData.status === "pending_confirmation"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : bookingData.status === "confirmed"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-200 text-gray-600")
+            }>
+              {bookingData.status === "pending_confirmation"
+                ? "Chờ chủ nhà xác nhận"
+                : bookingData.status === "confirmed"
+                ? "Đã xác nhận"
+                : "Không xác định"}
             </span>
           </div>
 

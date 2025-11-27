@@ -206,8 +206,8 @@ def create_booking(
         )
     )
 
-    # AUTO CONFIRM nếu không trùng lịch
     status = schemas.BookingStatusEnum.pending_confirmation.value
+
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
     total_price = calculate_total_price(accommodation.price, nights, booking_data.rooms)
