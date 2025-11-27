@@ -113,6 +113,67 @@ def get_bookings_for_owner(db: Session, owner_id: int):
         )
     return results
 
+def build_booking_read(db: Session, booking):
+    accom = db.scalar(
+        select(models.Accommodation).where(
+            models.Accommodation.accommodation_id == booking.accommodation_id
+        )
+    )
+
+    nights = (booking.date_end - booking.date_start).days
+
+    return schemas.BookingRead(
+        booking_id=booking.booking_id,
+        booking_code=booking.booking_code,
+        user_id=booking.user_id,
+        accommodation_id=booking.accommodation_id,
+        date_start=booking.date_start,
+        date_end=booking.date_end,
+        nights=nights,
+        guests=booking.guests,
+        rooms=booking.rooms,
+        total_price=booking.total_price,
+        price_per_night=float(accom.price),
+        accommodation_title=accom.title,
+        accommodation_location=accom.location,
+        accommodation_image=accom.picture_url,
+        status=booking.status
+    )
+
+def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
+    booking = get_booking_by_id(db, booking_id)
+    if not booking:
+        raise ValueError("Booking không tồn tại")
+
+    accom = db.scalar(select(models.Accommodation).where(
+        models.Accommodation.accommodation_id == booking.accommodation_id
+    ))
+    if accom.owner_id != owner_id:
+        raise ValueError("Không có quyền xác nhận")
+
+    booking.status = "confirmed"
+    db.commit()
+    db.refresh(booking)
+
+    return build_booking_read(db, booking)
+
+def owner_cancel_booking(db: Session, booking_id: int, owner_id: int):
+    booking = get_booking_by_id(db, booking_id)
+    if not booking:
+        raise ValueError("Booking không tồn tại")
+
+    accom = db.scalar(select(models.Accommodation).where(
+        models.Accommodation.accommodation_id == booking.accommodation_id
+    ))
+    if accom.owner_id != owner_id:
+        raise ValueError("Không có quyền hủy booking này")
+
+    booking.status = "cancelled"
+    db.commit()
+    db.refresh(booking)
+
+    return build_booking_read(db, booking)
+
 
 def create_booking(
     db: Session,
@@ -146,7 +207,7 @@ def create_booking(
     )
 
     # AUTO CONFIRM nếu không trùng lịch
-    status = schemas.BookingStatusEnum.confirmed.value if not conflict else schemas.BookingStatusEnum.pending_confirmation.value
+    status = schemas.BookingStatusEnum.pending_confirmation.value
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
     total_price = calculate_total_price(accommodation.price, nights, booking_data.rooms)

@@ -259,3 +259,76 @@ def get_top_accommodations(db: Session, limit: int = 6):
         .order_by(models.Accommodation.accommodation_id.desc())\
         .limit(limit)\
         .all()
+
+# Hàm logic lấy chi tiết booking
+def get_booking_details(db: Session, booking_id: int, user_id: int):
+    """
+    Hàm logic lấy chi tiết booking và kiểm tra quyền truy cập.
+    """
+    booking = db.scalar(
+        select(models.Booking)
+        .where(models.Booking.booking_id == booking_id)
+    )
+    
+    if not booking:
+        return None 
+
+    accommodation = db.scalar(
+        select(models.Accommodation)
+        .where(models.Accommodation.accommodation_id == booking.accommodation_id)
+    )
+
+    if booking.user_id == user_id or (accommodation and accommodation.owner_id == user_id):
+        return booking
+    else:
+        return False # Không có quyền
+
+
+# Hàm logic tạo booking mới
+def create_new_booking(db: Session, booking_data: schemas.BookingCreate, user_id: int):
+    """
+    Hàm logic để tạo một booking mới và kiểm tra tính khả dụng cuối cùng.
+    """
+    
+    # 1. KIỂM TRA TÍNH KHẢ DỤNG LẦN CUỐI
+    overlapping_bookings_count = db.scalar(
+        select(func.count(models.Booking.booking_id))
+        .where(
+            and_(
+                models.Booking.accommodation_id == booking_data.accommodation_id,
+                models.Booking.date_end > booking_data.date_start,
+                models.Booking.date_start < booking_data.date_end,
+                models.Booking.status.in_(['confirmed', 'pending_confirmation'])
+            )
+        )
+    )
+
+    if overlapping_bookings_count > 0:
+        return {"error": "Phòng đã có người đặt trong khoảng thời gian này.", "code": 409}
+
+    # 2. KIỂM TRA SỨC CHỨA
+    accommodation = db.scalar(
+        select(models.Accommodation)
+        .where(models.Accommodation.accommodation_id == booking_data.accommodation_id)
+    )
+
+    if not accommodation or accommodation.max_guests < booking_data.number_of_guests: # Dùng max_guests
+        return {"error": "Số lượng khách vượt quá sức chứa tối đa.", "code": 400}
+
+    # 3. TẠO BOOKING
+    db_booking = models.Booking(
+        **booking_data.model_dump(), # Ánh xạ tất cả các trường từ schema
+        user_id=user_id, 
+        status='pending_confirmation' 
+        # Cần tính toán và gán total_price ở đây nếu cần
+    )
+    
+    try:
+        db.add(db_booking)
+        db.commit()
+        db.refresh(db_booking)
+        return db_booking
+    except Exception as e:
+        db.rollback()
+        print(f"Lỗi khi tạo booking: {e}")
+        return {"error": "Lỗi server khi lưu booking.", "code": 500}

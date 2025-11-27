@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 from sqlalchemy import select
 
 from .. import models, database
@@ -42,4 +41,24 @@ def get_booking_detail(
     if not accommodation or accommodation.owner_id != current_owner.id:
         raise HTTPException(403, "Không có quyền xem")
 
-    return service.get_bookings_for_owner(db, current_owner.id)[0]
+    return service.build_booking_read(db, booking)
+
+
+# CONFIRM BOOKING
+@router.put("/{booking_id}/confirm")
+def owner_confirm_booking(
+    booking_id: int,
+    db: Session = Depends(database.get_db),
+    current_owner: models.User = Depends(get_current_active_owner)
+):
+    return service.owner_confirm_booking(db, booking_id, current_owner.id)
+
+
+# CANCEL BOOKING
+@router.put("/{booking_id}/cancel")
+def owner_cancel_booking(
+    booking_id: int,
+    db: Session = Depends(database.get_db),
+    current_owner: models.User = Depends(get_current_active_owner)
+):
+    return service.owner_cancel_booking(db, booking_id, current_owner.id)
