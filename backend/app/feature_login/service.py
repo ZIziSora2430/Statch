@@ -25,7 +25,7 @@ def create_user(db: Session, user_in: schemas.UserCreate):
         db_user = models.User(
             username=user_in.username,
             email=user_in.email,
-            hashed_password=hashed_password,
+            password_hash=hashed_password,  # ← SỬA: password_hash (không phải password_hashed)
             role=user_in.role,
             full_name=user_in.full_name
         )
@@ -41,7 +41,7 @@ def login_user(db: Session, form_data: schemas.UserLogin):
     # Logic từ endpoint /login
     user = get_user_by_username(db, form_data.username)
     
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(form_data.password, user.password_hash):  # ← SỬA: password_hash
         return None # Router sẽ raise lỗi 401
     
     # Tạo token 

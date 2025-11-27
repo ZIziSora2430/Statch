@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Star } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { Hotel } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 

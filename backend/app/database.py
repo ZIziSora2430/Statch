@@ -1,32 +1,92 @@
-from sqlalchemy import create_engine
+# app/database.py
+"""
+Database connection và session management
+Sử dụng SQLAlchemy với MySQL
+"""
+
+from sqlalchemy import create_engine, text  
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+import os
 
-# Thông tin kết nối MySQL: user:password@host:port/dbname
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:na21@localhost:3306/testdb"
+# =====================================================
+# Lấy DATABASE_URL từ .env
+# =====================================================
+DATABASE_URL = "mysql+pymysql://root:na21@localhost:3306/testdb"
 
+if not DATABASE_URL:
+    raise ValueError(
+        "❌ DATABASE_URL not found in .env file!\n"
+        "Please create .env file with:\n"
+        "DATABASE_URL=mysql+pymysql://devuser:devpass123@localhost:3306/testdb"
+    )
+
+# =====================================================
+# Lấy DEBUG mode từ .env
+# =====================================================
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+# =====================================================
 # Tạo engine kết nối với MySQL
-# pool_pre_ping=True để tránh lỗi "MySQL server has gone away"
+# =====================================================
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    DATABASE_URL,
+    echo=DEBUG,                 # Chỉ bật SQL log khi DEBUG=True
+    pool_size=10,
+    max_overflow=20,
     pool_pre_ping=True,
-    echo=True  # hiển thị SQL log khi chạy, để debug
+    pool_recycle=3600,
+    connect_args={
+        "charset": "utf8mb4",
+    }
 )
 
-# SessionLocal dùng để tạo session DB cho mỗi request
+# =====================================================
+# Session maker
+# =====================================================
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# Base dùng để khai báo các model (models.py sẽ kế thừa)
+# =====================================================
+# Base class cho tất cả models
+# =====================================================
 Base = declarative_base()
 
-
+# =====================================================
+# Dependency function cho FastAPI
+# =====================================================
 def get_db():
+    """
+    Dependency injection để cung cấp database session
+    """
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+# =====================================================
+# Helper functions
+# =====================================================
+def test_connection():
+    """
+    Test database connection
+    Returns True nếu kết nối thành công
+    """
+    try:
+        with engine.connect() as connection:
+            # ✅ DÙNG text() để wrap SQL string
+            result = connection.execute(text("SELECT 1"))
+            print("✅ Database connection successful!")
+            print(f"📊 Database: {engine.url.database}")
+            print(f"🔗 Host: {engine.url.host}:{engine.url.port}")
+            print(f"👤 User: {engine.url.username}")
+            return True
+    except Exception as e:
+        print(f"❌ Database connection failed: {e}")
+        return False
+
