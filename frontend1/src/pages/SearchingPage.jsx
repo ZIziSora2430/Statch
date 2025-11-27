@@ -45,6 +45,19 @@ export default function SearchingPage() {
     return tagString.split(",").map((t) => t.trim()).filter(t => t !== "");
   };
 
+  // --- HELPER: Chuyển điểm số thành chữ ---
+  const getRatingText = (score) => {
+    if (!score) return "Mới"; // Chưa có đánh giá
+    
+    if (score >= 9.5) return "Xuất sắc";
+    if (score >= 9.0) return "Tuyệt hảo";
+    if (score >= 8.0) return "Tuyệt vời";
+    if (score >= 7.0) return "Rất tốt";
+    if (score >= 6.0) return "Tốt";
+    if (score >= 5.0) return "Trung bình";
+    return "Điểm thấp";
+  };
+
   // --- HANDLERS (Giữ nguyên) ---
   const handleFilterChange = (field, rawValue) => {
     setFilters((prev) => {
@@ -323,9 +336,9 @@ export default function SearchingPage() {
                             title={item.title}
                             location={item.location}
                             
-                            ratingText="Tuyệt vời"
-                            ratingScore={item.ratingScore || 9.5} // Fallback nếu API chưa có
-                            ratingCount={120}
+                            ratingText={getRatingText(item.rating_score)}
+                            ratingScore={item.rating_score || 0.0} // Fallback nếu API chưa có
+                            ratingCount={item.review_count}
                             stars={4}
                             
                             tags={parseTags(item.tags || item.ai_tags || "")}

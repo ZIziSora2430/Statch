@@ -41,6 +41,9 @@ class AccommodationRead(AccommodationCreate):
     # Mặc định None vì không lưu trong DB, chỉ AI tạo ra tức thời
     match_score: Optional[int] = None
     match_reason: Optional[str] = None
+
+    rating_score: Optional[float] = 0.0  
+    review_count: Optional[int] = 0
     class Config: 
         model_config=ConfigDict(from_attributes=True)
 

@@ -78,11 +78,13 @@ def get_accommodation_by_id(db: Session, accommodation_id: int):
     """
     Hàm helper để lấy một chỗ ở cụ thể bằng ID của nó.
     """
-    # Dùng .scalar() để trả về 1 object hoặc None
-    return db.scalar(
+    accommodation = db.scalar(
         select(models.Accommodation)
         .where(models.Accommodation.accommodation_id == accommodation_id)
     )
+    
+    # Gọi hàm tính điểm trước khi trả về
+    return _attach_rating_info(db, accommodation)
 
 # Xóa chỗ ở
 def delete_accommodation(db: Session, accommodation: models.Accommodation):
@@ -224,12 +226,13 @@ def search_accommodations(
                     filtered_results.append(acc)
         
         results = filtered_results
-        print(f"✅ Strategy 2 (Text Python): Found {len(results)} items matching '{search_normalized}'")
     # --- Thực thi Query ---
     if not results and lat is None and location_text is None:
          all_results = db.execute(query).all()
          results = [row[0] for row in all_results]
 
+    for acc in results:
+        _attach_rating_info(db, acc)
     return results
 
 
@@ -250,7 +253,7 @@ def get_random_accommodations(db: Session, limit: int = 10):
         .limit(limit)\
         .all()
 
-# 👇 THÊM HÀM NÀY (Dùng khi user chưa có sở thích)
+# (Dùng khi user chưa có sở thích)
 def get_top_accommodations(db: Session, limit: int = 6):
     """
     Lấy danh sách chỗ ở mới nhất (hoặc top rate nếu có cột rating).
@@ -332,3 +335,40 @@ def create_new_booking(db: Session, booking_data: schemas.BookingCreate, user_id
         db.rollback()
         print(f"Lỗi khi tạo booking: {e}")
         return {"error": "Lỗi server khi lưu booking.", "code": 500}
+    
+# --- HÀM HELPER TÍNH ĐIỂM ---
+def _attach_rating_info(db: Session, accommodation):
+    """
+    Hàm nội bộ: Tính điểm trung bình từ bảng Review và gắn vào object Accommodation.
+    """
+    if not accommodation:
+        return None
+
+    # 1. Query tính toán Aggregate (Trung bình và Tổng số)
+    # query: SELECT COUNT(*), AVG(rating) FROM review WHERE accommodation_id = ...
+    result = db.query(
+        func.count(models.Review.review_id),
+        func.avg(models.Review.rating)
+    ).filter(
+        models.Review.accommodation_id == accommodation.accommodation_id
+    ).first()
+
+    count, avg_stars = result
+
+    # 2. Xử lý dữ liệu
+    if count and count > 0:
+        avg_val = float(avg_stars)
+        
+        # --- QUY ĐỔI THANG ĐIỂM ---
+        # Ví dụ: 4.5 sao -> 9.0 điểm
+        score_out_of_10 = round(avg_val * 2, 1) 
+        
+        # Gán vào thuộc tính ảo 
+        accommodation.rating_score = score_out_of_10
+        accommodation.review_count = count
+    else:
+        # Chưa có đánh giá nào
+        accommodation.rating_score = 0.0 
+        accommodation.review_count = 0
+        
+    return accommodation

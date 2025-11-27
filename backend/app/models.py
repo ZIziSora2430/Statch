@@ -10,6 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy import TEXT
 from .database import Base
 import enum
 
@@ -113,7 +114,7 @@ class Accommodation(Base):
     max_guests = Column(Integer)
     price = Column(DECIMAL(10, 2), nullable=False)
     status = Column(String(50), default='available')
-    picture_url = Column(String(255))
+    picture_url = Column(TEXT, nullable=True)
     tags = Column(String(500), nullable=True)
 
     # Coordinates

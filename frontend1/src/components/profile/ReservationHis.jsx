@@ -52,8 +52,15 @@ const BookingCard = ({ booking }) => {
 
     const starCount = booking.accommodation_stars || 0;
 
+    const handleViewDetail = (e) => {
+        // Ngăn chặn sự kiện nổi bọt nếu bấm vào các nút con
+        e?.stopPropagation(); 
+        navigate(`/accommodations/${booking.accommodation_id}`);
+    };
     return (
-        <div className="relative flex w-full bg-white rounded-2xl shadow-md overflow-hidden mb-6 h-40 border border-gray-100 transition-transform hover:-translate-y-1 duration-300 group">
+        <div className="relative flex w-full bg-white rounded-2xl shadow-md overflow-hidden mb-6 h-40 border border-gray-100 transition-transform hover:-translate-y-1 duration-300 group"
+             onClick={handleViewDetail}
+        >
             {isInactive && (
                 <div className="absolute top-0 bottom-0 left-0 w-[72%] bg-black/40 z-20 pointer-events-none">
                 </div>
