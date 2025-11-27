@@ -40,7 +40,7 @@ export default function App() {
 
         {/* --- Booking & Accommodation Management --- */}
         <Route path="/AddAccommodationForm" element={<AddAccommodationForm/>} />
-        <Route path="/accommodation/:id" element={<RoomDetailPage/>} />
+        <Route path="/accommodations/:id" element={<RoomDetailPage/>} />
         <Route path="/confirm" element={<BookingConfirmPage/>} />
         <Route path="/formpage" element={<BookingFormPage/>} />
         <Route path="/modify-accommodation/:id" element={<ModifyAccommodationForm/>} />        

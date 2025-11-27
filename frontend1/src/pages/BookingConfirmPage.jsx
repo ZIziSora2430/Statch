@@ -2,8 +2,6 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import SearchingBar from "../components/SearchingBar";
-
 export default function BookingConfirmPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,11 +35,6 @@ export default function BookingConfirmPage() {
       <Navbar />
 
       <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-20 pb-12 flex-1">
-        {/* Searching Bar (nếu muốn giữ giống các trang khác) */}
-        <div className="mb-6">
-          <SearchingBar />
-        </div>
-
         {/* Card xác nhận */}
         <section className="bg-white rounded-2xl shadow-sm p-5 sm:p-7 space-y-5">
           {/* Header */}

@@ -71,11 +71,6 @@ export default function BookingFormPage() {
       <Navbar />
 
       <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-20 pb-12 flex-1">
-        {/* Search bar cho đồng bộ */}
-        <div className="mb-6">
-          <SearchingBar />
-        </div>
-
         <section className="bg-white rounded-2xl shadow-sm p-5 sm:p-7 space-y-6">
           {/* Tiêu đề */}
           <div>
