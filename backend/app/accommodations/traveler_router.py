@@ -127,12 +127,11 @@ def get_accommodation_details_endpoint(
 # API Lấy Chi tiết Booking
 @router.get(
     "/bookings/{booking_id}", 
-    response_model=schemas.BookingRead # Sử dụng schema mới
+    response_model=schemas.BookingRead 
 )
 def get_booking_details_endpoint(
     booking_id: int,
     db: Session = Depends(database.get_db),
-    # Lấy user hiện tại để kiểm tra quyền truy cập
     current_user: models.User = Depends(get_current_user) 
 ):
     """
@@ -146,16 +145,42 @@ def get_booking_details_endpoint(
     )
     
     if booking is False:
-        # Nếu user không có quyền truy cập
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Bạn không có quyền xem chi tiết booking này."
         )
     elif booking is None:
-        # Nếu booking không tồn tại
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Không tìm thấy Booking."
         )
         
     return booking
+
+# API TẠO BOOKING MỚI (POST Request)
+@router.post(
+    "/bookings/create",
+    response_model=schemas.BookingRead, 
+    status_code=status.HTTP_201_CREATED
+)
+def create_booking_endpoint(
+    booking_data: schemas.BookingCreate, 
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    API Endpoint để Traveler gửi yêu cầu đặt phòng.
+    """
+    result = service.create_new_booking(
+        db=db,
+        booking_data=booking_data,
+        user_id=current_user.id
+    )
+    
+    if "error" in result:
+        raise HTTPException(
+            status_code=result["code"],
+            detail=result["error"]
+        )
+
+    return result

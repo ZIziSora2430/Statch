@@ -1,5 +1,5 @@
 # app/accommodations/schemas.py
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from decimal import Decimal # Sử dụng Decimal cho giá
 from datetime import date
@@ -61,6 +61,22 @@ class AccommodationUpdate(BaseModel):
 
     model_config=ConfigDict(from_attributes=True)
 
+class BookingCreate(BaseModel):
+    # Thông tin khách hàng
+    full_name: str 
+    email: str
+    phone_number: str = Field(pattern=r'^\d{10,12}$')
+    date_of_birth: date
+    identity_card: str
+
+    # Thông tin đặt phòng
+    accommodation_id: int 
+    date_start: date     
+    date_end: date       
+    number_of_guests: int
+    
+    model_config=ConfigDict(from_attributes=True)
+
 class BookingRead(BaseModel):
     booking_id: int
     accommodation_id: int
@@ -68,12 +84,20 @@ class BookingRead(BaseModel):
     date_start: date
     date_end: date
     status: str
-    # Có thể thêm các trường tính toán:
-    # total_price: Decimal 
     
-    # ⚠️ Tùy chọn: Nếu bạn muốn trả về thông tin chi tiết của chỗ ở kèm theo
+    # 📝 THÊM CÁC TRƯỜNG THÔNG TIN KHÁCH HÀNG
+    full_name: str
+    email: str
+    phone_number: str
+    date_of_birth: date
+    identity_card: str
+    number_of_guests: int
+    
+    # 💰 THÊM TRƯỜNG TÍNH TOÁN
+    total_price: Optional[Decimal] = None # Hoặc Decimal nếu bạn luôn tính toán giá
+
+    # ⚠️ Tùy chọn: Nếu bạn muốn nhúng thông tin chỗ ở
     # accommodation: AccommodationRead 
 
     class Config:
         model_config=ConfigDict(from_attributes=True)
-
