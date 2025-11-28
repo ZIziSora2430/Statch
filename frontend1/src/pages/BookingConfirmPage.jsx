@@ -1,95 +1,203 @@
-import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+// src/pages/BookingConfirmPage.jsx
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-
-const API_URL = import.meta.env.VITE_API_URL;
-
 export default function BookingConfirmPage() {
   const location = useLocation();
-  const { bookingId } = location.state || {};
+  const navigate = useNavigate();
 
-  const [booking, setBooking] = useState(null);
+  // Nếu bạn navigate từ trang trước có truyền state thì lấy ra,
+  // nếu không sẽ dùng dữ liệu mặc định để không bị lỗi trắng trang.
+  const [bookingData, setBookingData] = React.useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  React.useEffect(() => {
+  if (!location.state?.bookingId) return;
 
-    fetch(`${API_URL}/api/bookings/${bookingId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => setBooking(data));
-  }, [bookingId]);
+  fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${location.state.bookingId}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  })
+    .then(res => res.json())
+    .then(data => setBookingData(data))
+    .catch(err => console.error("Error loading booking:", err));
+}, []);
 
-  if (!booking) return <div>Đang tải...</div>;
 
-  const nights = Math.ceil(
-    (new Date(booking.date_end) - new Date(booking.date_start)) /
-      (1000 * 3600 * 24)
-  );
-
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(value);
+  if (!bookingData) {
+  return <div className="pt-20 text-center">Đang tải thông tin đặt phòng...</div>;
+}
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
 
-      <main className="mx-auto w-[92%] max-w-7xl pt-24 pb-12 flex-1">
+      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-20 pb-12 flex-1">
+        {/* Card xác nhận */}
+        <section className="bg-white rounded-2xl shadow-sm p-5 sm:p-7 space-y-5">
+          {/* Header */}
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+              <span className="text-green-600 text-xl">✓</span>
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                Đặt phòng thành công!
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                Cảm ơn bạn đã lựa chọn Statch. Thông tin chi tiết đơn đặt phòng
+                của bạn được hiển thị bên dưới.
+              </p>
+            </div>
+          </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-
-          <h2 className="text-2xl font-bold mb-4">Xác nhận đặt phòng</h2>
-
-          {/* giữ nguyên UI cũ */}
-          <img
-            src={booking.accommodation_image}
-            className="w-full rounded-xl mb-4"
-          />
-
-          <h3 className="text-xl font-semibold">{booking.accommodation_title}</h3>
-
-          <p>
-            <strong>Ngày nhận phòng:</strong>{" "}
-            {new Date(booking.date_start).toLocaleDateString()}
-          </p>
-
-          <p>
-            <strong>Ngày trả phòng:</strong>{" "}
-            {new Date(booking.date_end).toLocaleDateString()}
-          </p>
-
-          <p>
-            <strong>Số đêm:</strong> {nights}
-          </p>
-
-          <p>
-            <strong>Số khách:</strong> {booking.guest_count}
-          </p>
-
-          <p>
-            <strong>Giá mỗi đêm:</strong>{" "}
-            {booking.price_per_night.toLocaleString()}₫
-          </p>
-
-          <p className="text-[#BF1D2D] font-bold text-lg mt-2">
-            Tổng tiền: {booking.total_price.toLocaleString()}₫
-          </p>
-
-          <p className="mt-3">
-            <strong>Trạng thái:</strong>{" "}
-            <span
-              className={`font-bold ${
-                booking.status === "pending"
-                  ? "text-orange-500"
-                  : booking.status === "confirmed"
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {booking.status}
+          {/* Mã đơn + trạng thái */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border rounded-xl px-3 py-2 bg-gray-50">
+            <div className="text-sm sm:text-base">
+              <span className="text-gray-500">Mã đặt phòng: </span>
+              <span className="font-semibold text-gray-900">
+                {bookingData.bookingCode}
+              </span>
+            </div>
+            <span className={
+              "inline-flex px-3 py-1 rounded-full text-xs sm:text-sm font-medium " +
+              (bookingData.status === "pending_confirmation"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : bookingData.status === "confirmed"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-200 text-gray-600")
+            }>
+              {bookingData.status === "pending_confirmation"
+                ? "Chờ chủ nhà xác nhận"
+                : bookingData.status === "confirmed"
+                ? "Đã xác nhận"
+                : "Không xác định"}
             </span>
-          </p>
-        </div>
+          </div>
+
+          {/* Thông tin chính */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {/* Thông tin phòng */}
+            <div className="space-y-3">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                Thông tin phòng
+              </h2>
+              <div className="space-y-1 text-sm sm:text-base text-gray-700">
+                <p className="font-semibold text-gray-900">
+                  {bookingData.roomName}
+                </p>
+                <p className="text-gray-500">{bookingData.hotelLocation}</p>
+                <p>
+                  <span className="font-semibold">Check-in:</span>{" "}
+                  {bookingData.checkin}
+                </p>
+                <p>
+                  <span className="font-semibold">Check-out:</span>{" "}
+                  {bookingData.checkout}
+                </p>
+                <p>
+                  <span className="font-semibold">Số khách:</span>{" "}
+                  {bookingData.guests} người
+                </p>
+                <p>
+                  <span className="font-semibold">Số đêm:</span>{" "}
+                  {bookingData.nights} đêm
+                </p>
+              </div>
+            </div>
+
+            {/* Thông tin khách */}
+            <div className="space-y-3">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                Thông tin khách đặt
+              </h2>
+              <div className="space-y-1 text-sm sm:text-base text-gray-700">
+                <p>
+                  <span className="font-semibold">Họ và tên:</span>{" "}
+                  {bookingData.guestName}
+                </p>
+                <p>
+                  <span className="font-semibold">Email:</span>{" "}
+                  {bookingData.guestEmail}
+                </p>
+                <p>
+                  <span className="font-semibold">Số điện thoại:</span>{" "}
+                  {bookingData.guestPhone}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Thanh tiền */}
+          <div className="border-t pt-4 space-y-2 text-sm sm:text-base">
+            <div className="flex justify-between">
+              <span>
+                Giá mỗi đêm ({bookingData.nights} đêm x{" "}
+                {formatCurrency(bookingData.pricePerNight)})
+              </span>
+              <span>
+                {formatCurrency(
+                  bookingData.pricePerNight * bookingData.nights
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between font-semibold text-gray-900 text-base sm:text-lg">
+              <span>Tổng thanh toán</span>
+              <span>{formatCurrency(bookingData.totalPrice)}</span>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500">
+              Giá đã bao gồm thuế và phí dịch vụ (nếu có).
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap justify-end gap-3 pt-2">
+            {/* NÚT ĐẶT PHÒNG KHÁC  */}
+            <button
+              type="button"
+              onClick={() => navigate("/booking")} // route tới trang chọn phòng
+              className="px-4 py-2 rounded-full border border-[#BF1D2D] text-sm sm:text-base text-[#BF1D2D] hover:bg-red-50 transition"
+            >
+              Đặt phòng khác
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 rounded-full border border-gray-300 text-sm sm:text-base text-gray-700 hover:bg-gray-100 transition"
+            >
+              Quay lại
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/home")}
+              className="px-5 py-2 rounded-full bg-[#BF1D2D] hover:bg-[#881818] text-white text-sm sm:text-base font-semibold shadow-sm hover:shadow-md transition"
+            >
+              Về trang chủ
+            </button>
+          </div>
+        </section>
       </main>
+
+      <footer className="bg-gray-900 text-gray-300 py-6 mt-4 text-center">
+        <div className="container mx-auto">
+          <p className="text-sm">© 2025 Statch. All rights reserved.</p>
+          <div className="mt-2 flex justify-center gap-4 text-xs sm:text-sm">
+            <a href="#" className="hover:text-white transition">
+              Về chúng tôi
+            </a>
+            <a href="#" className="hover:text-white transition">
+              Liên hệ
+            </a>
+            <a href="#" className="hover:text-white transition">
+              Điều khoản
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
