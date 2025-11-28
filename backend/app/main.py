@@ -18,6 +18,7 @@ from .accommodations.owner_router import router as owner_accommodation_router
 from .booking.traveler_router import router as traveler_booking_router
 from .booking.owner_router import router as owner_booking_router
 from .reviews import router as reviews_router
+from .notifications.router import router as notifications_router
 
 # Feature Login (Authentication) - ✅ CÓ RỒI
 from app.feature_login.router import router as auth_router
@@ -114,6 +115,10 @@ app.include_router(
     traveler_router,
     tags=["🏠 Accommodations (Traveler)"]
 )
+#Notifications
+app.include_router(notifications_router)
+
+
 
 # Accommodation routes - Owner
 app.include_router(

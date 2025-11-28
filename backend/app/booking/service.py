@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from .. import models
 from . import schemas
+from ..notifications.service import create_notification
 
 import random
 import string
@@ -154,7 +155,12 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
     booking.status = "confirmed"
     db.commit()
     db.refresh(booking)
-
+    # Gửi thông báo cho khách hàng
+    create_notification(
+        db,
+        user_id=booking.user_id,
+        message="Đơn đặt phòng của bạn đã được chủ nhà xác nhận!"
+    )
     return build_booking_read(db, booking)
 
 def owner_cancel_booking(db: Session, booking_id: int, owner_id: int):
@@ -171,6 +177,14 @@ def owner_cancel_booking(db: Session, booking_id: int, owner_id: int):
     booking.status = "cancelled"
     db.commit()
     db.refresh(booking)
+
+    # Gửi thông báo cho khách hàng
+    create_notification(
+        db,
+        user_id=booking.user_id,
+        message="Đơn đặt phòng của bạn đã bị chủ nhà từ chối."
+    )
+
 
     return build_booking_read(db, booking)
 
@@ -206,8 +220,8 @@ def create_booking(
         )
     )
 
-    # AUTO CONFIRM nếu không trùng lịch
     status = schemas.BookingStatusEnum.pending_confirmation.value
+
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
     total_price = calculate_total_price(accommodation.price, nights, booking_data.rooms)
@@ -227,5 +241,15 @@ def create_booking(
     db.add(new_booking)
     db.commit()
     db.refresh(new_booking)
+
+    # Lấy accommodation để biết owner_id
+    acc = accommodation
+
+    # Gửi thông báo cho chủ nhà
+    create_notification(
+        db,
+        user_id=acc.owner_id,
+        message=f"Khách vừa đặt phòng: {acc.title}"
+    )
 
     return new_booking
