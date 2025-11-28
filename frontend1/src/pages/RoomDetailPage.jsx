@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import Footer from "../components/Footer";
 import { 
   MapPin, Star, Share, Heart, Wifi, Car, Coffee, Grid,
@@ -19,6 +19,9 @@ export default function RoomDetailPage() {
   const [room, setRoom] = useState(null);
   const [reviews, setReviews] = useState([]);   //State chứa danh sách review
   const [showFullDesc, setShowFullDesc] = useState(false); // Toggle xem thêm mô tả
+
+  //Recommend
+  const [recommendations, setRecommendations] = useState([]); // <--- THÊM DÒNG NÀY
 
   // State cho form review
   const [newReviewContent, setNewReviewContent] = useState("");
@@ -90,31 +93,35 @@ export default function RoomDetailPage() {
 useEffect(() => {
     const token = localStorage.getItem("access_token");
     setLoading(true);
+    const headers = token ? { "Authorization": `Bearer ${token}` } : {};
 
-    // Gọi song song 2 API: Chi tiết phòng & Danh sách Review
     Promise.all([
-      fetch(`${API_URL}/api/accommodations/${id}`, {
-         headers: token ? { "Authorization": `Bearer ${token}` } : {}
-      }).then(res => res.json()),
+        // 1. Chi tiết phòng
+        fetch(`${API_URL}/api/accommodations/${id}`, { headers }).then(res => res.json()),
 
-      fetch(`${API_URL}/api/accommodations/${id}/reviews`, {
-         headers: token ? { "Authorization": `Bearer ${token}` } : {}
-      }).then(res => res.json())
+        // 2. Danh sách Review
+        fetch(`${API_URL}/api/accommodations/${id}/reviews`, { headers }).then(res => res.json()),
+
+        // 3. Gợi ý Tương tự (API MỚI)
+        fetch(`${API_URL}/api/accommodations/${id}/recommendations?limit=4`, { headers }).then(res => res.json()) 
     ])
-    .then(([roomData, reviewsData]) => {
+    .then(([roomData, reviewsData, recommendationsData]) => { // ⚠️ THÊM biến recommendationsData
         if (roomData.detail) throw new Error(roomData.detail);
         
         setRoom(roomData);
         // Nếu API reviews trả về lỗi hoặc null thì gán mảng rỗng
         setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+
+        // ⚠️ XỬ LÝ DỮ LIỆU GỢI Ý MỚI
+        // (Bạn cần thêm state `recommendations` vào component của mình)
+        setRecommendations(Array.isArray(recommendationsData) ? recommendationsData : []);
         setLoading(false);
     })
     .catch((err) => {
-        console.error(err);
+        console.error("Lỗi khi fetch dữ liệu chi tiết phòng:", err);
         setLoading(false);
     });
-  }, [id]);
-
+}, [id]);
   // --- HÀM GỬI REVIEW (POST) ---
   const handlePostReview = async () => {
     const token = localStorage.getItem("access_token");
@@ -543,31 +550,56 @@ useEffect(() => {
         </section>
 
         {/* 6. GỢI Ý TƯƠNG TỰ (List View) */}
-        <section>
+        <section className="mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Gợi ý tương tự</h2>
             <div className="grid grid-cols-1 gap-4">
-                {[1, 2, 3].map((item) => (
-                    <div key={item} className="flex flex-col sm:flex-row gap-4 border border-gray-200 rounded-xl p-3 hover:shadow-md transition bg-white cursor-pointer">
-                        <div className="w-full sm:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
-                            <img src={`https://placehold.co/400x300?text=Hotel+${item}`} className="w-full h-full object-cover hover:scale-110 transition duration-500"/>
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between">
-                            <div>
-                                <h3 className="font-bold text-lg text-gray-900">LeParc Hotel Luxury</h3>
-                                <div className="flex text-yellow-400 text-xs mb-1">★★★</div>
-                                <p className="text-xs text-gray-500 flex items-center gap-1"><MapPin size={12}/> Quận 1, TP.HCM</p>
-                                <div className="flex gap-2 mt-2">
-                                    <span className="text-[10px] border border-green-500 text-green-600 px-2 py-0.5 rounded">Gần trung tâm</span>
-                                    <span className="text-[10px] border border-green-500 text-green-600 px-2 py-0.5 rounded">Buffet sáng</span>
+                {recommendations.length > 0 ? (
+                    // Lặp qua dữ liệu thực tế từ backend
+                    recommendations.map((item) => (
+                        <div 
+                            key={item.accommodation_id} // Dùng ID thực tế làm key
+                            // Thêm logic chuyển trang (ví dụ: navigate(`/rooms/${item.accommodation_id}`))
+                            className="flex flex-col sm:flex-row gap-4 border border-gray-200 rounded-xl p-3 hover:shadow-md transition bg-white cursor-pointer"
+                        >
+                            <div className="w-full sm:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
+                                {/* ⚠️ Cần dùng item.picture_url từ backend nếu có */}
+                                <img src={item.picture_url || `https://placehold.co/400x300?text=${item.title}`} className="w-full h-full object-cover hover:scale-110 transition duration-500"/>
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between">
+                                <div>
+                                    {/* DỮ LIỆU ĐỘNG */}
+                                    <h3 className="font-bold text-lg text-gray-900">{item.title}</h3> 
+                                    {/* Giả định: Xếp hạng sao từ item.star_rating */}
+                                    <div className="flex text-yellow-400 text-xs mb-1">
+                                        {Array(item.star_rating).fill(0).map((_, i) => <span key={i}>★</span>)} 
+                                    </div>
+                                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                                        { /* Cần import MapPin */ }
+                                        {/* <MapPin size={12}/> {item.location} */}
+                                    </p>
+                                    
+                                    {/* Hiển thị Tags (Nếu Tags là chuỗi ngăn cách bằng dấu phẩy) */}
+                                    <div className="flex gap-2 mt-2">
+                                        {item.tags && item.tags.split(',').map((tag, index) => (
+                                            <span key={index} className="text-[10px] border border-green-500 text-green-600 px-2 py-0.5 rounded">
+                                                {tag.trim()}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-end mt-2">
+                                    {/* DỮ LIỆU ĐỘNG */}
+                                    <span className="font-bold text-xl text-[#AD0000]">{formatCurrency(item.price)} </span>
+                                    {/* Giả định: Điểm đánh giá (guest_rating) */}
+                                    <span className="text-2xl font-black text-gray-900">{item.guest_rating || 'N/A'}<span className="text-sm font-normal text-gray-500">/10</span></span>
                                 </div>
                             </div>
-                            <div className="flex justify-between items-end mt-2">
-                                <span className="font-bold text-xl text-[#AD0000]">900.000 VND</span>
-                                <span className="text-2xl font-black text-gray-900">9.7<span className="text-sm font-normal text-gray-500">/10</span></span>
-                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    // Trường hợp không có gợi ý
+                    <p className="text-gray-500">Không tìm thấy gợi ý tương tự nào.</p>
+                )}
             </div>
         </section>
 
