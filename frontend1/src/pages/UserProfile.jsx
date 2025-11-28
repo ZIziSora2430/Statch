@@ -248,7 +248,7 @@ export default function UserProfile() {
                 />
             </div>
 
-            <div style={{ width: 1440, margin: "0 auto", position: "relative", minHeight: "calc(100vh - 75px)", background: "white", borderRadius: 12, zIndex: 1 }}>
+            <div style={{ width: 1440, margin: "0 auto", position: "relative", minHeight: "calc(100vh - 75px)", background: "transparent", borderRadius: 12, zIndex: 1 }}>
                 
                 {/* Sidebar */}
                 <div style={{ width: 463, height: 538, position: "relative", top: 100, left: 18, background: "#AD0000", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center" }}>

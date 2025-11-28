@@ -4,11 +4,11 @@ export default function PasswordSection() {
   return (
     <div style={{
         position:'absolute',
-      backgroundColor: '#ffffffff',
+      backgroundColor: 'transparent',
       minHeight: '100vh',
       width: 867,
       height:300,
-      top:57,
+      top:5,
       left: 31,
       fontFamily: 'montserrat'
     }}>
@@ -19,7 +19,6 @@ export default function PasswordSection() {
         fontWeight: '600',
         marginBottom: '13px'
       }}>
-        Bảo mật
       </h2>
 
       {/* Password Row */}
