@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trash2, MoreVertical, Edit, Plus, MapPin, BedDouble } from "lucide-react"; // Import Icon đẹp
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function RoomCard({id, image, category, categoryColor, name, price, isAvailable, onDelete }) {
+function RoomCard({ id, image, category, categoryColor, name, price, isAvailable, onDelete }) {
   const [available, setAvailable] = useState(isAvailable);
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
@@ -13,7 +14,7 @@ function RoomCard({id, image, category, categoryColor, name, price, isAvailable,
     setAvailable(isAvailable);
   }, [isAvailable]);
 
-
+  // Click outside để đóng menu
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -24,213 +25,89 @@ function RoomCard({id, image, category, categoryColor, name, price, isAvailable,
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      position: 'relative'
-    }}>
-      {/* Room Image */}
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        height: '180px',
-        overflow: 'hidden'
-      }}>
-        <img 
-          src={image || 'https://via.placeholder.com/300x200?text=No+Image'}
+    <div className="group relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      
+      {/* --- PHẦN ẢNH --- */}
+      <div className="relative h-48 w-full overflow-hidden bg-gray-200">
+        <img
+          src={image || "https://via.placeholder.com/400x300?text=No+Image"}
           alt={name}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover'
-          }}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        
-        {/* Delete Button */}
-        <button onClick={(e) => {
-          e.stopPropagation(); 
-          onDelete(); 
-        }}
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          width: '24px',
-          height: '24px',
-          backgroundColor: '#DC143C',
-          border: 'none',
-          borderRadius: '4px',
-          color: 'white',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 0
-        }}>
-          🗑
-        </button>
 
-        {/* Category Badge */}
-        <div style={{
-          position: 'absolute',
-          bottom: '10px',
-          left: '10px',
-          backgroundColor: categoryColor,
-          color: 'white',
-          padding: '5px 15px',
-          borderRadius: '20px',
-          fontSize: '12px',
-          fontWeight: '600'
-        }}>
+        {/* Badge Category */}
+        <div 
+            className="absolute top-3 left-3 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10"
+            style={{ backgroundColor: categoryColor }}
+        >
           {category}
         </div>
+
+        {/* Nút Xóa (Chỉ hiện khi hover vào card hoặc trên mobile) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur text-red-500 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600 z-10"
+          title="Xóa chỗ ở này"
+        >
+          <Trash2 size={18} />
+        </button>
       </div>
 
-      {/* Room Info */}
-      <div style={{
-        padding: '15px'
-      }}>
-        <h3 style={{
-          fontSize: '18px',
-          fontWeight: 'bold',
-          margin: '0 0 10px 0',
-          textAlign: 'center'
-        }}>
-          {name}
-        </h3>
-
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '15px'
-        }}>
-          <p style={{
-            margin: '0 0 5px 0',
-            fontSize: '13px',
-            color: '#666'
-          }}>
-            Giá phòng
-          </p>
-          <p style={{
-            margin: 0,
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#DC143C'
-          }}>
-            {Number(price).toLocaleString('vi-VN')} VNĐ
-          </p>
+      {/* --- PHẦN THÔNG TIN --- */}
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-2">
+           <h3 className="font-bold text-lg text-gray-800 line-clamp-1 flex-1 pr-2" title={name}>
+             {name}
+           </h3>
+           <div ref={menuRef} className="relative">
+              <button 
+                onClick={() => setOpen(!open)}
+                className="text-gray-400 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition"
+              >
+                <MoreVertical size={20} />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {open && (
+                <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden animate-fadeIn">
+                  <button
+                    onClick={() => navigate(`/modify-accommodation/${id}`)}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2 transition"
+                  >
+                    <Edit size={16} /> Chỉnh sửa
+                  </button>
+                </div>
+              )}
+           </div>
         </div>
+        {/* Giá tiền */}
+        <div className="flex justify-between items-end border-t border-gray-100 pt-4">
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Giá mỗi đêm</p>
+            <p className="text-xl font-bold text-[#AD0000]">
+              {Number(price).toLocaleString("vi-VN")} đ
+            </p>
+          </div>
 
-        {/* Toggle and Menu */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          {/* Toggle Switch */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <label style={{
-              position: 'relative',
-              display: 'inline-block',
-              width: '44px',
-              height: '24px',
-              cursor: 'pointer'
-            }}>
-              <input
-                type="checkbox"
-                checked={available}
-                onChange={() => setAvailable(!available)}
-                style={{
-                  opacity: 0,
-                  width: 0,
-                  height: 0
-                }}
-              />
-              <span style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: available ? '#4CAF50' : '#ccc',
-                borderRadius: '24px',
-                transition: '0.3s'
-              }}>
-                <span style={{
-                  position: 'absolute',
-                  height: '18px',
-                  width: '18px',
-                  left: available ? '23px' : '3px',
-                  bottom: '3px',
-                  backgroundColor: 'white',
-                  borderRadius: '50%',
-                  transition: '0.3s'
-                }} />
-              </span>
+          {/* Toggle Switch đẹp hơn */}
+          <div className="flex flex-col items-end gap-1">
+             <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                    type="checkbox" 
+                    className="sr-only peer" 
+                    checked={available}
+                    onChange={() => setAvailable(!available)}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
             </label>
-            <span style={{
-              fontSize: '13px',
-              color: '#666'
-            }}>
-              Cho phép hiển thị
+            <span className={`text-[10px] font-medium ${available ? 'text-green-600' : 'text-gray-400'}`}>
+                {available ? 'Đang hiện' : 'Đang ẩn'}
             </span>
           </div>
-
-          <div ref={menuRef}>
-            {/* Three Dots Menu */}
-            <button 
-            onClick={() => setOpen(!open)}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '20px',
-              cursor: 'pointer',
-              padding: '0 5px',
-              color: '#666'
-            }}>
-              ⋮
-            </button>
-
-            {open && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "280px",
-                  right: -10  ,
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  width: "100px",
-                  padding: "10px 0",
-                  zIndex: 1000,
-                  marginRight: 40
-                }}
-              >
-                <div
-                  onMouseEnter={(e) => e.target.style.color = '#DC143C'}
-                  onMouseLeave={(e) => e.target.style.color = '#000000ff'}
-                  style={{
-                    padding: "10px 15px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: "#333",
-                  }}
-                  onClick={() => navigate(`/modify-accommodation/${id}`)}                >
-                  Chỉnh sửa
-                </div>
-              </div>
-            )}
-
-          </div>
-
         </div>
       </div>
     </div>
@@ -239,67 +116,54 @@ function RoomCard({id, image, category, categoryColor, name, price, isAvailable,
 
 export default function OwnerDashB() {
   const navigate = useNavigate();
-  // 1. Thay mảng cứng bằng State
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Hàm helper chọn màu cho loại phòng
   const getCategoryColor = (type) => {
     const colors = {
-        'Khách sạn': '#8B0000',
-        'Biệt thự': '#006B7D',
-        'Căn hộ': '#B8860B',
-        'Homestay': '#2E8B57',
-        'Resort': '#4B0082'
+      'Khách sạn': '#E53935', // Đỏ
+      'Biệt thự': '#00897B',  // Xanh ngọc
+      'Căn hộ': '#FBC02D',    // Vàng
+      'Homestay': '#43A047',  // Xanh lá
+      'Resort': '#5E35B1'     // Tím
     };
-    return colors[type] || '#006B7D'; // Màu mặc định
+    return colors[type] || '#546E7A';
   };
 
-
-  // 2. Fetch API khi component load
   useEffect(() => {
     const fetchAccommodations = async () => {
       const token = localStorage.getItem("access_token");
       if (!token) {
-          setLoading(false);
-          return;
+        setLoading(false);
+        return;
       }
 
       try {
-        // Gọi Endpoint lấy danh sách nhà của Owner
         const response = await fetch(`${API_URL}/api/owner/accommodations/`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
         });
-        
+
         if (response.ok) {
-            const data = await response.json();
-            console.log("Data fetched:", data);
+          const data = await response.json();
+          const mappedData = data.map((item) => {
+            const images = item.picture_url ? item.picture_url.split(",") : [];
+            const firstImage = images.length > 0 ? images[0] : "";
 
-            // 3. MAP DỮ LIỆU: Backend (snake_case) -> Frontend (camelCase)
-            const mappedData = data.map(item => {
-                const images = item.picture_url ? item.picture_url.split(',') : [];
-    
-                // 2. Lấy ảnh đầu tiên (nếu có), không thì để rỗng
-                const firstImage = images.length > 0 ? images[0] : "";
-
-                return {
-                    id: item.accommodation_id,          // Backend: accommodation_id
-                    image: firstImage || item.picture_url || '',            // Backend: picture_url
-                    name: item.title,                   // Backend: title
-                    price: item.price,                  // Backend: price (số)
-                    category: item.property_type,       // Backend: property_type
-                    categoryColor: getCategoryColor(item.property_type), // Tự sinh màu
-                    isAvailable: item.status === 'available' // Chuyển status thành boolean
-                };
-            });
-
-            setRooms(mappedData);
-        } else {
-            console.error("Failed to fetch accommodations");
+            return {
+              id: item.accommodation_id,
+              image: firstImage || item.picture_url || "",
+              name: item.title,
+              price: item.price,
+              category: item.property_type,
+              categoryColor: getCategoryColor(item.property_type),
+              isAvailable: item.status === "available",
+            };
+          });
+          setRooms(mappedData);
         }
       } catch (error) {
         console.error("Error fetching accommodations:", error);
@@ -311,139 +175,111 @@ export default function OwnerDashB() {
     fetchAccommodations();
   }, []);
 
-  const handleClick = (e) => {
-    e.stopPropagation();
-    navigate('/AddAccommodationForm'); // Dùng navigate thay vì window.location để mượt hơn
-  }
-
-  // Hiển thị khi đang tải
-  if (loading) return <div style={{textAlign: 'center', padding: 50}}>Đang tải danh sách chỗ ở...</div>;
-
   const handleDeleteRoom = async (id) => {
-    // 1. Xác nhận người dùng muốn xóa
-    if (!window.confirm("Bạn có chắc chắn muốn xóa chỗ ở này không? Hành động này không thể hoàn tác.")) {
-        return;
-    }
+    if (!window.confirm("Bạn có chắc chắn muốn xóa chỗ ở này không?")) return;
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-        alert("Phiên đăng nhập hết hạn.");
-        return;
+      alert("Phiên đăng nhập hết hạn.");
+      return;
     }
 
     try {
-        // 2. Gọi API Delete theo đúng route trong owner_router.py
-        const response = await fetch(`${API_URL}/api/owner/accommodations/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                // Không cần Content-Type vì DELETE thường không có body
-            }
-        });
+      const response = await fetch(`${API_URL}/api/owner/accommodations/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        // 3. Xử lý kết quả
-        if (response.ok || response.status === 204) {
-            // Xóa thành công trên server -> Cập nhật giao diện ngay lập tức
-            setRooms((prevRooms) => prevRooms.filter((room) => room.id !== id));
-            alert("Đã xóa thành công!");
-        } else {
-            // Xử lý lỗi từ backend trả về
-            const errorData = await response.json();
-            alert(`Lỗi: ${errorData.detail || "Không thể xóa"}`);
-        }
+      if (response.ok || response.status === 204) {
+        setRooms((prev) => prev.filter((room) => room.id !== id));
+        // Nên dùng Toast notification thay vì alert
+      } else {
+        const errorData = await response.json();
+        alert(`Lỗi: ${errorData.detail || "Không thể xóa"}`);
+      }
     } catch (error) {
-        console.error("Error deleting accommodation:", error);
-        alert("Lỗi kết nối đến server.");
+      alert("Lỗi kết nối đến server.");
     }
   };
 
-  return (
-    <div style={{
-        position: 'absolute',
-      backgroundColor: '#ffffffff',
-      minHeight: 800,
-      left: 15,
-      top: -15
-    }}>
+  if (loading) return (
+      <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700"></div>
+      </div>
+  );
 
-      {/* Grid of Room Cards */}
-      <div
-        style={{
-          position: "relative", // ✅ Not absolute — so it grows naturally
-          margin: "80px auto",
-          width: "880px",
-          maxHeight: 1000, // limit height instead of forcing
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: "20px",
-          overflowY: "auto",
-          padding: "20px",
-          boxSizing: "border-box",
-          backgroundColor: "#fff",
-          borderRadius: "16px",
-        }}
-      >
-        {/* Kiểm tra nếu có dữ liệu thì render, không thì báo trống */}
-        {rooms.length > 0 ? (
-            rooms.map((room) => (
-                <RoomCard 
-                key={room.id} 
-                {...room} 
-                onDelete={() => handleDeleteRoom(room.id)}
+  return (
+    <div className="w-full h-auto bg-white px-6 md:px-10 pb-10 pt-2 relative -mt-[55px] rounded-t-2xl">
+      
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-end mb-10 pb-4 border-b border-gray-100">
+        <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+                {/* Thanh trang trí màu đỏ */}
+                <div className="w-1.5 h-8 bg-[#AD0000] rounded-full"></div>
                 
-                />
-            ))
-        ) : (
-            <div style={{ gridColumn: "1 / -1", textAlign: "center", color: "#888", marginTop: 50 }}>
-                <h3>Bạn chưa có chỗ ở nào.</h3>
-                <p>Bấm nút "+" để đăng bài đầu tiên!</p>
+                <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
+                  Danh sách chỗ ở
+                </h1>
             </div>
+            
+            <p className="text-gray-500 text-sm ml-5 font-medium">
+              Hiện tại bạn đang quản lý <span className="text-[#AD0000] font-bold text-lg">{rooms.length}</span> địa điểm
+            </p>
+        </div>
+        
+        {/* Nút Add Mobile */}
+        <button 
+             onClick={() => navigate('/AddAccommodationForm')}
+             className="md:hidden mt-4 w-full flex justify-center items-center gap-2 bg-[#AD0000] text-white px-5 py-3 rounded-xl font-bold shadow-lg active:scale-95 transition"
+        >
+            <Plus size={20}/> Đăng bài mới
+        </button>
+      </div>
+
+      {/* Grid Danh Sách */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
+        {rooms.length > 0 ? (
+          rooms.map((room) => (
+            <RoomCard
+              key={room.id}
+              {...room}
+              onDelete={() => handleDeleteRoom(room.id)}
+            />
+          ))
+        ) : (
+          <div className="col-span-full flex flex-col items-center justify-center text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+            <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                <BedDouble size={48} className="text-gray-300" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-700">Chưa có chỗ ở nào</h3>
+            <p className="text-gray-500 mb-6 max-w-sm">
+              Bắt đầu hành trình kinh doanh của bạn bằng cách đăng tải chỗ ở đầu tiên.
+            </p>
+            <button 
+                onClick={() => navigate('/AddAccommodationForm')}
+                className="bg-[#AD0000] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#850000] transition shadow-md"
+            >
+                Đăng bài ngay
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Add Button */}
-      <button style={{
-        position: 'fixed',
-        bottom: '40px',
-        right: '40px',
-        width: '140px',
-        height: '60px',
-        backgroundColor: 'white',
-        border: '2px solid #333',
-        borderRadius: '30px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        transition: 'all 0.3s'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'scale(1.05)';
-        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'scale(1)';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-      }}
-      onClick={(e) => handleClick(e)}
+      {/* Floating Action Button (FAB) - Desktop Only */}
+      <button
+        onClick={() => navigate('/AddAccommodationForm')}
+        className="hidden md:flex fixed bottom-10 right-10 group items-center gap-3 bg-white border border-gray-200 px-2 py-2 pr-6 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 z-50 overflow-hidden hover:border-[#AD0000]"
       >
-        <div style={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          lineHeight: '1'
-        }}>
-          +
+        <div className="bg-[#AD0000] w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md group-hover:rotate-90 transition-transform duration-300">
+             <Plus size={28} strokeWidth={3} />
         </div>
-        <span style={{
-          fontSize: '12px',
-          fontWeight: '600',
-          marginTop: '2px'
-        }}>
-          Thêm chỗ ở mới
-        </span>
+        <div className="flex flex-col items-start">
+             <span className="text-sm font-bold text-gray-800 group-hover:text-[#AD0000] transition-colors">Đăng bài mới</span>
+             <span className="text-[10px] text-gray-500">Thêm chỗ ở</span>
+        </div>
       </button>
+
     </div>
   );
 }
