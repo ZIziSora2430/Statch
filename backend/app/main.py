@@ -17,11 +17,8 @@ from .accommodations.traveler_router import router as traveler_accommodation_rou
 from .accommodations.owner_router import router as owner_accommodation_router 
 from .booking.traveler_router import router as traveler_booking_router
 from .booking.owner_router import router as owner_booking_router
-<<<<<<< HEAD
 from .reviews import router as reviews_router
-=======
 from .notifications.router import router as notifications_router
->>>>>>> 1f3f840966a144ab885e920c3c2c50cb963a471c
 
 # Feature Login (Authentication) - ✅ CÓ RỒI
 from app.feature_login.router import router as auth_router
