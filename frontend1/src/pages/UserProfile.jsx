@@ -56,6 +56,8 @@ export default function UserProfile() {
     // --- STATE CHO THÔNG BÁO (NOTIFICATION) ---
     const [notification, setNotification] = useState({ show: false, message: "", type: "success" });
 
+    const location = useLocation();
+    
     // Hàm gọi thông báo 
     const showNotify = (message, type = "success") => {
         setNotification({ show: true, message, type });
@@ -64,6 +66,14 @@ export default function UserProfile() {
             setNotification((prev) => ({ ...prev, show: false }));
         }, 3000);
     };
+
+    useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const section = params.get("section");
+
+    if (section === "booking") setActiveSection("booking");
+    if (section === "history") setActiveSection("history");
+    }, [location]);
 
     // --- FETCH DATA ---
     useEffect(() => {
@@ -212,16 +222,9 @@ export default function UserProfile() {
     
 
     if (loading) return <div style={{textAlign: 'center', marginTop: 100}}>Đang tải...</div>;
-    const location = useLocation();
+    
 
-    useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const section = params.get("section");
-
-    if (section === "booking") setActiveSection("booking");
-    if (section === "history") setActiveSection("history");
-    }, [location]);
-
+    
 
     return (
         <div style={{ position: "relative", width: "100%", minHeight: "100vh" }}>

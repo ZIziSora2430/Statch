@@ -241,8 +241,6 @@ useEffect(() => {
 
           {/* Avatar Dropdown */}
           {openAvatar && (
-          {/* Dropdown menu */}
-          {open && (
             <div
               style={{
                 position: "absolute",
