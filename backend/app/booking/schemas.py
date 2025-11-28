@@ -37,8 +37,6 @@ class BookingRead(BaseModel):
     nights: int
 
     guests: int
-    rooms: int
-
     total_price: float
     price_per_night: float
 

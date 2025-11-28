@@ -19,8 +19,9 @@ def calculate_nights(start, end):
     return (end - start).days
 
 
-def calculate_total_price(price_per_night, nights, rooms):
-    return float(price_per_night) * nights * rooms
+def calculate_total_price(price_per_night, nights):
+    return float(price_per_night) * nights
+
 
 
 def get_booking_by_id(db: Session, booking_id: int):
@@ -60,7 +61,6 @@ def get_bookings_for_user(db: Session, user_id: int) -> List[schemas.BookingRead
                 date_end=booking.date_end,
                 nights=nights,
                 guests=booking.guests,
-                rooms=booking.rooms,
                 total_price=booking.total_price,
                 price_per_night=float(price),
                 accommodation_title=title,
@@ -103,7 +103,6 @@ def get_bookings_for_owner(db: Session, owner_id: int):
                 date_end=booking.date_end,
                 nights=nights,
                 guests=booking.guests,
-                rooms=booking.rooms,
                 total_price=booking.total_price,
                 price_per_night=float(price),
                 accommodation_title=title,
