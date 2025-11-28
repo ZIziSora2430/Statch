@@ -5,6 +5,7 @@ import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
 import Banner from "../components/Banner";
 import SkeletonCard from "../components/SkeletonCard";
+import Community from "../components/JoinCommunity";
 
 import ConDao from "../images/Con-Dao.jpg";
 import HaNoi from "../images/Ha-Noi.jpg";  
@@ -302,6 +303,7 @@ export default function LandingPage() {
             <Promo />
           </div>
         </section>
+        <Community />
       </main>
       
       <Footer/>
