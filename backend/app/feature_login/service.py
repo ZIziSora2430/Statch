@@ -41,7 +41,7 @@ def login_user(db: Session, form_data: schemas.UserLogin):
     # Logic từ endpoint /login
     user = get_user_by_username(db, form_data.username)
     
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(form_data.password, user.password_hash):
         return None # Router sẽ raise lỗi 401
     
     # Tạo token 
