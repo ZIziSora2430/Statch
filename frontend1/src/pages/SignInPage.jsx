@@ -179,7 +179,7 @@ function SignInPage() {
           {/* ✅ MỚI CẬP NHẬT: Đổi <a> thành <button> để tránh navigation không mong muốn */}
           <button
             type="button"
-            onClick={() => {/* TODO: Implement forgot password */}}
+            onClick={() => navigate("/forgotpass")}
             style={{
               background: 'none',
               border: 'none',
@@ -189,7 +189,6 @@ function SignInPage() {
               color: '#333',
               textDecoration: 'none',
               marginBottom: '20px',
-        
               cursor: 'pointer'
             }}
           >
