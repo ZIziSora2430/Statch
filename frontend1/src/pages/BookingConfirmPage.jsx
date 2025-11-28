@@ -160,13 +160,6 @@ export default function BookingConfirmPage() {
             </p>
           </div>
 
-          {/* Note */}
-          <div className="bg-yellow-50 border border-yellow-100 rounded-xl px-3 py-2 text-xs sm:text-sm text-yellow-800">
-            Vui lòng kiểm tra email để xem chi tiết đơn đặt phòng và hướng dẫn
-            nhận phòng. Nếu bạn không thấy email, hãy kiểm tra thêm trong thư
-            mục Spam / Quảng cáo.
-          </div>
-
           {/* Action buttons */}
           <div className="flex flex-wrap justify-end gap-3 pt-2">
             {/* NÚT ĐẶT PHÒNG KHÁC  */}

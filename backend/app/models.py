@@ -113,3 +113,16 @@ class Review(Base):
     # --- Relationships ---
     accommodation = relationship("Accommodation", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
+
+    # --- Bảng 5: Notification ---
+class Notification(Base):
+    __tablename__ = "Notification"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message = Column(String(255), nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+    # Quan hệ ngược: 1 user có nhiều notification
+    user = relationship("User", backref="notifications")
