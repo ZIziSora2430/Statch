@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import defaultAvatar from "../images/avatar-default.svg";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+
 export default function Navbar() {
   const navigate = useNavigate();
 
@@ -16,9 +19,9 @@ export default function Navbar() {
 useEffect(() => {
   const fetchNoti = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/notifications`,
+        `${API_URL}/api/notifications`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -100,127 +103,109 @@ useEffect(() => {
 
         {/* Bell Icon */}
         <div ref={notiRef} style={{ position: "relative" }}>
-          <img
-            src={Bell}
-            alt="Bell"
-            style={{ height: 25, cursor: "pointer" }}
+          <div 
             onClick={() => {
               setOpenNoti(!openNoti);
-              setOpenAvatar(false); // đóng avatar dropdown khi mở bell
+              setOpenAvatar(false);
             }}
-          />
-             {/* Notification Dropdown */}
-        {openNoti && (
-  <div
-    style={{
-      position: "absolute",
-      top: "25px",
-      right: 0,
-      width: "300px",
-      background: "white",
-      borderRadius: "8px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-      padding: "0",
-      zIndex: 9999,
-    }}
-  >
-    {/* Header */}
-    <div
-      style={{
-        padding: "15px 15px",
-        borderBottom: "1px solid #eee",
-        fontWeight: "bold",
-        fontSize: "14px",
-        backgroundColor: "#BF1D2D",
-        color: "white",
-        borderTopLeftRadius: "8px",
-        borderTopRightRadius: "8px",
-      }}
-    >
-      Thông báo mới
-    </div>
+            style={{ cursor: "pointer", position: 'relative' }}
+          >
+            <img src={Bell} alt="Bell" style={{ height: 25 }} />
+            {/* Hiển thị chấm đỏ nếu có thông báo mới (optional) */}
+            {notifications.length > 0 && (
+              <span style={{
+                position: 'absolute', top: -5, right: -5,
+                background: 'red', color: 'white', borderRadius: '50%',
+                width: 15, height: 15, fontSize: 10, display: 'flex',
+                alignItems: 'center', justifyContent: 'center'
+              }}>
+                {notifications.length}
+              </span>
+            )}
+          </div>
 
-    {/* Notification list */}
-    {notifications.map((n) => (
-  <div
-    key={n.id}
-    style={{
-      padding: "10px 15px",
-      cursor: "pointer",
-      transition: "0.2s",
-    }}
-    onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-    onMouseLeave={(e) => (e.target.style.background = "white")}
-    onClick={() => handleNotificationClick(n)}
-  >
-    • {n.message}
-  </div>
-))}
+          {/* Notification Dropdown */}
+          {openNoti && (
+            <div
+              style={{
+                position: "absolute",
+                top: "35px",
+                right: -10,
+                width: "300px",
+                maxHeight: "400px", // Giới hạn chiều cao
+                overflowY: "auto",  // Scroll nếu quá dài
+                background: "white",
+                borderRadius: "8px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                zIndex: 9999,
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  padding: "10px 15px",
+                  borderBottom: "1px solid #eee",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  backgroundColor: "#BF1D2D",
+                  color: "white",
+                  borderTopLeftRadius: "8px",
+                  borderTopRightRadius: "8px",
+                }}
+              >
+                Thông báo mới ({notifications.length})
+              </div>
 
-    <div
-      style={{
-        padding: "10px 15px",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      • Nhân viên A vừa gửi đơn xin nghỉ
-    </div>
+              {/* --- 2. Render List Thông báo từ API --- */}
+              {notifications.length === 0 ? (
+                <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "13px" }}>
+                  Chưa có thông báo nào
+                </div>
+              ) : (
+                notifications.map((n) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      padding: "10px 15px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #f0f0f0",
+                      transition: "0.2s",
+                      fontSize: "13px"
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f8f8f8")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
+                    onClick={() => handleNotificationClick(n)}
+                  >
+                    <div style={{fontWeight: n.is_read ? 'normal' : 'bold'}}>
+                      {n.message}
+                    </div>
+                    <div style={{fontSize: "11px", color: "#999", marginTop: "4px"}}>
+                       {/* Format ngày giờ đơn giản */}
+                       {new Date(n.created_at).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                ))
+              )}
 
-    <div
-      style={{
-        padding: "10px 15px",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      • Đơn nghỉ phép của bạn đã được phê duyệt
-    </div>
-
-    <div
-      style={{
-        padding: "10px 15px",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      • Có cuộc họp vào 15:00 hôm nay
-    </div>
-
-    {/* SEE MORE BUTTON */}
-    <div
-      style={{
-        padding: "12px",
-        textAlign: "center",
-        color: "#BF1D2D",
-        fontWeight: "bold",
-        fontSize: "14px",
-        borderTop: "1px solid #eee",
-        cursor: "pointer",
-        borderBottomLeftRadius: "8px",
-        borderBottomRightRadius: "8px",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      Xem thêm →
-    </div>
-  </div>
-)}
-
-
-
+              {/* SEE MORE BUTTON */}
+              {notifications.length > 0 && (
+                <div
+                  style={{
+                    padding: "10px",
+                    textAlign: "center",
+                    color: "#BF1D2D",
+                    fontWeight: "bold",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    borderTop: "1px solid #eee",
+                  }}
+                  onClick={() => navigate("/notifications")}
+                >
+                  Xem tất cả
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Avatar */}
