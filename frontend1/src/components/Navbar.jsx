@@ -88,7 +88,7 @@ useEffect(() => {
       <img src={new_logo} 
       onClick={() => navigate('/home')}
       alt="Logo" 
-      style={{ height: 25 }} />
+      style={{ height: 25, cursor: "pointer" }} />
 
       {/* Right icons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
