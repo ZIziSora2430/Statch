@@ -132,7 +132,7 @@ def build_booking_read(db: Session, booking):
         date_end=booking.date_end,
         nights=nights,
         guests=booking.guests,
-        rooms=booking.rooms,
+        note=booking.note,
         total_price=booking.total_price,
         price_per_night=float(accom.price),
         accommodation_title=accom.title,
@@ -224,7 +224,7 @@ def create_booking(
 
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
-    total_price = calculate_total_price(accommodation.price, nights, booking_data.rooms)
+    total_price = calculate_total_price(accommodation.price, nights)
 
     new_booking = models.Booking(
         user_id=user_id,
@@ -232,7 +232,7 @@ def create_booking(
         date_start=booking_data.date_start,
         date_end=booking_data.date_end,
         guests=booking_data.guests,
-        rooms=booking_data.rooms,
+        note=booking_data.note,        
         total_price=total_price,
         booking_code=generate_booking_code(),
         status=status

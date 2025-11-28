@@ -154,8 +154,8 @@ class Booking(Base):
 
     # CÁC CỘT MỚI THÊM VÀO
     guests = Column(Integer, nullable=False, default=1)  
-    rooms = Column(Integer, nullable=False, default=1)
-
+    note = Column(TEXT, nullable=True) # Lưu ghi chú của khách
+    
     total_price = Column(DECIMAL(10, 2), nullable=False, default=0)
 
     booking_code = Column(String(50), unique=True, nullable=True)

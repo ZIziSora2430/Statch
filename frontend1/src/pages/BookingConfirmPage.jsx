@@ -11,7 +11,7 @@ export default function BookingConfirmPage() {
   const [booking, setBooking] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
 
     fetch(`${API_URL}/api/bookings/${bookingId}`, {
       headers: {

@@ -75,13 +75,13 @@ export default function BookingFormPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
         body: JSON.stringify({
           accommodation_id: Number(roomId),
           date_start: checkin,
           date_end: checkout,
-          guest_count: numGuests,
+          guests: Number(numGuests),
           note,
         }),
       });

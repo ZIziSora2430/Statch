@@ -20,8 +20,7 @@ class BookingCreate(BaseModel):
     date_start: date
     date_end: date
     guests: int
-    rooms: int
-
+    note: Optional[str] = None
 
 class BookingRead(BaseModel):
     """

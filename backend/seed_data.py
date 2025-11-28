@@ -11,14 +11,13 @@ from sqlalchemy.orm import Session
 # Import chuẩn từ app
 from app.database import SessionLocal, engine
 from app.models import (
-    User, Accommodation, Booking, Review, Post, Reply, 
+    User, Accommodation, Booking, Review, Post, Reply, Notification, # <--- Thêm Notification
     UserRole, PostCategory, PostStatus
 )
 
 fake = Faker(['vi_VN'])
 
 # --- BỘ DỮ LIỆU ĐỊA ĐIỂM THẬT TẠI TP.HCM ---
-# (Giữ nguyên dữ liệu địa điểm chất lượng của bạn)
 REAL_ESTATES = [
     {"address": "2 Công xã Paris, Bến Nghé, Quận 1, TP.HCM", "lat": 10.779785, "lng": 106.699018, "type": "Khách sạn", "area": "Nhà thờ Đức Bà"},
     {"address": "135 Nam Kỳ Khởi Nghĩa, Bến Thành, Quận 1, TP.HCM", "lat": 10.776993, "lng": 106.695353, "type": "Khách sạn", "area": "Dinh Độc Lập"},
@@ -60,16 +59,21 @@ def clean_database(db: Session):
         # Tắt kiểm tra khóa ngoại để xóa thoải mái
         db.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
         
-        # Xóa theo thứ tự (tên bảng phải khớp trong database - thường là số nhiều)
-        tables = ["replies", "posts", "reviews", "bookings", "accommodations", "users"]
+        # Xóa theo thứ tự (tên bảng phải khớp trong database)
+        # Lưu ý: "Notification" viết hoa nếu trong models.py __tablename__ viết hoa
+        tables = ["replies", "posts", "reviews", "bookings", "accommodations", "Notification", "users"]
         for table in tables:
-            db.execute(text(f"TRUNCATE TABLE {table};"))
+            try:
+                db.execute(text(f"TRUNCATE TABLE {table};"))
+            except Exception as table_err:
+                # Fallback nếu tên bảng là chữ thường (tùy config MySQL/MariaDB)
+                db.execute(text(f"TRUNCATE TABLE {table.lower()};"))
             
         db.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
         db.commit()
         print("✅ Đã xóa sạch dữ liệu cũ!")
     except Exception as e:
-        print(f"❌ Lỗi dọn dẹp: {e}")
+        print(f"❌ Lỗi dọn dẹp (có thể bỏ qua nếu lần đầu chạy): {e}")
         db.rollback()
 
 def seed_data():
@@ -143,7 +147,7 @@ def seed_data():
                 picture_url=f"https://picsum.photos/seed/{random.randint(1,1000)}/800/600",
                 latitude=Decimal(real_place['lat']),
                 longitude=Decimal(real_place['lng']),
-                tags="wifi,ac,parking,kitchen" # ✅ Thêm tags
+                tags="wifi,ac,parking,kitchen" 
             )
             db.add(accom)
             accommodations.append(accom)
@@ -166,7 +170,7 @@ def seed_data():
             today = date.today()
             
             if is_past:
-                # Booking trong quá khứ -> Completed -> Có thể có Review
+                # Booking trong quá khứ -> Completed
                 start_date = today - timedelta(days=random.randint(10, 60))
                 status = 'completed'
             else:
@@ -176,16 +180,19 @@ def seed_data():
 
             stay_days = random.randint(1, 5)
             end_date = start_date + timedelta(days=stay_days)
+            
+            # Tính tiền (Giá * Số đêm) - Logic mới không có rooms
             total = accom.price * stay_days
 
-            # Tạo Booking
+            # Tạo Booking (ĐÃ SỬA: Bỏ rooms, thêm note)
             booking = Booking(
                 user_id=guest.id,
                 accommodation_id=accom.accommodation_id,
                 date_start=start_date,   
                 date_end=end_date,
                 guests=random.randint(1, accom.max_guests),
-                rooms=1,
+                # rooms=1, <--- Đã xóa
+                note=fake.sentence(), # <--- Đã thêm
                 total_price=total,
                 status=status,
                 booking_code=str(uuid.uuid4())[:8].upper()
@@ -193,7 +200,7 @@ def seed_data():
             db.add(booking)
             bookings.append(booking)
             
-            # Tạo Review nếu booking đã hoàn thành (xác suất 70%)
+            # Tạo Review nếu booking đã hoàn thành
             if status == 'completed' and random.random() > 0.3:
                 review = Review(
                     user_id=guest.id,
@@ -232,11 +239,11 @@ def seed_data():
         
         db.commit()
         
-        # Tạo replies cho các bài viết
+        # Tạo replies
         replies_count = 0
         for post in posts:
             num_replies = random.randint(0, 5)
-            post.replies_count = num_replies # Update counter
+            post.replies_count = num_replies
             
             for _ in range(num_replies):
                 replier = random.choice(users)
@@ -251,6 +258,27 @@ def seed_data():
                 
         db.commit()
         print(f"   - Đã tạo {len(posts)} bài viết và {replies_count} bình luận.")
+
+        # =====================================================
+        # 5. TẠO NOTIFICATIONS (MỚI THÊM)
+        # =====================================================
+        print("🔔 5. Đang tạo Notifications...")
+        for u in users:
+            # Random 0-3 thông báo cho mỗi user
+            for _ in range(random.randint(0, 3)):
+                noti = Notification(
+                    user_id=u.id,
+                    message=random.choice([
+                        "Đơn đặt phòng #123 của bạn đã được xác nhận.",
+                        "Chào mừng bạn đến với Statch!",
+                        "Bạn có tin nhắn mới từ chủ nhà.",
+                        "Ưu đãi giảm giá 20% cho chuyến đi tiếp theo."
+                    ]),
+                    is_read=random.choice([True, False])
+                )
+                db.add(noti)
+        db.commit()
+        print("   - Đã tạo notifications thành công.")
 
         print("\n✅ SEED DATA SUCCESSFUL! (User pass: 123456)")
 
