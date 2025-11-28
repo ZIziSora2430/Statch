@@ -259,7 +259,7 @@ export default function UserProfile() {
                     <h1 style={{ position: "absolute", top: 162, fontSize: 25, fontWeight: "700", color: "white" }}>{userName}</h1>
                     <div style={{ position: "absolute", height: '1px', backgroundColor: 'white', width: '100%', bottom: 319 }}/>
 
-                    <div style={{ position: 'absolute', top: 230, left: 0, width: '100%', paddingLeft: 25, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ position: 'absolute', top: 230, left: 0, width: '100%', paddingLeft: 25, display: 'flex', flexDirection: 'column', gap: '20px', fontSize: 90 }}>
                         <SidebarBtn label="Thông tin cá nhân" active={activeSection === "info"} onClick={() => setActiveSection("info")} />
                         {role === "traveler" ? (
                             <>
@@ -280,7 +280,7 @@ export default function UserProfile() {
                 <div style={{ width: 923, minHeight: 538, height: "fit-content", position: "absolute", top: 100, right: 23, background: "white", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", boxShadow: '0px 4px 10px rgba(0,0,0,0.25)', paddingBottom: 20 }}>
                     <h1 style={{ fontSize: 36, fontWeight: '700', color: '#AD0000', position: 'absolute', left: 19, top: 10 }}>
                         {activeSection === "bookCalen" && "Lịch đặt phòng"}
-                        {activeSection === "setting" && "Riêng tư và bảo mật"}
+                        {activeSection === "setting"}
                     </h1>
 
                     <div style={{ marginTop: 60, width: '100%', position: 'relative' }}>
