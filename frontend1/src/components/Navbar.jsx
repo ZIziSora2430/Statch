@@ -4,19 +4,28 @@ import Avatar from '../images/Avatar.png';
 import home from '../images/Home.svg';
 import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
-import defaultAvatar from "../images/avatar-default.svg"
+import defaultAvatar from "../images/avatar-default.svg";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef();
-  const hasAvatar = false;
-  const avatarImage = hasAvatar ? Avatar : defaultAvatar; // REMEMBER TO ALTER
 
+  const [openAvatar, setOpenAvatar] = useState(false);
+  const [openNoti, setOpenNoti] = useState(false);
+
+  const avatarRef = useRef();
+  const notiRef = useRef();
+
+  const hasAvatar = false;
+  const avatarImage = hasAvatar ? Avatar : defaultAvatar;
+
+  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setOpen(false);
+      if (avatarRef.current && !avatarRef.current.contains(event.target)) {
+        setOpenAvatar(false);
+      }
+      if (notiRef.current && !notiRef.current.contains(event.target)) {
+        setOpenNoti(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -34,7 +43,7 @@ export default function Navbar() {
         justifyContent: 'space-between',
         padding: '0 40px',
         boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-        position: 'fixed', 
+        position: 'fixed',
         top: 0,
         left: 0,
         zIndex: 10,
@@ -45,27 +54,143 @@ export default function Navbar() {
 
       {/* Right icons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
-        <button onClick = {() => navigate("/home")}>
-          <img src={home} alt="Home" style={{ height: 25, cursor: 'pointer'}}/>
+
+        {/* Home */}
+        <button onClick={() => navigate("/home")}>
+          <img src={home} alt="Home" style={{ height: 25, cursor: 'pointer' }} />
         </button>
-        <img src={Bell} alt="Bell" style={{ height: 25, cursor: 'pointer' }} />
-        
-        <div ref={menuRef}>
+
+        {/* Bell Icon */}
+        <div ref={notiRef} style={{ position: "relative" }}>
           <img
-          src={avatarImage}
-          alt="Avatar"
-          onClick={() => setOpen(!open)}
-          style={{
-            height: 35,
-            width: 35,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
-            cursor: 'pointer'
-          }}
+            src={Bell}
+            alt="Bell"
+            style={{ height: 25, cursor: "pointer" }}
+            onClick={() => {
+              setOpenNoti(!openNoti);
+              setOpenAvatar(false); // đóng avatar dropdown khi mở bell
+            }}
           />
-          {/* Dropdown menu */}
-          {open && (
+
+          {/* Notification Dropdown */}
+        {openNoti && (
+  <div
+    style={{
+      position: "absolute",
+      top: "25px",
+      right: 0,
+      width: "300px",
+      background: "white",
+      borderRadius: "8px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      padding: "0",
+      zIndex: 9999,
+    }}
+  >
+    {/* Header */}
+    <div
+      style={{
+        padding: "15px 15px",
+        borderBottom: "1px solid #eee",
+        fontWeight: "bold",
+        fontSize: "14px",
+        backgroundColor: "#BF1D2D",
+        color: "white",
+        borderTopLeftRadius: "8px",
+        borderTopRightRadius: "8px",
+      }}
+    >
+      Thông báo mới
+    </div>
+
+    {/* Notification list */}
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Nhân viên A vừa gửi đơn xin nghỉ
+    </div>
+
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Đơn nghỉ phép của bạn đã được phê duyệt
+    </div>
+
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Có cuộc họp vào 15:00 hôm nay
+    </div>
+
+    {/* SEE MORE BUTTON */}
+    <div
+      style={{
+        padding: "12px",
+        textAlign: "center",
+        color: "#BF1D2D",
+        fontWeight: "bold",
+        fontSize: "14px",
+        borderTop: "1px solid #eee",
+        cursor: "pointer",
+        borderBottomLeftRadius: "8px",
+        borderBottomRightRadius: "8px",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      Xem thêm →
+    </div>
+  </div>
+)}
+
+
+
+        </div>
+
+        {/* Avatar */}
+        <div ref={avatarRef} style={{ position: "relative" }}>
+          <img
+            src={avatarImage}
+            alt="Avatar"
+            onClick={() => {
+              setOpenAvatar(!openAvatar);
+              setOpenNoti(false); // đóng notification khi mở avatar
+            }}
+            style={{
+              height: 35,
+              width: 35,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
+              cursor: 'pointer'
+            }}
+          />
+
+          {/* Avatar Dropdown */}
+          {openAvatar && (
             <div
               style={{
                 position: "absolute",
@@ -77,7 +202,6 @@ export default function Navbar() {
                 width: "150px",
                 padding: "10px 0",
                 zIndex: 1000,
-                marginRight: 40
               }}
             >
               <div
@@ -118,6 +242,7 @@ export default function Navbar() {
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
