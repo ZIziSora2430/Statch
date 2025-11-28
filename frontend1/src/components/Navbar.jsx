@@ -106,8 +106,7 @@ useEffect(() => {
               setOpenAvatar(false); // đóng avatar dropdown khi mở bell
             }}
           />
-
-          {/* Notification Dropdown */}
+             {/* Notification Dropdown */}
         {openNoti && (
   <div
     style={{
@@ -155,6 +154,44 @@ useEffect(() => {
   </div>
 ))}
 
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Nhân viên A vừa gửi đơn xin nghỉ
+    </div>
+
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Đơn nghỉ phép của bạn đã được phê duyệt
+    </div>
+
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Có cuộc họp vào 15:00 hôm nay
+    </div>
 
     {/* SEE MORE BUTTON */}
     <div
@@ -204,6 +241,8 @@ useEffect(() => {
 
           {/* Avatar Dropdown */}
           {openAvatar && (
+          {/* Dropdown menu */}
+          {open && (
             <div
               style={{
                 position: "absolute",
