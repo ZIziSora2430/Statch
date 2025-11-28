@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 
 // Import Components
 import Navbar from "../components/Navbar";
@@ -356,6 +357,7 @@ export default function SearchingPage() {
           </section>
         </div>
       </main>
+      <Footer/>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import RoomDetailPage from "./RoomDetailPage";
+import Footer from "../components/Footer";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 export default function BookingFormPage() {
@@ -244,12 +245,7 @@ export default function BookingFormPage() {
           </form>
         </section>
       </main>
-
-      <footer className="bg-gray-900 text-gray-300 py-6 mt-4 text-center">
-        <div className="container mx-auto">
-          <p className="text-sm">© 2025 Statch. All rights reserved.</p>
-        </div>
-      </footer>
+            <Footer/>
     </div>
   );
 }

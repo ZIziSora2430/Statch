@@ -2,6 +2,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 export default function BookingConfirmPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -182,22 +183,7 @@ export default function BookingConfirmPage() {
         </section>
       </main>
 
-      <footer className="bg-gray-900 text-gray-300 py-6 mt-4 text-center">
-        <div className="container mx-auto">
-          <p className="text-sm">© 2025 Statch. All rights reserved.</p>
-          <div className="mt-2 flex justify-center gap-4 text-xs sm:text-sm">
-            <a href="#" className="hover:text-white transition">
-              Về chúng tôi
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Liên hệ
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Điều khoản
-            </a>
-          </div>
-        </div>
-      </footer>
+     <Footer/>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ImageUpload from '../components/CloudinaryUpload.jsx';
 import LocationPicker from '../components/LocationPicker.jsx';
 import { geocodeAddress } from '../utils/geocoding.js';
+import Footer from '../components/Footer.jsx';
 
 // Import Icons từ lucide-react (Cần cài: npm install lucide-react)
 import { MapPin, ArrowLeft, Users, Home, Type, FileText, Search, Sparkles, Image as ImageIcon, Save, X } from "lucide-react";
