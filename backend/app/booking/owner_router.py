@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[schemas.BookingRead])
+@router.get("/", response_model=list[schemas.BookingRead])
 def list_owner_bookings(
     db: Session = Depends(database.get_db),
     current_owner: models.User = Depends(get_current_active_owner)
