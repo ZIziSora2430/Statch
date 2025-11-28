@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 // --- IMPORT COMPONENTS ---
 import Navbar from "../components/Navbar";
@@ -263,6 +264,16 @@ export default function UserProfile() {
 
     // --- RENDER CHÍNH ---
     if (loading) return <div style={{textAlign: 'center', marginTop: 100}}>Đang tải...</div>;
+    const location = useLocation();
+
+    useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const section = params.get("section");
+
+    if (section === "booking") setActiveSection("booking");
+    if (section === "history") setActiveSection("history");
+    }, [location]);
+
 
     return (
         <div style={{ position: "relative", width: "100%", minHeight: "100vh" }}>
