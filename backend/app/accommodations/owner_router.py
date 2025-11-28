@@ -25,7 +25,7 @@ router = APIRouter(
     response_model=schemas.AccommodationRead, 
     status_code=status.HTTP_201_CREATED
 )
-def create_accommodation_endpoint(
+async def create_accommodation_endpoint(
     accommodation_data: schemas.AccommodationCreate, 
     db: Session = Depends(database.get_db),
     current_owner: models.User = Depends(get_current_active_owner)
@@ -37,7 +37,7 @@ def create_accommodation_endpoint(
     try:
         # Logic: Lấy description và location từ dữ liệu gửi lên để AI phân tích
         print("🤖 Đang nhờ AI trích xuất tags...")
-        generated_tags = ai_service.generate_tags_from_desc(
+        generated_tags = await ai_service.generate_tags_from_desc(
             description=accommodation_data.description,
             location=accommodation_data.location
         )

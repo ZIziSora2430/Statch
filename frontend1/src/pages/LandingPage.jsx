@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import SearchingBar from "../components/SearchingBar";
 import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
@@ -13,21 +14,28 @@ import TPHCM from "../images/TPHCM.jpg";
 
 import { useNavigate } from "react-router-dom"; 
 import React, { useState, useEffect } from "react"; 
+import { MapPin, Star, Sparkles, ArrowRight } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 
 export default function LandingPage() {
   const [currentUserName, setCurrentUserName] = useState("bạn");
   const [accommodations, setAccommodations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const navigate = useNavigate(); 
 
-  const navigate = useNavigate(); // Hook để chuyển trang
+  const handleDestinationClick = (location) => {
+    setSelectedDestination(location);
+    // Cuộn mượt lên đầu trang (nơi có thanh tìm kiếm)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const storedUsername = localStorage.getItem("username"); 
     // 3. KIỂM TRA ĐĂNG NHẬP
-    // Nếu không có token -> Đá về trang login ngay
     if (!token) {
       alert("Bạn cần đăng nhập để sử dụng tính năng này!");
       navigate("/login"); 
@@ -44,7 +52,6 @@ export default function LandingPage() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            // QUAN TRỌNG: Gửi token dạng "Bearer <token>"
             "Authorization": `Bearer ${token}`
           }
         });
@@ -80,97 +87,146 @@ export default function LandingPage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  // Nếu đang check login hoặc đang load thì hiện màn hình chờ
+  // --- COMPONENT PHỤ ---
+  const DestinationCard = ({ img, title, className, onClick }) => (
+  <div 
+    className={`relative group rounded-2xl overflow-hidden shadow-md cursor-pointer ${className}`}
+    style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
+    onClick={onClick}
+  >
+    {/* 3. DÙNG THẺ IMG TRỰC TIẾP (Thay cho ImageFrame) */}
+    <img 
+      src={img}
+      alt={title}
+      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+    />
+    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+    {/* 5. Nội dung chữ */}
+    <div className="absolute bottom-4 left-4 text-white drop-shadow-lg z-10">
+      <h3 className="text-xl md:text-2xl font-bold">{title}</h3>
+      <span className="text-xs md:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1 mt-1">
+        Khám phá ngay <ArrowRight size={14} />
+      </span>
+    </div>
+  </div>
+);
+
+  // --- VIEW: LOADING STATE ---
   if (isLoading) {
       return (
-      <div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="sticky top-0 z-50 w-full"> 
         <Navbar />
-        {/* Giữ nguyên Banner để layout không bị giật */}
+        </div>
         <Banner username={currentUserName} />
 
-        <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-16">
-          
-          {/* Vẫn hiện thanh tìm kiếm */}
-          <div className="md:mb-8 lg:mb-10">
-            <SearchingBar />
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20 relative z-10 -mt-8">
+          {/* Thanh tìm kiếm nổi lên trên */}
+          <div className="bg-white rounded-xl shadow-xl p-4 mb-12 max-w-4xl mx-auto">
+            <SearchingBar initialLocation={selectedDestination} />
           </div>
-
-          <p className="mb-6 text-black text-4xl font-bold text-left">
-            Đang tìm gợi ý tốt nhất cho bạn...
-          </p>
-          
-          {/* --- HIỂN THỊ 3 CÁI SKELETON --- */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+              <p className="text-2xl md:text-3xl font-bold text-gray-800">
+                Đang tìm gợi ý tốt nhất cho bạn...
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
           </div>
         </main>
       </div>
     );
   }
 
-  
-
+  // --- VIEW: MAIN CONTENT ---
   return (
-    <div>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="sticky top-0 z-100 w-full bg-white shadow-sm"> 
+        <Navbar />
+      </div>
       <Banner username={currentUserName}/>
 
-      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-16">
+      {/* Wrapper chính có margin âm để đẩy content đè lên banner 1 chút tạo chiều sâu */}
+      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
         
-        <div className="md:mb-8 lg:mb-10">
-          <SearchingBar />
+        <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 mb-12 max-w-5xl mx-auto border border-gray-100">
+          <SearchingBar initialLocation={selectedDestination} />
         </div>
 
-        {/* --- PHẦN DANH SÁCH TỪ DATABASE --- */}
-          <p className="mb-6 text-black text-4xl font-bold text-left">
-            Gợi ý chỗ ở dành cho bạn
-          </p>
+        {/* --- PHẦN 1: GỢI Ý CHỖ Ở (AI RECOMMENDATIONS) --- */}
+        <section className="max-w-7xl mx-auto mb-16">
+          <div className="flex items-center gap-3 mb-8">
+            <Sparkles className="text-yellow-500 w-8 h-8" /> {/* Icon trang trí */}
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+              Gợi ý dành riêng cho bạn
+            </h2>
+          </div>
           
-          {/* Grid hiển thị */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {accommodations.length > 0 ? (
               accommodations.map((item) => (
                 <div 
                   key={item.id || item.accommodation_id} 
-                  className="relative bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition cursor-pointer"
+                  className="group relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col h-full"
                   onClick={() => navigate(`/accommodations/${item.accommodation_id || item.id}`)}
                 >
-                  {/*  HIỂN THỊ ĐIỂM SỐ AI (BADGE) */}
+                  {/* BADGE ĐIỂM SỐ AI */}
                   {item.match_score && (
-                      <div className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur px-2 py-1 rounded-lg shadow border border-green-200 flex items-center gap-1">
-                          <span className="text-green-600 font-bold text-sm">{item.match_score}% phù hợp</span>
-                          {/* Tooltip hoặc Icon AI */}
-                          <span>✨</span>
+                      <div className="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-green-100 flex items-center gap-1.5">
+                          <span className="text-green-600 font-extrabold text-sm">{item.match_score}%</span>
+                          <span className="text-gray-600 text-xs font-medium">phù hợp</span>
                       </div>
                   )}
 
-                   {/* Ảnh */}
-                  <div className="h-48 w-full bg-gray-200">
+                   {/* Ảnh với hiệu ứng zoom khi hover */}
+                  <div className="h-56 w-full bg-gray-200 overflow-hidden relative">
                     <img 
                       src={item.picture_url || "https://via.placeholder.com/400"} 
                       alt={item.title}
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                  {/* Thông tin */}
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg truncate">{item.title}</h3>
-                    {/* 🔥 HIỂN THỊ LÝ DO TẠI SAO HỢP */}
+
+                  {/* Nội dung Card */}
+                  <div className="p-5 flex flex-col grow">
+                    <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-xl text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                            {item.title}
+                        </h3>
+                    </div>
+
+                    <p className="text-gray-500 text-sm mb-4 flex items-center gap-1">
+                        <MapPin size={14} /> {item.location}
+                    </p>
+                    
+                    {/* AI REASON BOX - Thiết kế lại cho đỡ giống thông báo lỗi */}
                     {item.match_reason && (
-                        <div className="mt-2 mb-2 bg-purple-50 p-2 rounded-md border border-purple-100">
-                            <p className="text-xs text-purple-700 italic">
-                              "{item.match_reason}"
-                            </p>
+                        <div className="mb-4 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                            <div className="flex items-start gap-2">
+                                <Sparkles size={14} className="text-indigo-500 mt-0.5 shrink-0" />
+                                <p className="text-xs text-indigo-800 italic leading-relaxed">
+                                  "{item.match_reason}"
+                                </p>
+                            </div>
                         </div>
                     )}
-                    <p className="text-gray-500 text-sm mb-2 truncate">📍 {item.location}</p>
-                    <div className="flex justify-between items-center">
-                        <span className="text-blue-600 font-bold text-lg">
-                           {formatCurrency(item.price)}
-                        </span>
-                        <button className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200">
+
+                    <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-end">
+                        <div>
+                            <p className="text-xs text-gray-400">Giá mỗi đêm</p>
+                            <span className="text-blue-600 font-bold text-xl">
+                               {formatCurrency(item.price)}
+                            </span>
+                        </div>
+                        <button className="text-sm font-medium bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-700 px-4 py-2 rounded-lg transition-all duration-200">
                            Chi tiết
                         </button>
                     </div>
@@ -178,119 +234,78 @@ export default function LandingPage() {
                 </div>
               ))
             ) : (
-              <p className="col-span-3 text-center text-gray-500">Không tìm thấy chỗ ở nào.</p>
+              <div className="col-span-full py-12 text-center">
+                  <div className="bg-gray-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
+                      <MapPin className="text-gray-400 w-10 h-10" />
+                  </div>
+                  <p className="text-gray-500 text-lg">Không tìm thấy chỗ ở nào phù hợp.</p>
+              </div>
             )}
           </div>
-        
+        </section>
 
-        <div className="p-6 max-w-6xl mx-auto flex flex-col gap-4">
-          <p className="mb-6 ml-13 text-black text-4xl font-bold text-left">
+        {/* --- PHẦN 2: ĐIỂM ĐẾN THỊNH HÀNH (TRENDING) --- */}
+        <section className="max-w-7xl mx-auto mb-16">
+          <h2 className="mb-8 text-3xl md:text-4xl font-bold text-gray-900 text-left">
             Điểm đến thịnh hành
-          </p>
+          </h2>
 
-          {/* HÀNG TRÊN: 2 ảnh to */}
-          <div className="flex justify-center gap-3">
-
-            {/* Côn Đảo */}
-            <div className="relative w-[45%]">
-              <ImageFrame
-                src={ConDao}
-                alt="Côn Đảo"
-                ratio="21/9"
-                rounded="xl"
-                shadow="lg"
-                className="w-full"
-              />
-              <div className="absolute top-2 left-4 text-white text-xl font-semibold drop-shadow-md">
-                Côn Đảo
-              </div>
-            </div>
-
-            {/* Hà Nội */}
-            <div className="relative w-[45%]">
-              <ImageFrame
-                src={HaNoi}
-                alt="Hà Nội"
-                ratio="21/9"
-                rounded="xl"
-                shadow="lg"
-                className="w-full"
-              />
-              <div className="absolute top-2 left-4 text-white text-xl font-semibold drop-shadow-md">
-                Hà Nội
-              </div>
-            </div>
+          {/* Grid Layout thay thế cho Flexbox cứng nhắc */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+             {/* Hàng trên: 2 ảnh lớn */}
+             <DestinationCard 
+             img={ConDao} 
+             title="Côn Đảo" 
+             className="h-64 md:h-80" 
+             onClick={() => handleDestinationClick("Côn Đảo")}
+             />
+             <DestinationCard 
+             img={HaNoi} 
+             title="Hà Nội" 
+             className="h-64 md:h-80" 
+             onClick={() => handleDestinationClick("Hà Nội")}
+             />
           </div>
-
-          {/* HÀNG DƯỚI: 3 ảnh nhỏ hơn */}
-          <div className="flex flex-nowrap justify-center gap-1.5 w-full">
-
-            {/* TP HCM */}
-            <div className="relative w-full sm:w-[30%]">
-              <ImageFrame
-                src={TPHCM}
-                alt="TP. Hồ Chí Minh"
-                ratio="21/9"
-                rounded="xl"
-                shadow="md"
-                className="w-full"
-              />
-              <div className="absolute top-2 left-3 text-white text-sm sm:text-base font-semibold drop-shadow-md">
-                TP. Hồ Chí Minh
-              </div>
-            </div>
-
-            {/* Hội An */}
-            <div className="relative w-full sm:w-[30%]">
-              <ImageFrame
-                src={HoiAn}
-                alt="Hội An"
-                ratio="21/9"
-                rounded="xl"
-                shadow="md"
-                className="w-full"
-              />
-              <div className="absolute top-2 left-3 text-white text-sm sm:text-base font-semibold drop-shadow-md">
-                Hội An
-              </div>
-            </div>
-
-            {/* Cần Thơ */}
-            <div className="relative w-full sm:w-[30%]">
-              <ImageFrame
-                src={CanTho}
-                alt="Cần Thơ"
-                ratio="21/9"
-                rounded="xl"
-                shadow="md"
-                className="w-full"
-              />
-              <div className="absolute top-2 left-3 text-white text-sm sm:text-base font-semibold drop-shadow-md">
-                Cần Thơ
-              </div>
-            </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+             {/* Hàng dưới: 3 ảnh nhỏ */}
+             <DestinationCard 
+             img={TPHCM} s
+             title="TP. Hồ Chí Minh" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("TP. Hồ Chí Minh")}
+             />
+             <DestinationCard 
+             img={HoiAn} 
+             title="Hội An" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("Hội An")}
+             />
+             <DestinationCard 
+             img={CanTho} 
+             title="Cần Thơ" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("Cần Thơ")} 
+             />
           </div>
+        </section>
 
-          <p className="mt-9 text-black text-4xl font-bold text-center">
-            Ưu đãi hôm nay
-          </p>
-
-          <div>
+        {/* --- PHẦN 3: ƯU ĐÃI (PROMO) --- */}
+        <section className="max-w-7xl mx-auto">
+          <div className="text-center mb-10">
+             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+               Ưu đãi hôm nay
+             </h2>
+             <p className="text-gray-500">Đừng bỏ lỡ những khuyến mãi hấp dẫn nhất</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm p-2 border border-gray-100">
             <Promo />
           </div>
-        </div>
+        </section>
       </main>
-
-      <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
-        <div className="container mx-auto">
-          <p className="text-sm">© 2025 Statch. All rights reserved.</p>
-          <div className="mt-2 flex justify-center gap-4">
-            <a href="#" className="hover:text-white transition">Về chúng tôi</a>
-            <a href="#" className="hover:text-white transition">Liên hệ</a>
-            <a href="#" className="hover:text-white transition">Điều khoản</a>
-          </div>
-        </div>
-      </footer>
+      
+      <Footer/>
+      
     </div>
   );
 }

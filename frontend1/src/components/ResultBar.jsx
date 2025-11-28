@@ -1,14 +1,116 @@
 // components/ResultBar.jsx
 import React from "react";
+import { Crown, Building2, Home, Tent, Hotel, Sparkles } from "lucide-react";
 
-function Chip({ children, className = "" }) {
-  if (!children) return null;
+const TAG_STYLES = {
+  blue: "bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100",
+  green: "bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100",
+  purple: "bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100",
+  orange: "bg-orange-50 text-orange-700 border-orange-100 hover:bg-orange-100",
+  gray: "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200",
+  rose: "bg-rose-50 text-rose-700 border-rose-100 hover:bg-rose-100",
+  indigo: "bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100",
+};
+
+// 2. Hàm phân tích ngữ nghĩa để chọn màu (Semantic Coloring)
+const getSmartTagStyle = (tagName) => {
+  if (!tagName) return TAG_STYLES.gray;
+  const lower = tagName.toLowerCase();
+
+  // Nhóm Biển / Nước -> Xanh dương
+  if (['biển', 'bơi', 'hồ', 'nước', 'suối'].some(k => lower.includes(k))) return TAG_STYLES.blue;
+  
+  // Nhóm Thiên nhiên -> Xanh lá
+  if (['vườn', 'cây', 'rừng', 'đồi', 'xanh', 'thiên nhiên'].some(k => lower.includes(k))) return TAG_STYLES.green;
+  
+  // Nhóm Cảm xúc / View -> Tím/Indigo
+  if (['view', 'chill', 'thơ', 'mộng', 'lãng mạn', 'yên tĩnh'].some(k => lower.includes(k))) return TAG_STYLES.indigo;
+  
+  // Nhóm Sang trọng / Cao cấp -> Hồng/Rose
+  if (['luxury', 'sang', 'vip', 'cao cấp'].some(k => lower.includes(k))) return TAG_STYLES.rose;
+  
+  // Nhóm Tiện nghi / Ăn uống -> Cam
+  if (['bbq', 'bếp', 'ăn', 'cafe', 'nhà hàng', 'wifi', 'tv'].some(k => lower.includes(k))) return TAG_STYLES.orange;
+
+  return TAG_STYLES.gray; // Mặc định
+};
+
+const getCategoryConfig = (label) => {
+    if (!label) return { style: "from-gray-700 to-gray-600", icon: Sparkles };
+    
+    const lower = label.toLowerCase();
+
+    // KHÁCH SẠN -> Màu Xanh Dương Đậm (Chuyên nghiệp)
+    if (['hotel', 'khách sạn'].some(k => lower.includes(k))) {
+        return { 
+            style: "from-blue-600 to-blue-500", 
+            icon: Hotel 
+        };
+    }
+
+    // VILLA / BIỆT THỰ -> Màu Vàng Gold / Cam (Sang trọng)
+    if (['villa', 'biệt thự', 'resort'].some(k => lower.includes(k))) {
+        return { 
+            style: "from-amber-500 to-orange-500", 
+            icon: Crown 
+        };
+    }
+
+    // HOMESTAY -> Màu Xanh Lá / Teal (Thân thiện, thiên nhiên)
+    if (['homestay', 'nhà dân'].some(k => lower.includes(k))) {
+        return { 
+            style: "from-emerald-600 to-teal-500", 
+            icon: Tent 
+        };
+    }
+
+    // CĂN HỘ -> Màu Tím / Indigo (Hiện đại)
+    if (['apartment', 'căn hộ', 'chung cư'].some(k => lower.includes(k))) {
+        return { 
+            style: "from-indigo-600 to-purple-500", 
+            icon: Building2 
+        };
+    }
+
+    // NHÀ RIÊNG -> Màu Đỏ (Ấm cúng)
+    if (['house', 'nhà riêng', 'nguyên căn'].some(k => lower.includes(k))) {
+        return { 
+            style: "from-[#BF1D2D] to-red-500", 
+            icon: Home 
+        };
+    }
+
+    // Mặc định -> Màu xám đậm
+    return { style: "from-gray-700 to-gray-600", icon: Sparkles };
+}
+
+// 3. Component Tag Chip Mới
+const TagChip = ({ label, isCategory = false }) => {
+  if (!label) return null;
+  
+  // Nếu là Category (Loại phòng) thì style riêng cho nổi bật
+  if (isCategory) {
+    const config = getCategoryConfig(label);
+    const Icon = config.icon;
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r ${config.style} text-white shadow-md transform -translate-y-0.5`}>
+        <Icon size={12} fill="currentColor" className="opacity-90" /> 
+        {label}
+      </span>
+    );
+  }
+
+  // Style cho Tag thường
+  const styleClass = getSmartTagStyle(label);
   return (
-    <span className={"inline-flex items-center rounded-full px-3 py-1 text-sm font-medium " + className}>
-      {children}
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-medium border transition-colors cursor-default ${styleClass}`}>
+      {/* Dấu chấm trang trí nhỏ */}
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40 mr-1.5"></span>
+      {label}
     </span>
   );
-}
+};
+
 
 export default function ResultBar({
   image,
@@ -39,6 +141,9 @@ export default function ResultBar({
             className="h-full w-full object-cover"
             onError={(e) => {e.target.src = "https://placehold.co/600x400?text=Error";}} // Fallback nếu ảnh lỗi
           />
+          <div className="absolute top-3 left-3 flex gap-1">
+             {categories.map((c, idx) => c && <TagChip key={idx} label={c} isCategory={true} />)}
+          </div>
         </div>
 
         {/* Right: Content */}
@@ -79,28 +184,23 @@ export default function ResultBar({
               {categories.map((c, idx) => (
                  // Chỉ render nếu c có dữ liệu
                  c ? (
-                  <Chip key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 uppercase text-[10px] tracking-wide">
+                  <TagChip key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 uppercase text-[10px] tracking-wide">
                     {c}
-                  </Chip>
+                  </TagChip>
                  ) : null
               ))}
             </div>
             
-            {/* Chips: Tags (Vị trí, tiện ích) */}
-            <div className="flex flex-wrap items-center gap-2 mt-2">
-              {tags.slice(0, 4).map((tag, index) => ( // Chỉ lấy tối đa 4 tag để khỏi vỡ layout
-              <span 
-                key={index} 
-                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md border border-gray-200"
-              >
-                {tag}
-              </span>
-              ))}
-                {tags.length > 4 && (
-                  <span className="text-xs text-gray-400 self-center">+{tags.length - 4} khác</span>
+           {/* --- TAGS LIST --- */}
+            <div className="mt-4 flex flex-wrap gap-2">
+                {tags.slice(0, 5).map((tag, index) => (
+                    <TagChip key={index} label={tag} />
+                ))}
+                {tags.length > 5 && (
+                    <span className="text-xs text-gray-400 self-center font-medium pl-1">+{tags.length - 5} khác</span>
                 )}
             </div>
-          </div>
+        </div>
 
           {/* Bottom Row: Info & Price */}
           <div>

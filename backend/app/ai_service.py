@@ -13,7 +13,7 @@ if not GOOGLE_API_KEY:
     print("⚠️ CẢNH BÁO: Chưa tìm thấy AI_KEY trong biến môi trường!")
 
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('models/gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 async def generate_tags_from_desc(description: str, location: str) -> str:
     """
@@ -58,17 +58,22 @@ async def generate_tags_from_desc(description: str, location: str) -> str:
             safety_settings=safety_settings
         )
         
-        # 4. Xử lý hậu kỳ (Clean text)
-        raw_text = response.text.strip()
-        # Loại bỏ các ký tự thừa nếu AI lỡ thêm vào (dấu chấm cuối câu, dấu xuống dòng)
+        try:
+            raw_text = response.text.strip()
+        except ValueError:
+            # Nếu bị lỗi ValueError nghĩa là AI chặn câu trả lời
+            print(f"⚠️ AI chặn phản hồi Tags. Feedback: {response.prompt_feedback}")
+            # Fallback về logic cắt chuỗi thủ công
+            short_loc = location.split(',')[-1].strip() if ',' in location else location
+            return f"Tiện nghi, {short_loc}, Du lịch"
+        # ------------------------
+
         clean_tags = raw_text.replace("\n", "").replace(".", "").replace("*", "")
-        
         print(f"🏷️ Generated Tags: {clean_tags}")
         return clean_tags
 
     except Exception as e:
-        print(f"⚠️ Lỗi tạo Tags: {e}")
-        # Fallback thông minh hơn: Lấy tên quận/thành phố từ location làm tag
+        print(f"⚠️ Lỗi SYSTEM tạo Tags: {str(e)}")
         short_loc = location.split(',')[-1].strip() if ',' in location else location
         return f"Tiện nghi đầy đủ, {short_loc}, Du lịch"
     
