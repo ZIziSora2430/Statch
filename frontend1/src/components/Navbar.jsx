@@ -11,6 +11,30 @@ export default function Navbar() {
 
   const [openAvatar, setOpenAvatar] = useState(false);
   const [openNoti, setOpenNoti] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+useEffect(() => {
+  const fetchNoti = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/notifications`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      setNotifications(data);
+    } catch (err) {
+      console.log("Lỗi load thông báo:", err);
+    }
+  };
+
+  fetchNoti();
+}, []);
+
 
   const avatarRef = useRef();
   const notiRef = useRef();
@@ -18,7 +42,6 @@ export default function Navbar() {
   const hasAvatar = false;
   const avatarImage = hasAvatar ? Avatar : defaultAvatar;
 
-  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (avatarRef.current && !avatarRef.current.contains(event.target)) {
@@ -31,6 +54,18 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleNotificationClick = (notification) => {
+  const role = localStorage.getItem("user_role");
+
+  if (role === "owner") {
+    navigate("/profilet?section=booking");   // BookingList.jsx
+  } else {
+    navigate("/profilet?section=history");   // ReservationHis.jsx
+  }
+
+  setOpenNoti(false); // đóng menu
+};
 
   return (
     <div
@@ -107,44 +142,22 @@ export default function Navbar() {
     </div>
 
     {/* Notification list */}
-    <div
-      style={{
-        padding: "10px 15px",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      • Nhân viên A vừa gửi đơn xin nghỉ
-    </div>
+    {notifications.map((n) => (
+  <div
+    key={n.id}
+    style={{
+      padding: "10px 15px",
+      cursor: "pointer",
+      transition: "0.2s",
+    }}
+    onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+    onMouseLeave={(e) => (e.target.style.background = "white")}
+    onClick={() => handleNotificationClick(n)}
+  >
+    • {n.message}
+  </div>
+))}
 
-    <div
-      style={{
-        padding: "10px 15px",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      • Đơn nghỉ phép của bạn đã được phê duyệt
-    </div>
-
-    <div
-      style={{
-        padding: "10px 15px",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onClick={() => navigate("/notifications")}
-      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
-      • Có cuộc họp vào 15:00 hôm nay
-    </div>
 
     {/* SEE MORE BUTTON */}
     <div
