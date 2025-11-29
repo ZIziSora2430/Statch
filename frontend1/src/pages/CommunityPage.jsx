@@ -1,5 +1,5 @@
 // CommunityPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // [Cite: React Hooks]
 import Navbar from "../components/Navbar";
 import { Search, Pencil } from "lucide-react";
 import CityButton from "../components/CityButton";
@@ -8,15 +8,71 @@ import PostCard from "../components/Postcard";
 import Avatar from '../images/Avatar.png';
 import CreatePost from "../components/CreatePost.jsx";
 import { Link } from "react-router-dom";
-import { MOCK_POSTS } from './data.jsx';
+
+// Cấu hình URL API (Chỉnh lại port nếu cần)
+const API_BASE_URL = "http://localhost:8000"; 
 
 function CommunityPage() {
-  const [posts, setPosts] = useState(MOCK_POSTS); 
+  const [posts, setPosts] = useState([]); 
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // GIẢ LẬP TRẠNG THÁI VERIFY
-  const isVerified = true;   // đổi thành true để test giao diện verify
+  // State cho trạng thái verify
+  const [isVerified, setIsVerified] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState("");
+
+// --- CALL API 1: Lấy trạng thái Verified Traveler ---
+const fetchVerifiedStatus = async () => {
+  try {
+    // 1. Lấy token thật từ localStorage (kiểm tra tên key của bạn là 'access_token' hay 'token')
+    const token = localStorage.getItem("access_token"); 
+    
+    // Nếu không có token (chưa đăng nhập) thì thôi không gọi API này nữa
+    if (!token) return; 
+
+    const response = await fetch(`${API_BASE_URL}/verified-status`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` // <--- QUAN TRỌNG: Gửi token lên
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      setIsVerified(data.is_verified);
+      setVerifyMessage(data.message);
+    }
+  } catch (error) {
+    console.error("Lỗi khi check verify:", error);
+  }
+};
+
+  // --- CALL API 2: Lấy danh sách bài viết ---
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/posts?skip=0&limit=50`, {
+        method: "GET"
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(data); // Cập nhật danh sách bài viết từ Backend
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy bài viết:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Gọi API khi component được load (mount)
+  useEffect(() => {
+    fetchVerifiedStatus();
+    fetchPosts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -45,7 +101,7 @@ function CommunityPage() {
           {/* 🟥 BANNER cảnh báo khi chưa verify */}
           {!isVerified && (
             <div className="w-full bg-red-700 text-white text-center py-3 rounded-xl font-medium mb-6 shadow-md">
-              Bạn chỉ có thể đăng bài hoặc bình luận khi đã đặt phòng
+              {verifyMessage || "Bạn chỉ có thể đăng bài hoặc bình luận khi đã đặt phòng"}
             </div>
           )}
 
@@ -71,8 +127,11 @@ function CommunityPage() {
 
           {/* Danh sách bài viết */}
           <div className="flex flex-col gap-4">
-            {posts
-              .filter((p) => p.content.toLowerCase().includes(search.toLowerCase()))
+            {isLoading ? (
+               <p className="text-center text-gray-500">Đang tải bài viết...</p>
+            ) : (
+              posts
+              .filter((p) => p.content?.toLowerCase().includes(search.toLowerCase()) || p.title?.toLowerCase().includes(search.toLowerCase()))
               .map((post) => (
                 <Link 
                   to={`/post/${post.id}`} 
@@ -81,15 +140,20 @@ function CommunityPage() {
                 >
                   <PostCard post={post} />
                 </Link>
-              ))}
+              ))
+            )}
           </div>
 
         </main>
       </div>
 
       {/* Modal tạo bài viết */}
+      {/* Truyền thêm hàm fetchPosts để refresh lại list sau khi đăng bài thành công */}
       {isVerified && isModalOpen && (
-        <CreatePost onClose={() => setIsModalOpen(false)} />
+        <CreatePost 
+          onClose={() => setIsModalOpen(false)} 
+          onPostSuccess={fetchPosts} 
+        />
       )}
 
     </div>

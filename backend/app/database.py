@@ -13,7 +13,7 @@ import os
 # =====================================================
 # Lấy DATABASE_URL từ .env
 # =====================================================
-DATABASE_URL = "mysql+pymysql://root:na21@localhost:3306/testdb"
+DATABASE_URL = "mysql+pymysql://root:123456@localhost:3306/testdb"
 
 if not DATABASE_URL:
     raise ValueError(
