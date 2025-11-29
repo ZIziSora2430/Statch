@@ -5,8 +5,9 @@ import ImageFrame from "../components/ImageFrame";
 import Promo from "../components/PromotionCarousel";
 import Banner from "../components/Banner";
 import SkeletonCard from "../components/SkeletonCard";
+import Community from "../components/JoinCommunity";
 
-import ConDao from "../images/Con-Dao.jpg";
+import ConDao from "../images/Con-Dao.jpg"
 import HaNoi from "../images/Ha-Noi.jpg";  
 import CanTho from "../images/Can-Tho.jpg";
 import HoiAn from "../images/Hoi-An.jpg";
@@ -16,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react"; 
 import { MapPin, Star, Sparkles, ArrowRight } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_URL = import.meta.env. VITE_API_URL || "http://127.0.0. 1:8000";
 
 
 export default function LandingPage() {
@@ -30,13 +31,13 @@ export default function LandingPage() {
     setSelectedDestination(location);
     // Cuộn mượt lên đầu trang (nơi có thanh tìm kiếm)
     window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const storedUsername = localStorage.getItem("username"); 
-    // 3. KIỂM TRA ĐĂNG NHẬP
-    if (!token) {
+    // 3.  KIỂM TRA ĐĂNG NHẬP
+    if (! token) {
       alert("Bạn cần đăng nhập để sử dụng tính năng này!");
       navigate("/login"); 
       return; // Dừng chạy tiếp
@@ -56,7 +57,7 @@ export default function LandingPage() {
           }
         });
 
-        // 4. Xử lý lỗi HTTP (Fetch không tự catch lỗi 4xx/5xx như Axios)
+        // 4.  Xử lý lỗi HTTP (Fetch không tự catch lỗi 4xx/5xx như Axios)
         if (!response.ok) {
           // Nếu lỗi 401 (Unauthorized) -> Token hết hạn hoặc sai
           if (response.status === 401) {
@@ -73,7 +74,7 @@ export default function LandingPage() {
         setAccommodations(data);
 
       } catch (error) {
-        console.error("Lỗi khi fetch dữ liệu:", error);
+        console. error("Lỗi khi fetch dữ liệu:", error);
       } finally {
         setIsLoading(false);
       }
@@ -89,35 +90,35 @@ export default function LandingPage() {
 
   // --- COMPONENT PHỤ ---
   const DestinationCard = ({ img, title, className, onClick }) => (
-  <div 
-    className={`relative group rounded-2xl overflow-hidden shadow-md cursor-pointer ${className}`}
-    style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
-    onClick={onClick}
-  >
-    {/* 3. DÙNG THẺ IMG TRỰC TIẾP (Thay cho ImageFrame) */}
-    <img 
-      src={img}
-      alt={title}
-      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-    />
-    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+    <div 
+      className={`relative group rounded-2xl overflow-hidden shadow-md cursor-pointer ${className}`}
+      style={{ WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
+      onClick={onClick}
+    >
+      {/* 3. DÙNG THẺ IMG TRỰC TIẾP (Thay cho ImageFrame) */}
+      <img 
+        src={img}
+        alt={title}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
+      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
-    {/* 5. Nội dung chữ */}
-    <div className="absolute bottom-4 left-4 text-white drop-shadow-lg z-10">
-      <h3 className="text-xl md:text-2xl font-bold">{title}</h3>
-      <span className="text-xs md:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1 mt-1">
-        Khám phá ngay <ArrowRight size={14} />
-      </span>
+      {/* 5.  Nội dung chữ */}
+      <div className="absolute bottom-4 left-4 text-white drop-shadow-lg z-10">
+        <h3 className="text-xl md:text-2xl font-bold">{title}</h3>
+        <span className="text-xs md:text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1 mt-1">
+          Khám phá ngay <ArrowRight size={14} />
+        </span>
+      </div>
     </div>
-  </div>
-);
+  );
 
   // --- VIEW: LOADING STATE ---
   if (isLoading) {
-      return (
+    return (
       <div className="min-h-screen bg-gray-50">
         <div className="sticky top-0 z-50 w-full"> 
-        <Navbar />
+          <Navbar />
         </div>
         <Banner username={currentUserName} />
 
@@ -130,7 +131,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-3 mb-8">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
               <p className="text-2xl md:text-3xl font-bold text-gray-800">
-                Đang tìm gợi ý tốt nhất cho bạn...
+                Đang tìm gợi ý tốt nhất cho bạn... 
               </p>
             </div>
             
@@ -171,7 +172,7 @@ export default function LandingPage() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {accommodations.length > 0 ? (
-              accommodations.map((item) => (
+              accommodations. map((item) => (
                 <div 
                   key={item.id || item.accommodation_id} 
                   className="group relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col h-full"
@@ -179,16 +180,16 @@ export default function LandingPage() {
                 >
                   {/* BADGE ĐIỂM SỐ AI */}
                   {item.match_score && (
-                      <div className="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-green-100 flex items-center gap-1.5">
-                          <span className="text-green-600 font-extrabold text-sm">{item.match_score}%</span>
-                          <span className="text-gray-600 text-xs font-medium">phù hợp</span>
-                      </div>
+                    <div className="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-sm px-3 py-1. 5 rounded-full shadow-sm border border-green-100 flex items-center gap-1. 5">
+                      <span className="text-green-600 font-extrabold text-sm">{item.match_score}%</span>
+                      <span className="text-gray-600 text-xs font-medium">phù hợp</span>
+                    </div>
                   )}
 
-                   {/* Ảnh với hiệu ứng zoom khi hover */}
+                  {/* Ảnh với hiệu ứng zoom khi hover */}
                   <div className="h-56 w-full bg-gray-200 overflow-hidden relative">
                     <img 
-                      src={item.picture_url || "https://via.placeholder.com/400"} 
+                      src={item.picture_url || "https://via.placeholder. com/400"} 
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
@@ -198,47 +199,47 @@ export default function LandingPage() {
                   {/* Nội dung Card */}
                   <div className="p-5 flex flex-col grow">
                     <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-xl text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                            {item.title}
-                        </h3>
+                      <h3 className="font-bold text-xl text-gray-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                        {item.title}
+                      </h3>
                     </div>
 
                     <p className="text-gray-500 text-sm mb-4 flex items-center gap-1">
-                        <MapPin size={14} /> {item.location}
+                      <MapPin size={14} /> {item.location}
                     </p>
                     
                     {/* AI REASON BOX - Thiết kế lại cho đỡ giống thông báo lỗi */}
                     {item.match_reason && (
-                        <div className="mb-4 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
-                            <div className="flex items-start gap-2">
-                                <Sparkles size={14} className="text-indigo-500 mt-0.5 shrink-0" />
-                                <p className="text-xs text-indigo-800 italic leading-relaxed">
-                                  "{item.match_reason}"
-                                </p>
-                            </div>
+                      <div className="mb-4 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                        <div className="flex items-start gap-2">
+                          <Sparkles size={14} className="text-indigo-500 mt-0.5 shrink-0" />
+                          <p className="text-xs text-indigo-800 italic leading-relaxed">
+                            "{item.match_reason}"
+                          </p>
                         </div>
+                      </div>
                     )}
 
                     <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between items-end">
-                        <div>
-                            <p className="text-xs text-gray-400">Giá mỗi đêm</p>
-                            <span className="text-blue-600 font-bold text-xl">
-                               {formatCurrency(item.price)}
-                            </span>
-                        </div>
-                        <button className="text-sm font-medium bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-700 px-4 py-2 rounded-lg transition-all duration-200">
-                           Chi tiết
-                        </button>
+                      <div>
+                        <p className="text-xs text-gray-400">Giá mỗi đêm</p>
+                        <span className="text-blue-600 font-bold text-xl">
+                          {formatCurrency(item. price)}
+                        </span>
+                      </div>
+                      <button className="text-sm font-medium bg-gray-100 hover:bg-blue-600 hover:text-white text-gray-700 px-4 py-2 rounded-lg transition-all duration-200">
+                        Chi tiết
+                      </button>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
               <div className="col-span-full py-12 text-center">
-                  <div className="bg-gray-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
-                      <MapPin className="text-gray-400 w-10 h-10" />
-                  </div>
-                  <p className="text-gray-500 text-lg">Không tìm thấy chỗ ở nào phù hợp.</p>
+                <div className="bg-gray-100 rounded-full h-20 w-20 flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="text-gray-400 w-10 h-10" />
+                </div>
+                <p className="text-gray-500 text-lg">Không tìm thấy chỗ ở nào phù hợp. </p>
               </div>
             )}
           </div>
@@ -252,60 +253,60 @@ export default function LandingPage() {
 
           {/* Grid Layout thay thế cho Flexbox cứng nhắc */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-             {/* Hàng trên: 2 ảnh lớn */}
-             <DestinationCard 
-             img={ConDao} 
-             title="Côn Đảo" 
-             className="h-64 md:h-80" 
-             onClick={() => handleDestinationClick("Côn Đảo")}
-             />
-             <DestinationCard 
-             img={HaNoi} 
-             title="Hà Nội" 
-             className="h-64 md:h-80" 
-             onClick={() => handleDestinationClick("Hà Nội")}
-             />
+            {/* Hàng trên: 2 ảnh lớn */}
+            <DestinationCard 
+              img={ConDao} 
+              title="Côn Đảo" 
+              className="h-64 md:h-80" 
+              onClick={() => handleDestinationClick("Côn Đảo")}
+            />
+            <DestinationCard 
+              img={HaNoi} 
+              title="Hà Nội" 
+              className="h-64 md:h-80" 
+              onClick={() => handleDestinationClick("Hà Nội")}
+            />
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-             {/* Hàng dưới: 3 ảnh nhỏ */}
-             <DestinationCard 
-             img={TPHCM} s
-             title="TP. Hồ Chí Minh" 
-             className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("TP. Hồ Chí Minh")}
-             />
-             <DestinationCard 
-             img={HoiAn} 
-             title="Hội An" 
-             className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("Hội An")}
-             />
-             <DestinationCard 
-             img={CanTho} 
-             title="Cần Thơ" 
-             className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("Cần Thơ")} 
-             />
+            {/* Hàng dưới: 3 ảnh nhỏ */}
+            <DestinationCard 
+              img={TPHCM}
+              title="TP. Hồ Chí Minh" 
+              className="h-56 md:h-64"
+              onClick={() => handleDestinationClick("TP.  Hồ Chí Minh")}
+            />
+            <DestinationCard 
+              img={HoiAn} 
+              title="Hội An" 
+              className="h-56 md:h-64"
+              onClick={() => handleDestinationClick("Hội An")}
+            />
+            <DestinationCard 
+              img={CanTho} 
+              title="Cần Thơ" 
+              className="h-56 md:h-64"
+              onClick={() => handleDestinationClick("Cần Thơ")} 
+            />
           </div>
         </section>
 
         {/* --- PHẦN 3: ƯU ĐÃI (PROMO) --- */}
         <section className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
-             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-               Ưu đãi hôm nay
-             </h2>
-             <p className="text-gray-500">Đừng bỏ lỡ những khuyến mãi hấp dẫn nhất</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Ưu đãi hôm nay
+            </h2>
+            <p className="text-gray-500">Đừng bỏ lỡ những khuyến mãi hấp dẫn nhất</p>
           </div>
           <div className="bg-white rounded-2xl shadow-sm p-2 border border-gray-100">
             <Promo />
           </div>
         </section>
       </main>
-      
+
+      <Community />
       <Footer/>
-      
     </div>
   );
 }
