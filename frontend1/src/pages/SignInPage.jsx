@@ -64,6 +64,7 @@ function SignInPage() {
         } else {
           navigate("/home"); // Các role khác
         }
+        console.log(data.access_token);
       } else {
         // ✅ THÊM: Hiển thị lỗi nếu đăng nhập thất bại
         // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 401 (Unauthorized)

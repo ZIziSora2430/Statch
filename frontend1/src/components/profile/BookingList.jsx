@@ -7,18 +7,24 @@ export default function BookingList() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const token = localStorage.getItem("token");
+        // const token = localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
 
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/bookings/owner`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // const res = await fetch(
+        //   `${import.meta.env.VITE_API_URL}/api/owner/bookings`,
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${token}`,
+        //     },
+        //   }
+        // );
+
+const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
+  headers: { Authorization: `Bearer ${token}` }
+});
 
         const data = await res.json();
+        console.log("Dữ liệu booking nhận được:", data);
         setBookingList(data);
       } catch (error) {
         console.error("Lỗi load booking:", error);
@@ -31,10 +37,10 @@ export default function BookingList() {
   // XÓA BOOKING THẬT (OWNER DELETE)
   const handleDeleteBooking = async (bookingId) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("access_token");
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/bookings/owner/${bookingId}`,
+        `${import.meta.env.VITE_API_URL}/api/owner/bookings/${bookingId}`,
         {
           method: "DELETE",
           headers: {
