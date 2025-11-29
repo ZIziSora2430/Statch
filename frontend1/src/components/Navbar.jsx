@@ -64,6 +64,100 @@ export default function Navbar() {
             cursor: 'pointer'
           }}
           />
+             {/* Notification Dropdown */}
+        {openNoti && (
+  <div
+    style={{
+      position: "absolute",
+      top: "25px",
+      right: 0,
+      width: "300px",
+      background: "white",
+      borderRadius: "8px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      padding: "0",
+      zIndex: 9999,
+    }}
+  >
+    {/* Header */}
+    <div
+      style={{
+        padding: "15px 15px",
+        borderBottom: "1px solid #eee",
+        fontWeight: "bold",
+        fontSize: "14px",
+        backgroundColor: "#BF1D2D",
+        color: "white",
+        borderTopLeftRadius: "8px",
+        borderTopRightRadius: "8px",
+      }}
+    >
+      Thông báo mới
+    </div>
+
+    {/* Notification list */}
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Nhân viên A vừa gửi đơn xin nghỉ
+    </div>
+
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Đơn nghỉ phép của bạn đã được phê duyệt
+    </div>
+
+    <div
+      style={{
+        padding: "10px 15px",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      • Có cuộc họp vào 15:00 hôm nay
+    </div>
+
+    {/* SEE MORE BUTTON */}
+    <div
+      style={{
+        padding: "12px",
+        textAlign: "center",
+        color: "#BF1D2D",
+        fontWeight: "bold",
+        fontSize: "14px",
+        borderTop: "1px solid #eee",
+        cursor: "pointer",
+        borderBottomLeftRadius: "8px",
+        borderBottomRightRadius: "8px",
+        transition: "0.2s",
+      }}
+      onClick={() => navigate("/notifications")}
+      onMouseEnter={(e) => (e.target.style.background = "#f8f8f8")}
+      onMouseLeave={(e) => (e.target.style.background = "white")}
+    >
+      Xem thêm →
+    </div>
+  </div>
+)}
+
           {/* Dropdown menu */}
           {open && (
             <div
