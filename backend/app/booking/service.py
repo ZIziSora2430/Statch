@@ -205,22 +205,23 @@ def create_booking(
     if not accommodation:
         raise ValueError("Accommodation không tồn tại")
 
-    # Check overlap
+    #  Chặn trùng lịch đã xác nhận
     conflict = db.scalar(
-        select(models.Booking)
-        .where(
-            models.Booking.accommodation_id == booking_data.accommodation_id,
-            models.Booking.status.in_([
-                schemas.BookingStatusEnum.pending_confirmation.value,
-                schemas.BookingStatusEnum.confirmed.value
-            ]),
-            models.Booking.date_start <= booking_data.date_end,
-            models.Booking.date_end >= booking_data.date_start
-        )
+    select(models.Booking)
+    .where(
+        models.Booking.accommodation_id == booking_data.accommodation_id,
+        models.Booking.status == schemas.BookingStatusEnum.confirmed.value,
+        models.Booking.date_start <= booking_data.date_end,
+        models.Booking.date_end >= booking_data.date_start
     )
+)
 
+    #  Chặn trùng lịch
+    if conflict:
+        raise ValueError("Phòng đã có người đặt trong khoảng thời gian này")
+
+    #  Luôn chờ chủ nhà xác nhận
     status = schemas.BookingStatusEnum.pending_confirmation.value
-
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
     total_price = calculate_total_price(accommodation.price, nights)
@@ -231,7 +232,7 @@ def create_booking(
         date_start=booking_data.date_start,
         date_end=booking_data.date_end,
         guests=booking_data.guests,
-        note=booking_data.note,        
+        note=booking_data.note,
         total_price=total_price,
         booking_code=generate_booking_code(),
         status=status
@@ -241,14 +242,12 @@ def create_booking(
     db.commit()
     db.refresh(new_booking)
 
-    # Lấy accommodation để biết owner_id
-    acc = accommodation
-
     # Gửi thông báo cho chủ nhà
     create_notification(
         db,
-        user_id=acc.owner_id,
-        message=f"Khách vừa đặt phòng: {acc.title}"
+        user_id=accommodation.owner_id,
+        message=f"Khách vừa đặt phòng: {accommodation.title}"
     )
 
     return new_booking
+
