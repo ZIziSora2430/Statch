@@ -246,7 +246,7 @@ def create_booking(
     if not accommodation:
         raise ValueError("Accommodation không tồn tại")
 
-    # Check overlap
+    #  Chặn trùng lịch đã xác nhận
     conflict = db.scalar(
         select(models.Booking)
         .where(
@@ -261,7 +261,6 @@ def create_booking(
         raise ValueError("Rất tiếc, chỗ nghỉ này đã được XÁC NHẬN trong khoảng thời gian bạn chọn.")
     
     status = schemas.BookingStatusEnum.pending_confirmation.value
-
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
     total_price = calculate_total_price(accommodation.price, nights)
@@ -285,41 +284,12 @@ def create_booking(
     db.commit()
     db.refresh(new_booking)
 
-    # Lấy accommodation để biết owner_id
-    acc = accommodation
-
     # Gửi thông báo cho chủ nhà
     create_notification(
         db,
-        user_id=acc.owner_id,
-        message=f"Khách vừa đặt phòng: {acc.title}"
+        user_id=accommodation.owner_id,
+        message=f"Khách vừa đặt phòng: {accommodation.title}"
     )
 
     return new_booking
 
-
-def get_disabled_dates(db: Session, accommodation_id: int) -> List[date]:
-    """
-    Trả về danh sách các ngày đã bị 'confirmed' để disable trên lịch.
-    LƯU Ý: Không bao gồm ngày checkout (vì khách khác có thể check-in vào chiều hôm đó).
-    """
-    # 1. Chỉ lấy những booking đã CHỐT (confirmed)
-    confirmed_bookings = db.scalars(
-        select(models.Booking).where(
-            models.Booking.accommodation_id == accommodation_id,
-            models.Booking.status == 'confirmed'  # QUAN TRỌNG: Bỏ qua pending
-        )
-    ).all()
-
-    disabled_dates = []
-
-    # 2. Duyệt qua từng booking để liệt kê các ngày bận
-    for booking in confirmed_bookings:
-        current_date = booking.date_start
-        # Lặp từ ngày check-in đến trước ngày check-out
-        # (Ví dụ: Đặt 10-12, thì ngày 10 và 11 là bận, ngày 12 khách ra nên vẫn tính là trống cho người sau)
-        while current_date < booking.date_end:
-            disabled_dates.append(current_date)
-            current_date += timedelta(days=1)
-
-    return disabled_dates
