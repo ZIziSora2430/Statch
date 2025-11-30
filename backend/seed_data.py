@@ -131,10 +131,29 @@ def seed_data():
         accommodations = []
         print(f"🏠 2. Đang tạo {len(REAL_ESTATES)} chỗ ở từ dữ liệu thật...")
         
+        AVAILABLE_TAGS = [
+        "wifi", "ac", "parking", "kitchen", "pool", "gym", 
+        "breakfast", "pet_friendly", "balcony", "view", "washing_machine"
+        ]
+
+        # Số lượng tags ngẫu nhiên sẽ được chọn cho mỗi chỗ ở (ví dụ: từ 3 đến 6 tags)
+        MIN_TAGS = 3
+        MAX_TAGS = 6
+
+
         for real_place in REAL_ESTATES:
             owner = random.choice(owners)
             adjectives = ["View đẹp", "Luxury", "Cozy", "Hiện đại", "Vintage", "Thoáng mát"]
             
+            # 1. Chọn ngẫu nhiên số lượng tags
+            num_tags_to_pick = random.randint(MIN_TAGS, MAX_TAGS)
+            
+            # 2. Chọn ngẫu nhiên tags từ danh sách có sẵn (không lặp lại)
+            random_tags_list = random.sample(AVAILABLE_TAGS, num_tags_to_pick)
+            
+            # 3. Chuyển list thành chuỗi phân cách bằng dấu phẩy
+            dynamic_tags = ",".join(random_tags_list)
+
             accom = Accommodation(
                 owner_id=owner.id,
                 title=f"{real_place['type']} {real_place['area']} - {random.choice(adjectives)}",
@@ -147,7 +166,7 @@ def seed_data():
                 picture_url=f"https://picsum.photos/seed/{random.randint(1,1000)}/800/600",
                 latitude=Decimal(real_place['lat']),
                 longitude=Decimal(real_place['lng']),
-                tags="wifi,ac,parking,kitchen" 
+                tags=dynamic_tags # ✅ Thêm tags
             )
             db.add(accom)
             accommodations.append(accom)

@@ -12,23 +12,25 @@ export default function BookingList() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const token = getToken();
-        // SỬA URL: Dựa vào owner_router.py, prefix là /api/owner/bookings
-        const res = await fetch(
-          `${API_URL}/api/owner/bookings`, 
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // const token = localStorage.getItem("token");
+        const token = localStorage.getItem("access_token");
 
-        if (res.ok) {
-          const data = await res.json();
-          setBookingList(data);
-        } else {
-          console.error("Lỗi tải danh sách đặt phòng");
-        }
+        // const res = await fetch(
+        //   `${import.meta.env.VITE_API_URL}/api/owner/bookings`,
+        //   {
+        //     headers: {
+        //       Authorization: `Bearer ${token}`,
+        //     },
+        //   }
+        // );
+
+const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+        const data = await res.json();
+        console.log("Dữ liệu booking nhận được:", data);
+        setBookingList(data);
       } catch (error) {
         console.error("Lỗi kết nối:", error);
       } finally {
@@ -39,15 +41,16 @@ export default function BookingList() {
     fetchBookings();
   }, []);
 
-  // XỬ LÝ: CHẤP NHẬN (CONFIRM)
-  const handleConfirm = async (bookingId) => {
-    if (!confirm("Bạn có chắc muốn xác nhận đơn này?")) return;
+  // XÓA BOOKING THẬT (OWNER DELETE)
+  const handleDeleteBooking = async (bookingId) => {
+    try {
+      const token = localStorage.getItem("access_token");
 
     try {
       const token = getToken();
       // Gọi endpoint confirm trong owner_router.py
       const res = await fetch(
-        `${API_URL}/api/owner/bookings/${bookingId}/confirm`,
+        `${API_URL}/api/owner/bookings/${bookingId}`,
         {
           method: "PUT",
           headers: {

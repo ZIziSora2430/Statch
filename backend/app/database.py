@@ -13,13 +13,13 @@ import os
 # =====================================================
 # Lấy DATABASE_URL từ .env
 # =====================================================
-DATABASE_URL = "mysql+pymysql://root:na21@localhost:3306/testdb"    
+DATABASE_URL = "mysql+pymysql://root:123456@localhost:3306/STACH"    
 
 if not DATABASE_URL:
     raise ValueError(
         "❌ DATABASE_URL not found in .env file!\n"
         "Please create .env file with:\n"
-        "DATABASE_URL=mysql+pymysql://devuser:devpass123@localhost:3306/testdb"
+        "DATABASE_URL=mysql+pymysql://root:123456@localhost:3306/STACH"
     )
 
 # =====================================================
