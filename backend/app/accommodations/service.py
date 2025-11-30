@@ -1,5 +1,5 @@
 from sqlalchemy import select, func, text, and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import date
 from datetime import datetime, date
 from .. import models
@@ -82,6 +82,7 @@ def get_accommodation_by_id(db: Session, accommodation_id: int):
     """
     accommodation = db.scalar(
         select(models.Accommodation)
+        .options(joinedload(models.Accommodation.owner))
         .where(models.Accommodation.accommodation_id == accommodation_id)
     )
     
@@ -148,8 +149,9 @@ def search_accommodations(
     Hàm logic để tìm kiếm chỗ ở dựa trên tọa độ và bán kính.
     Sử dụng công thức Haversine.
     """
-    print(f"🔍 SEARCH START: Text='{location_text}', Lat={lat}, Lng={lng}")
+    print(f"SEARCH START: Text='{location_text}', Date={check_in_date} -> {check_out_date}")    
     query = select(models.Accommodation)
+    query = query.where(models.Accommodation.status == 'available')
 
     # Lọc theo Số lượng Khách
     if number_of_guests is not None:
@@ -168,8 +170,8 @@ def search_accommodations(
                 and_(
                     models.Booking.date_end > check_in_date,
                     models.Booking.date_start < check_out_date,
-                    # Chỉ loại trừ các booking đã được xác nhận hoặc chờ xử lý (tùy theo logic của bạn)
-                    models.Booking.status.in_(['confirmed', 'pending_confirmation'])
+                    # Chỉ loại trừ các booking đã được xác nhận
+                    models.Booking.status == 'confirmed'
                 )
             )
             .subquery()

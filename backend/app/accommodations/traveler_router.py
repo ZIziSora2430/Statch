@@ -69,9 +69,9 @@ def search_accommodations_endpoint(
     lng: Optional[float] = Query(None, description="Kinh độ của điểm tìm kiếm"),
     radius: Optional[int] = Query(10, description="Bán kính tìm kiếm (km)"),
     location_text: Optional[str] = Query(None, description="Tìm kiếm theo text (fallback)"),
-    check_in_date: Optional[date] = Query(None, description="Ngày nhận phòng (YYYY-MM-DD)"),
-    check_out_date: Optional[date] = Query(None, description="Ngày trả phòng (YYYY-MM-DD)"),
-    number_of_guests: Optional[int] = Query(None, description="Số lượng khách tối đa"),
+    check_in_date: Optional[date] = Query(None, alias = "checkin", description="Ngày nhận phòng (YYYY-MM-DD)"),
+    check_out_date: Optional[date] = Query(None, alias = "checkout", description="Ngày trả phòng (YYYY-MM-DD)"),
+    number_of_guests: Optional[int] = Query(None, alias="guests", description="Số lượng khách tối đa"),
 
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(get_current_user) # Lấy user

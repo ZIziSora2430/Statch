@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 # Import chuẩn từ app
 from app.database import SessionLocal, engine
 from app.models import (
-    User, Accommodation, Booking, Review, Post, Reply, Notification, # <--- Thêm Notification
+    User, Accommodation, Booking, Review, Post, Reply, # Bỏ Notification khỏi import nếu không dùng, hoặc giữ để clean
     UserRole, PostCategory, PostStatus
 )
 
@@ -60,7 +60,7 @@ def clean_database(db: Session):
         db.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
         
         # Xóa theo thứ tự (tên bảng phải khớp trong database)
-        # Lưu ý: "Notification" viết hoa nếu trong models.py __tablename__ viết hoa
+        # Lưu ý: Notification vẫn cần xóa nếu bảng tồn tại
         tables = ["replies", "posts", "reviews", "bookings", "accommodations", "Notification", "users"]
         for table in tables:
             try:
@@ -136,22 +136,16 @@ def seed_data():
         "breakfast", "pet_friendly", "balcony", "view", "washing_machine"
         ]
 
-        # Số lượng tags ngẫu nhiên sẽ được chọn cho mỗi chỗ ở (ví dụ: từ 3 đến 6 tags)
         MIN_TAGS = 3
         MAX_TAGS = 6
-
 
         for real_place in REAL_ESTATES:
             owner = random.choice(owners)
             adjectives = ["View đẹp", "Luxury", "Cozy", "Hiện đại", "Vintage", "Thoáng mát"]
             
-            # 1. Chọn ngẫu nhiên số lượng tags
+            # Chọn ngẫu nhiên tags
             num_tags_to_pick = random.randint(MIN_TAGS, MAX_TAGS)
-            
-            # 2. Chọn ngẫu nhiên tags từ danh sách có sẵn (không lặp lại)
             random_tags_list = random.sample(AVAILABLE_TAGS, num_tags_to_pick)
-            
-            # 3. Chuyển list thành chuỗi phân cách bằng dấu phẩy
             dynamic_tags = ",".join(random_tags_list)
 
             accom = Accommodation(
@@ -166,7 +160,7 @@ def seed_data():
                 picture_url=f"https://picsum.photos/seed/{random.randint(1,1000)}/800/600",
                 latitude=Decimal(real_place['lat']),
                 longitude=Decimal(real_place['lng']),
-                tags=dynamic_tags # ✅ Thêm tags
+                tags=dynamic_tags
             )
             db.add(accom)
             accommodations.append(accom)
@@ -200,18 +194,23 @@ def seed_data():
             stay_days = random.randint(1, 5)
             end_date = start_date + timedelta(days=stay_days)
             
-            # Tính tiền (Giá * Số đêm) - Logic mới không có rooms
             total = accom.price * stay_days
 
-            # Tạo Booking (ĐÃ SỬA: Bỏ rooms, thêm note)
+            # Tạo Booking 
+            # CẬP NHẬT: Đã xóa 'rooms', thêm các trường guest_name, guest_email, guest_phone
             booking = Booking(
                 user_id=guest.id,
                 accommodation_id=accom.accommodation_id,
                 date_start=start_date,   
                 date_end=end_date,
                 guests=random.randint(1, accom.max_guests),
-                # rooms=1, <--- Đã xóa
-                note=fake.sentence(), # <--- Đã thêm
+                
+                # Thông tin liên hệ lấy từ user guest
+                guest_name=guest.full_name,
+                guest_email=guest.email,
+                guest_phone=guest.phone,
+                
+                note=fake.sentence(),
                 total_price=total,
                 status=status,
                 booking_code=str(uuid.uuid4())[:8].upper()
@@ -277,27 +276,6 @@ def seed_data():
                 
         db.commit()
         print(f"   - Đã tạo {len(posts)} bài viết và {replies_count} bình luận.")
-
-        # =====================================================
-        # 5. TẠO NOTIFICATIONS (MỚI THÊM)
-        # =====================================================
-        print("🔔 5. Đang tạo Notifications...")
-        for u in users:
-            # Random 0-3 thông báo cho mỗi user
-            for _ in range(random.randint(0, 3)):
-                noti = Notification(
-                    user_id=u.id,
-                    message=random.choice([
-                        "Đơn đặt phòng #123 của bạn đã được xác nhận.",
-                        "Chào mừng bạn đến với Statch!",
-                        "Bạn có tin nhắn mới từ chủ nhà.",
-                        "Ưu đãi giảm giá 20% cho chuyến đi tiếp theo."
-                    ]),
-                    is_read=random.choice([True, False])
-                )
-                db.add(noti)
-        db.commit()
-        print("   - Đã tạo notifications thành công.")
 
         print("\n✅ SEED DATA SUCCESSFUL! (User pass: 123456)")
 

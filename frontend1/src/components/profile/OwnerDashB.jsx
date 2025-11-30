@@ -4,15 +4,15 @@ import { Trash2, MoreVertical, Edit, Plus, MapPin, BedDouble } from "lucide-reac
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-function RoomCard({ id, image, category, categoryColor, name, price, isAvailable, onDelete }) {
-  const [available, setAvailable] = useState(isAvailable);
+function RoomCard({ id, image, category, categoryColor, name, price, status, onDelete }) {
+  const [isAvailable, setIsAvailable] = useState(status === 'available');
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
   const navigate = useNavigate();
 
   useEffect(() => {
-    setAvailable(isAvailable);
-  }, [isAvailable]);
+    setIsAvailable(status === 'available');
+  }, [status]);
 
   // Click outside để đóng menu
   useEffect(() => {
@@ -24,6 +24,42 @@ function RoomCard({ id, image, category, categoryColor, name, price, isAvailable
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // --- HÀM XỬ LÝ TOGGLE ---
+  const handleToggleStatus = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    // 1. Xác định trạng thái mới
+    const newStatusStr = isAvailable ? "hidden" : "available";
+    
+    // 2. Optimistic Update 
+    const oldState = isAvailable;
+    setIsAvailable(!oldState);
+
+    try {
+      const response = await fetch(`${API_URL}/api/owner/accommodations/${id}`, {
+        method: "PUT", 
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: newStatusStr // Chỉ gửi field cần update
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Lỗi cập nhật");
+      }
+      // Nếu thành công, backend trả về object đã update, ta không cần làm gì thêm vì UI đã update rồi
+    } catch (error) {
+      console.error("Lỗi toggle status:", error);
+      // Revert lại UI nếu lỗi
+      setIsAvailable(oldState);
+      alert("Không thể cập nhật trạng thái. Vui lòng thử lại.");
+    }
+  };
 
   return (
     <div className="group relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -99,13 +135,13 @@ function RoomCard({ id, image, category, categoryColor, name, price, isAvailable
                 <input 
                     type="checkbox" 
                     className="sr-only peer" 
-                    checked={available}
-                    onChange={() => setAvailable(!available)}
+                    checked={isAvailable}
+                    onChange={handleToggleStatus}
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
             </label>
-            <span className={`text-[10px] font-medium ${available ? 'text-green-600' : 'text-gray-400'}`}>
-                {available ? 'Đang hiện' : 'Đang ẩn'}
+            <span className={`text-[10px] font-medium ${isAvailable ? 'text-green-600' : 'text-gray-400'}`}>
+                {isAvailable ? 'Đang hiện' : 'Đang ẩn'}
             </span>
           </div>
         </div>
@@ -160,7 +196,7 @@ export default function OwnerDashB() {
               price: item.price,
               category: item.property_type,
               categoryColor: getCategoryColor(item.property_type),
-              isAvailable: item.status === "available",
+              status : item.status,
             };
           });
           setRooms(mappedData);

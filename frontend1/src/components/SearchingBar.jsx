@@ -1,19 +1,75 @@
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { geocodeAddress } from "../utils/geocoding";
 import { MapPin, Calendar, Users, Search } from "lucide-react"; 
 
 export default function SearchingBar({ initialLocation }) {
-  const [location, setLocation] = useState("");
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, endDate] = dateRange;
-  const [guests, setGuests] = useState(1);
-  const [isSearching, setIsSearching] = useState(false);
-
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const getInitialLocation = () => {
+    // Nếu có prop từ cha truyền xuống (ví dụ click từ gợi ý trang chủ)
+    if (initialLocation) return initialLocation;
+    
+    // Nếu trên URL có (ví dụ: /search?location_text=ABC)
+    const urlLoc = searchParams.get("location_text");
+    if (urlLoc) return urlLoc;
+
+    // Cuối cùng lấy từ Storage
+    const saved = sessionStorage.getItem("statch_search_data");
+    return saved ? JSON.parse(saved).location : "";
+  };
+
+  const getInitialDates = () => {
+    // Check URL trước
+    const urlCheckin = searchParams.get("checkin");
+    const urlCheckout = searchParams.get("checkout");
+    if (urlCheckin && urlCheckout) {
+        return [new Date(urlCheckin), new Date(urlCheckout)];
+    }
+
+    // Check Storage
+    const saved = sessionStorage.getItem("statch_search_data");
+    if (saved) {
+        const { startDate, endDate } = JSON.parse(saved);
+        // Cần convert chuỗi ISO về Date Object cho DatePicker
+        return [
+            startDate ? new Date(startDate) : null, 
+            endDate ? new Date(endDate) : null
+        ];
+    }
+    return [null, null];
+  };
+
+  const getInitialGuests = () => {
+    const urlGuests = searchParams.get("guests");
+    if (urlGuests) return Number(urlGuests);
+
+    const saved = sessionStorage.getItem("statch_search_data");
+    return saved ? JSON.parse(saved).guests : 1;
+  };
+
+  const [location, setLocation] = useState(getInitialLocation);
+  const [dateRange, setDateRange] = useState(getInitialDates);
+  const [startDate, endDate] = dateRange;
+  const [guests, setGuests] = useState(getInitialGuests);
+  const [isSearching, setIsSearching] = useState(false);
+
+
+  // --- 2. TỰ ĐỘNG LƯU VÀO SESSION STORAGE KHI NHẬP ---
+  useEffect(() => {
+    const dataToSave = {
+        location,
+        startDate: startDate ? startDate.toISOString() : null, // Lưu dưới dạng string chuẩn
+        endDate: endDate ? endDate.toISOString() : null,
+        guests
+    };
+    sessionStorage.setItem("statch_search_data", JSON.stringify(dataToSave));
+  }, [location, startDate, endDate, guests]);
+
+  
   // Hàm format ngày
   const formatDate = (date) => {
       if (!date) return "";
@@ -25,9 +81,9 @@ export default function SearchingBar({ initialLocation }) {
     setIsSearching(true);
     try {
         const params = new URLSearchParams();
-        
+        const locToSearch = searchLocation || location;
         // Xử lý địa điểm
-        if (searchLocation) {
+        if (locToSearch) {
             params.append("location_text", searchLocation);
             const coords = await geocodeAddress(searchLocation);
             if (coords) {
