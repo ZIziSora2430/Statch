@@ -21,7 +21,7 @@ export default function RoomDetailPage() {
   const [showFullDesc, setShowFullDesc] = useState(false); // Toggle xem thêm mô tả
 
   //Recommend
-  const [recommendations, setRecommendations] = useState([]); // <--- THÊM DÒNG NÀY
+  const [recommendations, setRecommendations] = useState([]);
 
   // State cho form review
   const [newReviewContent, setNewReviewContent] = useState("");
@@ -182,23 +182,6 @@ useEffect(() => {
     return "Điểm thấp";
   };
   
-  const similarRooms = [
-    {
-      name: "Phòng Superior Hướng Thành Phố",
-      location: "Đà Nẵng, Việt Nam",
-      pricePerNight: 950000,
-    },
-    {
-      name: "Phòng Deluxe Gia Đình",
-      location: "Đà Nẵng, Việt Nam",
-      pricePerNight: 1750000,
-    },
-    {
-      name: "Phòng Suite Hướng Biển",
-      location: "Đà Nẵng, Việt Nam",
-      pricePerNight: 2250000,
-    },
-  ];
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
@@ -562,20 +545,14 @@ useEffect(() => {
                             className="flex flex-col sm:flex-row gap-4 border border-gray-200 rounded-xl p-3 hover:shadow-md transition bg-white cursor-pointer"
                         >
                             <div className="w-full sm:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
-                                {/* ⚠️ Cần dùng item.picture_url từ backend nếu có */}
                                 <img src={item.picture_url || `https://placehold.co/400x300?text=${item.title}`} className="w-full h-full object-cover hover:scale-110 transition duration-500"/>
                             </div>
                             <div className="flex-1 flex flex-col justify-between">
                                 <div>
                                     {/* DỮ LIỆU ĐỘNG */}
                                     <h3 className="font-bold text-lg text-gray-900">{item.title}</h3> 
-                                    {/* Giả định: Xếp hạng sao từ item.star_rating */}
-                                    <div className="flex text-yellow-400 text-xs mb-1">
-                                        {Array(item.star_rating).fill(0).map((_, i) => <span key={i}>★</span>)} 
-                                    </div>
                                     <p className="text-xs text-gray-500 flex items-center gap-1">
-                                        { /* Cần import MapPin */ }
-                                        {/* <MapPin size={12}/> {item.location} */}
+                                        <MapPin size={12}/> {item.location} 
                                     </p>
                                     
                                     {/* Hiển thị Tags (Nếu Tags là chuỗi ngăn cách bằng dấu phẩy) */}
@@ -590,8 +567,8 @@ useEffect(() => {
                                 <div className="flex justify-between items-end mt-2">
                                     {/* DỮ LIỆU ĐỘNG */}
                                     <span className="font-bold text-xl text-[#AD0000]">{formatCurrency(item.price)} </span>
-                                    {/* Giả định: Điểm đánh giá (guest_rating) */}
-                                    <span className="text-2xl font-black text-gray-900">{item.guest_rating || 'N/A'}<span className="text-sm font-normal text-gray-500">/10</span></span>
+                                    {/* Giả định: Điểm đánh giá */}
+                                    <span className="text-2xl font-black text-red-700">{room.rating_score|| 'N/A'}<span className="text-sm font-normal text-gray-500">/10</span></span>
                                 </div>
                             </div>
                         </div>
@@ -605,7 +582,7 @@ useEffect(() => {
 
       </main>
 
-      {/* 🔥 THANH ĐẶT PHÒNG CỐ ĐỊNH Ở ĐÁY (FIXED BOTTOM BAR) */}
+      {/* THANH ĐẶT PHÒNG CỐ ĐỊNH Ở ĐÁY (FIXED BOTTOM BAR) */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-5px_15px_rgba(0,0,0,0.08)] z-40 py-4 px-6 md:px-10 transition-transform duration-300">
           <div className="max-w-7xl mx-auto flex flex-row justify-between items-center">
               

@@ -294,7 +294,6 @@
                     {/* Content */}
                     <div style={{ width: 923, minHeight: 538, height: "fit-content", position: "absolute", top: 100, right: 23, background: "white", borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center", boxShadow: '0px 4px 10px rgba(0,0,0,0.25)', paddingBottom: 20 }}>
                         <h1 style={{ fontSize: 36, fontWeight: '700', color: '#AD0000', position: 'absolute', left: 19, top: 10 }}>
-                            {activeSection === "bookCalen" && "Lịch đặt phòng"}
                             {activeSection === "setting"}
                         </h1>
 
