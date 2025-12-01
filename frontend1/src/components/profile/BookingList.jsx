@@ -143,7 +143,13 @@ const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
   };
 
   return (
-    <div className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
+    <div 
+    style={{
+      maxHeight: 980,
+      minHeight: 538,
+      overflow: 'auto'
+    }}
+    className="w-full px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
       
       {/* Header Section */}
       <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
