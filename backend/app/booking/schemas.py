@@ -42,6 +42,7 @@ class BookingRead(BaseModel):
     nights: int
 
     guests: int
+    note: Optional[str] = None
     total_price: float
     price_per_night: float
 

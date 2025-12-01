@@ -19,6 +19,24 @@ export default function Navbar() {
   const [openAvatar, setOpenAvatar] = useState(false);
   const [openNoti, setOpenNoti] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const handleDeleteNotification = async (id) => {
+  try {
+    const token = localStorage.getItem("access_token");
+
+    await fetch(`${API_URL}/api/notifications/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Xoá khỏi UI
+    setNotifications((prev) => prev.filter(n => n.id !== id));
+  } catch (error) {
+    console.error("Lỗi xoá thông báo:", error);
+  }
+};
 
 useEffect(() => {
   const fetchNoti = async () => {
@@ -45,9 +63,33 @@ useEffect(() => {
 
   const avatarRef = useRef();
   const notiRef = useRef();
-
   const hasAvatar = false;
   const avatarImage = hasAvatar ? Avatar : defaultAvatar;
+  const handleNotificationRead = async (notification) => {
+  try {
+    const token = localStorage.getItem("access_token");
+
+    await fetch(`${API_URL}/api/notifications/${notification.id}/read`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Cập nhật trạng thái đã đọc ở UI
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id === notification.id ? { ...n, is_read: true } : n
+      )
+    );
+  } catch (error) {
+    console.error("Lỗi đánh dấu đã đọc:", error);
+  }
+
+  handleNotificationClick(notification);
+};
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -169,14 +211,14 @@ useEffect(() => {
             </span>
 
             {/* Hiển thị chấm đỏ nếu có thông báo mới (optional) */}
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <span style={{
-                position: 'absolute', top: -5, right: -5,
+                position: 'absolute', top: 7, right: 120,
                 background: 'red', color: 'white', borderRadius: '50%',
                 width: 15, height: 15, fontSize: 10, display: 'flex',
                 alignItems: 'center', justifyContent: 'center'
               }}>
-                {notifications.length}
+                {unreadCount}
               </span>
             )}
           </div>
@@ -189,8 +231,7 @@ useEffect(() => {
                 top: 55,
                 right: 100,
                 width: "300px",
-                maxHeight: "400px", // Giới hạn chiều cao
-                overflowY: "auto",  // Scroll nếu quá dài
+                overflowY: "visible",
                 background: "white",
                 borderRadius: "8px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -210,7 +251,7 @@ useEffect(() => {
                   borderTopRightRadius: "8px",
                 }}
               >
-                Thông báo mới ({notifications.length})
+                Thông báo mới ({unreadCount})
               </div>
 
               {/* --- 2. Render List Thông báo từ API --- */}
@@ -227,19 +268,38 @@ useEffect(() => {
                       cursor: "pointer",
                       borderBottom: "1px solid #f0f0f0",
                       transition: "0.2s",
-                      fontSize: "13px"
+                      fontSize: "13px",
+                      position: "relative"
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f8f8f8")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
-                    onClick={() => handleNotificationClick(n)}
                   >
-                    <div style={{fontWeight: n.is_read ? 'normal' : 'bold'}}>
-                      {n.message}
+                    {/* Click thông báo */}
+                    <div onClick={() => handleNotificationRead(n)}>
+                      <div style={{fontWeight: n.is_read ? 'normal' : 'bold'}}>
+                        {n.message}
+                      </div>
+                      <div style={{fontSize: "11px", color: "#999", marginTop: "4px"}}>
+                        {new Date(n.created_at).toLocaleString('vi-VN')}
+                      </div>
                     </div>
-                    <div style={{fontSize: "11px", color: "#999", marginTop: "4px"}}>
-                       {/* Format ngày giờ đơn giản */}
-                       {new Date(n.created_at).toLocaleString('vi-VN')}
-                    </div>
+
+                    {/* Nút xoá */}
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: 12,
+                        top: 8,
+                        color: "#BF1D2D",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        fontSize: "20px",      // ⬅ TO HƠN!
+                        lineHeight: "20px",
+                        padding: "2px 5px",    // dễ bấm hơn
+                        borderRadius: "4px",
+                      }}
+                      onClick={() => handleDeleteNotification(n.id)}
+                    >
+                      ×
+                    </span>
                   </div>
                 ))
               )}
