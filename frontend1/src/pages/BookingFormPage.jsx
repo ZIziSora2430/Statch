@@ -15,28 +15,57 @@ export default function BookingFormPage() {
   // Lấy roomId để fetch lại dữ liệu mới nhất từ DB 
   const roomId = initialState.roomId || initialState.accommodation_id;
 
-  // 2. State lưu thông tin phòng (Lấy từ DB)
+  const getSessionFromStorage = () => {
+    try {
+      const saved = sessionStorage.getItem("statch_search_data");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const sessionData = getSessionFromStorage();
+
+  // --- 2. KHỞI TẠO STATE (Logic Ưu tiên: State > Storage > Default) ---
+  
+  // Xử lý ngày Check-in
+  const [checkin] = useState(() => {
+    // Ưu tiên 1: Từ nút "Đặt ngay"
+    if (initialState.checkin) return initialState.checkin;
+    
+    // Ưu tiên 2: Từ Session Storage (Search Bar cũ)
+    if (sessionData?.startDate) {
+        return new Date(sessionData.startDate).toLocaleDateString("en-CA");
+    }
+
+    // Ưu tiên 3: Mặc định hôm nay
+    return new Date().toLocaleDateString("en-CA");
+  });
+
+  // Xử lý ngày Check-out
+  const [checkout] = useState(() => {
+    if (initialState.checkout) return initialState.checkout;
+    
+    if (sessionData?.endDate) {
+        return new Date(sessionData.endDate).toLocaleDateString("en-CA");
+    }
+
+    return new Date(Date.now() + 86400000).toLocaleDateString("en-CA"); // Mai
+  });
+
+  // Xử lý Số khách
+  const [numGuests, setNumGuests] = useState(() => {
+    if (initialState.guests) return Number(initialState.guests);
+    if (sessionData?.guests) return Number(sessionData.guests);
+    return 1;
+  });
+
+  // --- State thông tin phòng & Form ---
   const [roomInfo, setRoomInfo] = useState({
     title: initialState.roomName || "Đang tải...",
     location: initialState.hotelLocation || "",
     price: initialState.pricePerNight || 0,
   });
-
-  // State form booking
-  const [checkin] = useState(initialState.checkin || new Date().toLocaleDateString("en-CA"));
-  const [checkout] = useState(initialState.checkout || new Date(Date.now() + 86400000).toLocaleDateString("en-CA"));
-
-  // Tính số đêm
-  const calculateNights = (start, end) => {
-      const d1 = new Date(start);
-      const d2 = new Date(end);
-      const diff = d2.getTime() - d1.getTime();
-      return Math.ceil(diff / (1000 * 3600 * 24));
-  };
-  const nights = calculateNights(checkin, checkout);
-
-  // state chỉnh được số khách 
-  const [numGuests, setNumGuests] = useState(initialState.guests || 1);
 
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
@@ -44,6 +73,29 @@ export default function BookingFormPage() {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  // Tính số đêm
+  const calculateNights = (start, end) => {
+      const d1 = new Date(start);
+      const d2 = new Date(end);
+      // Đảm bảo không lỗi nếu ngày không hợp lệ
+      if (isNaN(d1) || isNaN(d2)) return 1;
+      
+      const diff = d2.getTime() - d1.getTime();
+      const nights = Math.ceil(diff / (1000 * 3600 * 24));
+      return nights > 0 ? nights : 1; 
+  };
+  
+  const nights = calculateNights(checkin, checkout);
+  const totalPrice = roomInfo.price * nights;
+
+  // Format tiền tệ
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(value);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -86,16 +138,7 @@ export default function BookingFormPage() {
   }, [roomId, navigate]);
 
   
-  const formatCurrency = (value) =>
-    new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(value);
-
-  // tổng tiền theo số phòng
-  const totalPrice = roomInfo.price * nights;
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -107,8 +150,6 @@ export default function BookingFormPage() {
         return;
     }
 
-    // Gộp thông tin liên hệ vào note (vì backend hiện tại chưa có cột phone/email riêng trong bảng Booking)
-    const finalNote = `Khách: ${guestName} - SĐT: ${guestPhone} - Email: ${guestEmail}. Ghi chú: ${note}`;
 
     try {
       const res = await fetch(`${API_URL}/api/bookings/`, {
@@ -122,8 +163,10 @@ export default function BookingFormPage() {
           date_start: checkin,
           date_end: checkout,
           guests: Number(numGuests),
-          note: finalNote, // Gửi note đã gộp thông tin
-          // rooms: 1, // ĐÃ XÓA TRƯỜNG ROOMS
+          guest_name: guestName,
+          guest_email: guestEmail,
+          guest_phone: guestPhone,
+          note: note 
         }),
       });
 

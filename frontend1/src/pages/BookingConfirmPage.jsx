@@ -47,15 +47,13 @@ export default function BookingConfirmPage() {
             checkin: data.date_start,
             checkout: data.date_end,
             guests: data.guests,
+            guestName: data.guest_name, 
+            guestEmail: data.guest_email,
+            guestPhone: data.guest_phone,
+            fullNote: data.note,
             nights: data.nights,
             pricePerNight: data.price_per_night,
             totalPrice: data.total_price,
-            
-            // Các trường này API hiện tại chưa trả về (cần join bảng User), 
-            // tạm thời để placeholder để không bị lỗi render
-            guestName: "Bạn (Người đặt)", 
-            guestEmail: "---",
-            guestPhone: "---"
         };
         
         // 4. Sửa setBooking -> setBookingData

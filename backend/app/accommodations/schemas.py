@@ -4,6 +4,13 @@ from typing import Optional
 from decimal import Decimal # Sử dụng Decimal cho giá
 from datetime import date
 
+class OwnerInfo(BaseModel):
+    full_name: str
+    email: str
+    phone: Optional[str] = None 
+    class Config: 
+        model_config = ConfigDict(from_attributes=True)
+
 class GenerateDescRequest(BaseModel):
     title: str
     property_type: str
@@ -34,6 +41,7 @@ class AccommodationRead(AccommodationCreate):
     owner_id: int
     status: str # Trả về status (mặc định là 'available')
     tags: Optional[str] = None
+    owner: Optional[OwnerInfo] = None
 
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None

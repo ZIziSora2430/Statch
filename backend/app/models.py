@@ -10,7 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy import TEXT
+from sqlalchemy import TEXT, DateTime
 from .database import Base
 import enum
 
@@ -57,10 +57,9 @@ class User(Base):
     dob = Column(DATE, nullable=True) # dob = Date of Birth     
     phone = Column(String(20), nullable=True, unique=True)
     preference = Column(TEXT, nullable=True)
+    reset_code = Column(String(10), nullable=True)
+    reset_code_expires = Column(DateTime, nullable=True)
 
-    # --- Bổ sung Relationships ---
-    # Một User (owner) có thể có nhiều Accommodation
-    accommodations = relationship("Accommodation", back_populates="owner")
     role = Column(Enum(UserRole), nullable=False, default=UserRole.traveler)
     
     # Forum features
@@ -155,6 +154,9 @@ class Booking(Base):
     # CÁC CỘT MỚI THÊM VÀO
     guests = Column(Integer, nullable=False, default=1)  
     note = Column(TEXT, nullable=True) # Lưu ghi chú của khách
+    guest_name = Column(String(100), nullable=True)  # Tên người ở
+    guest_email = Column(String(100), nullable=True) # Email liên hệ
+    guest_phone = Column(String(20), nullable=True)  # SĐT liên hệ
     
     total_price = Column(DECIMAL(10, 2), nullable=False, default=0)
 

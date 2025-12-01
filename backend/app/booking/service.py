@@ -1,8 +1,8 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from datetime import timedelta
-from fastapi import HTTPException
+from datetime import timedelta, date
+form fastapi import HTTPException
 from .. import models
 from . import schemas
 from ..notifications.service import create_notification
@@ -131,6 +131,9 @@ def build_booking_read(db: Session, booking):
         date_end=booking.date_end,
         nights=nights,
         guests=booking.guests,
+        guest_name=booking.guest_name,
+        guest_email=booking.guest_email,
+        guest_phone=booking.guest_phone,
         note=booking.note,
         total_price=booking.total_price,
         price_per_night=float(accom.price),
@@ -149,19 +152,50 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
         models.Accommodation.accommodation_id == booking.accommodation_id
     ))
     if accom.owner_id != owner_id:
-        raise HTTPException(status_code=403, detail="Không có quyền xác nhận")
-
-    # Chỉ cho phép xác nhận nếu đang chờ
-    if booking.status != schemas.BookingStatusEnum.pending_confirmation.value:
-        raise HTTPException(
-            status_code=400,
-            detail="Booking không ở trạng thái chờ xác nhận"
+        raise ValueError("Không có quyền xác nhận")
+    
+    # 3. Check xem trong lúc chờ pending, đã có ai nhanh tay confirm trước chưa (Safety check)
+    # (Trường hợp 2 owner cùng quản lý 1 acc hoặc lag mạng)
+    double_check_conflict = db.scalar(
+        select(models.Booking).where(
+            models.Booking.accommodation_id == booking.accommodation_id,
+            models.Booking.status == 'confirmed',
+            models.Booking.booking_id != booking_id, # Không check chính nó
+            models.Booking.date_start < booking.date_end,
+            models.Booking.date_end > booking.date_start
         )
+    )
+    if double_check_conflict:
+        raise ValueError("Lỗi: Đã có một booking khác được xác nhận trong khung giờ này!")
 
     booking.status = "confirmed"
+
+    # 5. --- LOGIC TỰ ĐỘNG HỦY CÁC KÈO TRÙNG ---
+    # Tìm tất cả các booking đang 'pending' mà bị trùng ngày với booking vừa confirm này
+    overlapping_pendings = db.scalars(
+        select(models.Booking).where(
+            models.Booking.accommodation_id == booking.accommodation_id,
+            models.Booking.status == 'pending_confirmation',
+            models.Booking.booking_id != booking_id, # Trừ chính thằng đang confirm ra
+            models.Booking.date_start < booking.date_end, # Logic trùng ngày
+            models.Booking.date_end > booking.date_start
+        )
+    ).all()
+
+    # Duyệt qua danh sách và Reject tự động
+    for conflict_booking in overlapping_pendings:
+        conflict_booking.status = "cancelled"
+        
+        # Gửi thông báo chia buồn cho khách bị hủy
+        create_notification(
+            db,
+            user_id=conflict_booking.user_id,
+            message=f"Rất tiếc, yêu cầu đặt phòng tại {accom.title} ({conflict_booking.date_start} - {conflict_booking.date_end}) đã bị từ chối do kín lịch."
+        )
+
     db.commit()
     db.refresh(booking)
-    # Gửi thông báo cho khách hàng
+    # Gửi thông báo thành công cho khách hàng
     create_notification(
         db,
         user_id=booking.user_id,
@@ -221,20 +255,18 @@ def create_booking(
 
     #  Chặn trùng lịch đã xác nhận
     conflict = db.scalar(
-    select(models.Booking)
-    .where(
-        models.Booking.accommodation_id == booking_data.accommodation_id,
-        models.Booking.status == schemas.BookingStatusEnum.confirmed.value,
-        models.Booking.date_start <= booking_data.date_end,
-        models.Booking.date_end >= booking_data.date_start
+        select(models.Booking)
+        .where(
+            models.Booking.accommodation_id == booking_data.accommodation_id,
+            models.Booking.status == schemas.BookingStatusEnum.confirmed.value, 
+            models.Booking.date_start <= booking_data.date_end,
+            models.Booking.date_end >= booking_data.date_start
+        )
     )
-)
-
-    #  Chặn trùng lịch
     if conflict:
-        raise HTTPException(status_code=400, detail="Phòng đã có người đặt trong khoảng thời gian này")
-
-    #  Luôn chờ chủ nhà xác nhận
+         # Sửa thông báo lỗi cho chính xác hơn
+        raise ValueError("Rất tiếc, chỗ nghỉ này đã được XÁC NHẬN trong khoảng thời gian bạn chọn.")
+    
     status = schemas.BookingStatusEnum.pending_confirmation.value
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
@@ -246,7 +278,10 @@ def create_booking(
         date_start=booking_data.date_start,
         date_end=booking_data.date_end,
         guests=booking_data.guests,
-        note=booking_data.note,
+        guest_name=booking_data.guest_name,
+        guest_email=booking_data.guest_email,
+        guest_phone=booking_data.guest_phone,
+        note=booking_data.note,        
         total_price=total_price,
         booking_code=generate_booking_code(),
         status=status

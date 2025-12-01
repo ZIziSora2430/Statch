@@ -237,12 +237,7 @@ useEffect(() => {
                     <MapPin size={16} className="text-[#AD0000]" />
                     <span>{room.location}</span>
                 </div>
-            </div>
-            {/* Share/Like Buttons */}
-            <div className="flex gap-3">
-                <button className="p-2 rounded-full hover:bg-gray-100 transition text-gray-600"><Share size={20}/></button>
-                <button className="p-2 rounded-full hover:bg-gray-100 transition text-gray-600"><Heart size={20}/></button>
-            </div>
+            </div>            
         </div>
 
         {/* 2. GALLERY (MOSAIC) */}
@@ -434,6 +429,49 @@ useEffect(() => {
             >
                 {showFullDesc ? "Thu gọn" : "Xem thêm"} <ChevronDown size={16} className={`transition ${showFullDesc ? 'rotate-180' : ''}`}/>
             </button>
+        </div>
+
+        <div className="border-t border-gray-200 pt-6 mt-6 pb-6">
+    <h2 className="text-xl font-bold text-gray-900 mb-4">Thông tin chủ nhà</h2>
+    
+    <div className="flex items-start gap-4">
+        {/* Avatar: Nếu user chưa có ảnh đại diện, dùng chữ cái đầu tên */}
+        <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-600 border border-gray-300 shrink-0">
+            {room.owner?.full_name ? room.owner.full_name.charAt(0).toUpperCase() : "H"}
+        </div>
+
+        <div className="flex-1">
+            <h3 className="font-bold text-lg text-gray-900">
+                Được host bởi {room.owner?.full_name || "Chủ nhà ẩn danh"}
+            </h3>
+            
+            <div className="text-sm text-gray-500 mt-1 space-y-1">
+                {/* Email */}
+                <p className="flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Email:</span> 
+                    {room.owner?.email}
+                </p>
+                
+                {/* Số điện thoại (chỉ hiện nếu có) */}
+                {room.owner?.phone && (
+                    <p className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700">Điện thoại:</span> 
+                        {room.owner.phone}
+                    </p>
+                )}
+            </div>                
+        </div>
+    </div>
+            
+            {/* Banner cảnh báo an toàn */}
+            <div className="flex items-start gap-3 mt-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div className="text-[#AD0000] mt-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <p className="text-xs text-gray-500">
+                    Để bảo vệ khoản thanh toán của bạn, không bao giờ chuyển tiền hoặc giao tiếp bên ngoài trang web Statch.
+                </p>
+            </div>
         </div>
 
         {/* 5. REVIEWS SECTION (RED BACKGROUND) - Thiết kế gốc */}

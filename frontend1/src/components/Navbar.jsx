@@ -5,6 +5,10 @@ import home from '../images/Home.svg';
 import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import defaultAvatar from "../images/avatar-default.svg";
+import community from '../images/community_icon.png'
+import logo from '../images/Slogo.svg'
+import statch from '../images/STATCH.svg'
+import background from '../images/navbarbg.svg'
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -136,23 +140,76 @@ useEffect(() => {
       style={{ height: 25, cursor: "pointer" }} />
 
       {/* Right icons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
 
         {/* Home */}
-        <button onClick={() => navigate("/home")}>
-          <img src={home} alt="Home" style={{ height: 25, cursor: 'pointer' }} />
-        </button>
+        <div className="h-[25px] flex flex-col items-center group">
+          <button onClick={() => navigate("/home")}>
+            <img src={home} 
+            alt="Home" 
+            className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125" />
+          </button>
+
+          <span 
+            style={{
+              backdropFilter: "blur(8px)",
+              backgroundColor: "hsla(0, 0%, 100%, 0.50)", 
+              padding: "4px 8px",
+              borderRadius: "6px",
+              display: "inline-block"
+            }}
+          className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">
+            Trang chủ
+          </span>
+        </div>
+
+        {/* Community Icon */}
+        <div className="h-[25px] flex flex-col items-center group">
+          <button onClick={() => navigate("/community")}>
+            <img
+              src={community}
+              alt="community"
+              className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125"
+            />
+          </button>
+
+          <span 
+            style={{
+              backdropFilter: "blur(8px)",
+              backgroundColor: "hsla(0, 0%, 100%, 0.50)", 
+              padding: "4px 8px",
+              borderRadius: "6px",
+              display: "inline-block"
+            }}
+          className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">
+            Cộng đồng
+          </span>
+        </div>
 
         {/* Bell Icon */}
-        <div ref={notiRef} style={{ position: "relative" }}>
+        <div ref={notiRef} >
           <div 
             onClick={() => {
               setOpenNoti(!openNoti);
               setOpenAvatar(false);
             }}
-            style={{ cursor: "pointer", position: 'relative' }}
+            className="h-[25px] flex flex-col items-center group"
           >
-            <img src={Bell} alt="Bell" style={{ height: 25 }} />
+            <img src={Bell} alt="Bell" 
+            className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125" />
+
+            <span 
+            style={{
+              backdropFilter: "blur(8px)",
+              backgroundColor: "hsla(0, 0%, 100%, 0.50)", 
+              padding: "4px 8px",
+              borderRadius: "6px",
+              display: "inline-block"
+            }}
+            className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">
+              Thông báo
+            </span>
+
             {/* Hiển thị chấm đỏ nếu có thông báo mới (optional) */}
             {unreadCount > 0 && (
               <span style={{
@@ -171,14 +228,14 @@ useEffect(() => {
             <div
               style={{
                 position: "absolute",
-                top: "35px",
-                right: -10,
+                top: 55,
+                right: 100,
                 width: "300px",
                 overflowY: "visible",
                 background: "white",
                 borderRadius: "8px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                zIndex: 9999,
+                zIndex: -1,
               }}
             >
               {/* Header */}
@@ -269,31 +326,39 @@ useEffect(() => {
         </div>
 
         {/* Avatar */}
-        <div ref={avatarRef} style={{ position: "relative" }}>
-          <img
-            src={avatarImage}
-            alt="Avatar"
-            onClick={() => {
-              setOpenAvatar(!openAvatar);
-              setOpenNoti(false); // đóng notification khi mở avatar
+        <div className="flex flex-col items-center group" >
+          <div ref={avatarRef}
+            className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125"
+            style = {{
+                width: 40,
+                height: 40,
+                backgroundColor: "#ded7d7ff",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
             }}
-            style={{
-              height: 35,
-              width: 35,
-              borderRadius: '50%',
-              objectFit: 'cover',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
-              cursor: 'pointer'
-            }}
-          />
+            >
+              <img
+                src={avatarImage}
+                alt="Avatar"
+                onClick={() => {
+                  setOpenAvatar(!openAvatar);
+                  setOpenNoti(false); // đóng notification khi mở avatar
+                }}
+                className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125"
+              />
+          </div>
+        </div>
 
           {/* Avatar Dropdown */}
           {openAvatar && (
             <div
+              ref={avatarRef}
               style={{
                 position: "absolute",
                 top: "55px",
-                right: 0,
+                right: 10,
                 backgroundColor: "white",
                 borderRadius: "8px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -318,17 +383,6 @@ useEffect(() => {
                   padding: "10px 15px",
                   cursor: "pointer",
                   fontSize: "14px",
-                  color: "#333",
-                }}
-                onClick={() => alert("Settings clicked")}
-              >
-                Cài đặt
-              </div>
-              <div
-                style={{
-                  padding: "10px 15px",
-                  cursor: "pointer",
-                  fontSize: "14px",
                   color: "red",
                   borderTop: "1px solid #eee",
                   marginTop: "5px",
@@ -339,9 +393,42 @@ useEffect(() => {
               </div>
             </div>
           )}
-        </div>
 
       </div>
+
+      {openNoti && (
+        <div
+        style={{
+          position: 'absolute',
+          right: 108,
+          top: 45,
+          width:60,
+          height:5,
+          backgroundColor: '#BF1D2D',
+          zIndex:-1,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5
+        }}
+        />
+      )}
+
+      {openAvatar && (
+        <div
+        style={{
+          position: 'absolute',
+          right: 31,
+          top: 45,
+          width:60,
+          height:5,
+          backgroundColor: '#BF1D2D',
+          zIndex:-1,
+          borderTopLeftRadius: 5,
+          borderTopRightRadius: 5
+        }}
+        />
+      )}
+
+
     </div>
   );
 }
