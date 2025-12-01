@@ -2,7 +2,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import timedelta
-
+from fastapi import HTTPException
 from .. import models
 from . import schemas
 from ..notifications.service import create_notification
@@ -143,13 +143,20 @@ def build_booking_read(db: Session, booking):
 def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
     booking = get_booking_by_id(db, booking_id)
     if not booking:
-        raise ValueError("Booking không tồn tại")
+        raise HTTPException(status_code=404, detail="Booking không tồn tại")
 
     accom = db.scalar(select(models.Accommodation).where(
         models.Accommodation.accommodation_id == booking.accommodation_id
     ))
     if accom.owner_id != owner_id:
-        raise ValueError("Không có quyền xác nhận")
+        raise HTTPException(status_code=403, detail="Không có quyền xác nhận")
+
+    # Chỉ cho phép xác nhận nếu đang chờ
+    if booking.status != schemas.BookingStatusEnum.pending_confirmation.value:
+        raise HTTPException(
+            status_code=400,
+            detail="Booking không ở trạng thái chờ xác nhận"
+        )
 
     booking.status = "confirmed"
     db.commit()
@@ -165,13 +172,20 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
 def owner_cancel_booking(db: Session, booking_id: int, owner_id: int):
     booking = get_booking_by_id(db, booking_id)
     if not booking:
-        raise ValueError("Booking không tồn tại")
+        raise HTTPException(status_code=404, detail="Booking không tồn tại")
 
     accom = db.scalar(select(models.Accommodation).where(
         models.Accommodation.accommodation_id == booking.accommodation_id
     ))
     if accom.owner_id != owner_id:
-        raise ValueError("Không có quyền hủy booking này")
+        raise HTTPException(status_code=403, detail="Không có quyền hủy booking này")
+
+    # Chỉ cho phép hủy nếu đang chờ
+    if booking.status != schemas.BookingStatusEnum.pending_confirmation.value:
+        raise HTTPException(
+            status_code=400,
+            detail="Chỉ có thể hủy booking đang chờ xác nhận"
+        )
 
     booking.status = "cancelled"
     db.commit()
@@ -194,7 +208,7 @@ def create_booking(
     booking_data: schemas.BookingCreate
 ):
     if booking_data.date_end <= booking_data.date_start:
-        raise ValueError("date_end phải lớn hơn date_start")
+        raise HTTPException(status_code=403, detail="Không có quyền hủy booking này")
 
     accommodation = db.scalar(
         select(models.Accommodation).where(
@@ -203,7 +217,7 @@ def create_booking(
     )
 
     if not accommodation:
-        raise ValueError("Accommodation không tồn tại")
+        raise HTTPException(status_code=404, detail="Accommodation không tồn tại")
 
     #  Chặn trùng lịch đã xác nhận
     conflict = db.scalar(
@@ -218,7 +232,7 @@ def create_booking(
 
     #  Chặn trùng lịch
     if conflict:
-        raise ValueError("Phòng đã có người đặt trong khoảng thời gian này")
+        raise HTTPException(status_code=400, detail="Phòng đã có người đặt trong khoảng thời gian này")
 
     #  Luôn chờ chủ nhà xác nhận
     status = schemas.BookingStatusEnum.pending_confirmation.value
