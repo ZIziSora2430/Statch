@@ -198,63 +198,65 @@ async def calculate_match_score(user_preference: str, accommodations: list) -> l
         # Fallback: Nếu AI lỗi, trả về list rỗng (code router sẽ tự fallback về top rate)
         return []
     
-async def rank_search_results(user_query: str, accommodations: list) -> list:
+async def rank_search_results(user_query: str, accommodations: list, user_preference: str = "") -> list:
     """
-    Dùng AI để sắp xếp lại kết quả tìm kiếm dựa trên độ phù hợp ngữ nghĩa.
-    Input: "Homestay chill cho cặp đôi"
-    Output: Danh sách đã sắp xếp lại, ưu tiên các phòng lãng mạn/yên tĩnh.
+    Sắp xếp và LỌC danh sách dựa trên:
+    1. Query tìm kiếm (VD: "Chilling")
+    2. Sở thích người dùng (VD: "Thích yên tĩnh, ghét ồn ào")
     """
-    if not user_query or not accommodations:
-        return accommodations
+    if not accommodations:
+        return []
 
     try:
-        # 1. Chuẩn bị dữ liệu gọn nhẹ gửi cho AI
+        # 1. Chuẩn bị dữ liệu rút gọn
         candidates_json = []
         for acc in accommodations:
-            # Lấy thông tin từ object SQLAlchemy
             candidates_json.append({
                 "id": acc.accommodation_id,
-                "desc": f"{acc.title} - {acc.property_type} - {acc.tags or ''}"
+                "info": f"{acc.title} - {acc.tags or ''} - {acc.location} - {acc.description[:100]}"
             })
 
-        # 2. Prompt
+        # 2. Prompt thông minh hơn
         prompt = f"""
-        Nhiệm vụ: Sắp xếp lại danh sách chỗ ở dựa trên độ phù hợp với tìm kiếm của người dùng.
+        Nhiệm vụ: Bạn là chuyên gia du lịch. Hãy chọn ra các chỗ ở phù hợp nhất.
         
-        User Search: "{user_query}"
-        Candidates: {json.dumps(candidates_json, ensure_ascii=False)}
+        1. User Input: "{user_query}"
+        2. User Preference (Sở thích cá nhân): "{user_preference}"
+        3. Danh sách ứng viên: {json.dumps(candidates_json, ensure_ascii=False)}
 
-        Yêu cầu Output:
-        - Trả về JSON Array các object gồm "id" (int) và "score" (0-100).
-        - Đánh giá dựa trên ngữ nghĩa (Ví dụ: Tìm "yên tĩnh" -> ưu tiên tag "xa trung tâm", "vườn").
-        - KHÔNG giải thích.
+        Yêu cầu:
+        - Đánh giá độ phù hợp (score 0-100) dựa trên ngữ nghĩa của Input và Sở thích.
+        - Ví dụ: User tìm "Chilling", thích "Yên tĩnh" -> Ưu tiên các phòng có tag "Núi", "Hồ", "Vườn".
+        - Trả về JSON Array: [{{"id": 1, "score": 90}}, ...]
         """
 
-        # 3. Cấu hình ép buộc JSON
         generation_config = genai.types.GenerationConfig(
             temperature=0.5,
             response_mime_type="application/json"
         )
 
-        # 4. Gọi AI
         response = await model.generate_content_async(
             prompt,
             generation_config=generation_config
         )
         
-        # 5. Xử lý kết quả
         ranking_data = json.loads(response.text.strip())
-        
-        # Tạo map điểm số: {id: score}
         score_map = {item['id']: item['score'] for item in ranking_data}
 
-        # 6. Sắp xếp danh sách gốc dựa trên điểm số (Cao -> Thấp)
-        # Nếu AI không chấm điểm phòng nào đó, mặc định cho 0 điểm
-        accommodations.sort(key=lambda x: score_map.get(x.accommodation_id, 0), reverse=True)
+        # 3. Lọc và Sắp xếp
+        # Chỉ lấy những phòng có điểm > 0 (AI thấy có liên quan)
+        results = []
+        for acc in accommodations:
+            score = score_map.get(acc.accommodation_id, 0)
+            if score > 10: # Ngưỡng lọc (ví dụ > 10 điểm mới lấy)
+                acc.match_score = score # Gán điểm ảo để FE hiển thị nếu muốn
+                results.append(acc)
         
-        print(f"✅ AI Ranked {len(accommodations)} items for query: '{user_query}'")
-        return accommodations
+        # Sắp xếp điểm cao lên đầu
+        results.sort(key=lambda x: getattr(x, 'match_score', 0), reverse=True)
+        
+        return results
 
     except Exception as e:
-        print(f"⚠️ AI Ranking failed: {e}. Returning original order.")
-        return accommodations
+        print(f"⚠️ AI Ranking failed: {e}")
+        return accommodations # Fallback: trả về nguyên gốc

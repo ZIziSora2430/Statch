@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
 import ResultBar from "../components/ResultBar";
-import { Filter, X, Frown } from "lucide-react"; // Thêm icon cho sinh động (cần cài lucide-react)
+import { Filter, X, Frown, Sparkles } from "lucide-react"; // Thêm icon cho sinh động (cần cài lucide-react)
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -167,7 +167,6 @@ export default function SearchingPage() {
   }, [searchParamsURL]);
 
 
-  // --- RENDER GIAO DIỆN MỚI ---
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       
@@ -338,17 +337,31 @@ export default function SearchingPage() {
                     }
 
                     return (
+                      <div key={item.accommodation_id || item.id} className="relative group block">
+                            
+                            {/* --- AI MATCH SCORE BADGE --- */}
+                            {item.match_score && item.match_score > 0 && (
+                                <div className="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-sm pl-2 pr-3 py-1.5 rounded-full shadow-md border border-green-200 flex items-center gap-2 transform transition-transform group-hover:scale-105">
+                                    <span className="relative flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                    </span>
+                                    <div className="flex flex-col leading-none">
+                                        <div className="flex items-center gap-1 text-green-700 font-bold text-sm">
+                                            {item.match_score}% <Sparkles size={12} className="text-yellow-500 fill-yellow-500" />
+                                        </div>
+                                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Phù hợp</span>
+                                    </div>
+                                </div>
+                            )}
                         <ResultBar
-                            key={item.accommodation_id || item.id}
                             image={displayImage}
                             title={item.title}
                             location={item.location}
                             
                             ratingText={getRatingText(item.rating_score)}
                             ratingScore={item.rating_score || 0.0} // Fallback nếu API chưa có
-                            ratingCount={item.review_count}
-                            stars={4}
-                            
+                            ratingCount={item.review_count}                            
                             tags={parseTags(item.tags || item.ai_tags || "")}
                             categories={[item.property_type]}
                             summary={`${item.max_guests} khách tối đa`}
@@ -358,6 +371,7 @@ export default function SearchingPage() {
                             
                             onClick={() => navigate(`/accommodations/${item.accommodation_id || item.id}`)}
                         />
+                      </div>
                     );
                 })}
             </div>

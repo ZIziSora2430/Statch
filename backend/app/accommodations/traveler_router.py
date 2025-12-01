@@ -97,10 +97,24 @@ async def search_accommodations_endpoint(
             check_out_date=check_out_date,
             number_of_guests=number_of_guests
         )
-        if location_text and accommodations and len(accommodations) > 1:
-            print("🤖 Đang nhờ AI sắp xếp lại kết quả cho phù hợp nhất...")
-            # AI sẽ hiểu: "Homestay chill" -> Ưu tiên phòng có tag 'yên tĩnh', 'đà lạt', 'view núi'
-            accommodations = await ai_service.rank_search_results(location_text, accommodations)
+        if not accommodations and location_text and not lat:
+            print(f"🤔 SQL không tìm thấy '{location_text}'. Kích hoạt AI Semantic Search...")
+            candidates = service.get_random_accommodations(db, limit=20)
+            user_pref = current_user.preference if current_user.preference else "Không có sở thích cụ thể"
+            accommodations = await ai_service.rank_search_results(
+                user_query=location_text, 
+                accommodations=candidates,
+                user_preference=user_pref
+            )
+
+        # Nếu đã có kết quả từ SQL, vẫn dùng AI sắp xếp lại cho chuẩn sở thích
+        elif accommodations and len(accommodations) > 0:
+             user_pref = current_user.preference if current_user.preference else ""
+             accommodations = await ai_service.rank_search_results(
+                user_query=location_text if location_text else "", 
+                accommodations=accommodations,
+                user_preference=user_pref
+            )
 
         return accommodations
 

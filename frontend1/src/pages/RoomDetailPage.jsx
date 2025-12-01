@@ -606,7 +606,7 @@ useEffect(() => {
                                     {/* DỮ LIỆU ĐỘNG */}
                                     <span className="font-bold text-xl text-[#AD0000]">{formatCurrency(item.price)} </span>
                                     {/* Giả định: Điểm đánh giá */}
-                                    <span className="text-2xl font-black text-red-700">{room.rating_score|| 'N/A'}<span className="text-sm font-normal text-gray-500">/10</span></span>
+                                    <span className="text-2xl font-black text-red-700">{item.rating_score || 'N/A'}<span className="text-sm font-normal text-gray-500">/10</span></span>
                                 </div>
                             </div>
                         </div>

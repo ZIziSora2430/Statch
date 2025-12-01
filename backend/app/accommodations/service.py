@@ -173,9 +173,9 @@ def search_accommodations(
         # 2. Loại bỏ các phòng đã bị đặt
         query = query.where(models.Accommodation.accommodation_id.notin_(busy_rooms_subquery))
 
-
-        # --- STRATEGY 1: TÌM THEO TỌA ĐỘ (Ưu tiên) ---
     results = []
+        # --- STRATEGY 1: TÌM THEO TỌA ĐỘ (Ưu tiên) ---
+    
     
     if lat is not None and lng is not None and radius is not None:
         geo_query = query.where(
@@ -193,27 +193,33 @@ def search_accommodations(
             )
         ).label("distance")
 
-        query = query.add_columns(distance_col).where(distance_col <= radius).order_by(distance_col)  
+        geo_results = db.execute(
+            geo_query.add_columns(distance_col)
+                     .where(distance_col <= radius)
+                     .order_by(distance_col)
+                     .limit(50)
+        ).all()
+        
+        if geo_results:
+             results = geo_results  
 
 
     # CASE B: Tìm theo Text (Keyword Search)
-    elif location_text:
+    # Chạy khi: (Không có tọa độ) HOẶC (Có tọa độ nhưng tìm không ra kết quả nào)
+    if not results and location_text:
         print(f"🔤 Searching by Text SQL: '{location_text}'")
         search_term = f"%{location_text}%"
         
         # Tìm kiếm trên 3 trường: Title, Location VÀ Tags
         # Sử dụng ilike để không phân biệt hoa thường (Case-insensitive)
-        query = query.where(
+        text_query = query.where(
             or_(
                 models.Accommodation.title.ilike(search_term),
                 models.Accommodation.location.ilike(search_term),
-                models.Accommodation.tags.ilike(search_term) # Tìm trong cả Tags AI tạo ra
+                models.Accommodation.tags.ilike(search_term) 
             )
         )
-        
-    # Thực thi Query
-    # Limit 50 để tránh load quá nhiều
-    results = db.execute(query.limit(50)).all()
+        results = db.execute(text_query.limit(50)).all()
     
     # Xử lý kết quả trả về
     accommodations = []
@@ -252,28 +258,28 @@ def get_top_accommodations(db: Session, limit: int = 6):
         .limit(limit)\
         .all()
 
-# Hàm logic lấy chi tiết booking
-def get_booking_details(db: Session, booking_id: int, user_id: int):
-    """
-    Hàm logic lấy chi tiết booking và kiểm tra quyền truy cập.
-    """
-    booking = db.scalar(
-        select(models.Booking)
-        .where(models.Booking.booking_id == booking_id)
-    )
+# # Hàm logic lấy chi tiết booking
+# def get_booking_details(db: Session, booking_id: int, user_id: int):
+#     """
+#     Hàm logic lấy chi tiết booking và kiểm tra quyền truy cập.
+#     """
+#     booking = db.scalar(
+#         select(models.Booking)
+#         .where(models.Booking.booking_id == booking_id)
+#     )
     
-    if not booking:
-        return None 
+#     if not booking:
+#         return None 
 
-    accommodation = db.scalar(
-        select(models.Accommodation)
-        .where(models.Accommodation.accommodation_id == booking.accommodation_id)
-    )
+#     accommodation = db.scalar(
+#         select(models.Accommodation)
+#         .where(models.Accommodation.accommodation_id == booking.accommodation_id)
+#     )
 
-    if booking.user_id == user_id or (accommodation and accommodation.owner_id == user_id):
-        return booking
-    else:
-        return False # Không có quyền
+#     if booking.user_id == user_id or (accommodation and accommodation.owner_id == user_id):
+#         return booking
+#     else:
+#         return False # Không có quyền
 
 
 # # Hàm logic tạo booking mới
@@ -429,4 +435,10 @@ def get_recommended_accommodations(db: Session, accommodation_id: int, limit: in
         
         results.extend(additional_results)
     
-    return results
+
+    final_results = []
+    for acc in results:
+        # Gọi hàm helper để tính toán rating_score và review_count
+        _attach_rating_info(db, acc) 
+        final_results.append(acc)
+    return final_results
