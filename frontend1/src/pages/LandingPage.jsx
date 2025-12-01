@@ -303,9 +303,10 @@ export default function LandingPage() {
             <Promo />
           </div>
         </section>
+        <Community />
       </main>
 
-      <Community />
+      
       <Footer/>
     </div>
   );
