@@ -2,7 +2,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import timedelta, date
-form fastapi import HTTPException
+from fastapi import HTTPException
 from .. import models
 from . import schemas
 from ..notifications.service import create_notification
@@ -166,7 +166,10 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
         )
     )
     if double_check_conflict:
-        raise ValueError("Lỗi: Đã có một booking khác được xác nhận trong khung giờ này!")
+        raise HTTPException(
+            status_code=400,
+            detail="Lỗi: Đã có booking khác được xác nhận trong khoảng thời gian này!"
+        )
 
     booking.status = "confirmed"
 
@@ -242,7 +245,7 @@ def create_booking(
     booking_data: schemas.BookingCreate
 ):
     if booking_data.date_end <= booking_data.date_start:
-        raise HTTPException(status_code=403, detail="Không có quyền hủy booking này")
+         raise HTTPException(status_code=400, detail="Ngày trả phòng phải lớn hơn ngày nhận phòng")
 
     accommodation = db.scalar(
         select(models.Accommodation).where(
@@ -265,7 +268,10 @@ def create_booking(
     )
     if conflict:
          # Sửa thông báo lỗi cho chính xác hơn
-        raise ValueError("Rất tiếc, chỗ nghỉ này đã được XÁC NHẬN trong khoảng thời gian bạn chọn.")
+        raise HTTPException(
+            status_code=400,
+            detail="Rất tiếc, chỗ nghỉ này đã được xác nhận trong khoảng thời gian bạn chọn."
+        )
     
     status = schemas.BookingStatusEnum.pending_confirmation.value
 
