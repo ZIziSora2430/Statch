@@ -1,9 +1,101 @@
-- main: Chứa bản ổn định, chỉ PM merge.
+# **Tài liệu hướng dẫn cài đặt và chạy dự án cho Developer (Backend FastAPI & Frontend ReactJS).**
 
-- dev: Dùng để test tổng hợp code của nhóm.
+## **🛠️ Yêu cầu hệ thống (Prerequisites)**
+Trước khi bắt đầu, hãy đảm bảo máy bạn đã cài đặt:
+  Python (3.9 trở lên)
+  Node.js (v16 trở lên) & npm
+  MySQL Server (Đang chạy ở cổng 3306)
+  Git
 
-- frontend / backend: Dev thực hiện công việc theo module, merge vào dev sau khi hoàn thành.
+## **1. Cấu hình Database (MySQL)**
+- Mở MySQL Workbench hoặc Terminal.
+- Tạo một database mới (Ví dụ tên là testdb hoặc STACH tùy theo config của bạn) 
 
-    + Từng dev tạo feature branch riêng, ví dụ:
-      frontend/feature-login
-      backend/feature-auth-api
+   ** Lệnh: CREATE DATABASE testdb; **
+
+- Đảm bảo bạn nhớ username và password của MySQL để điền vào file môi trường.
+
+## **2. Cài đặt & Chạy Backend (FastAPI)**
+Backend nằm trong thư mục chứa folder app/.
+### **Bước 2.1: Cài đặt thư viện**
+- Chạy thư mục requirements.txt để cài các thư viện python cần thiết (pip install -r requirements.txt)
+
+### **Bước 2.2: Cấu hình biến môi trường (.env)**
+- Tạo file .env ngang hàng với thư mục app/ (thư mục gốc của backend) và điền nội dung sau:
+    ### Ví dụ file .env (thay USER và PASSWORD bằng thông tin của bạn)
+
+    ```env
+    # Database connection (MySQL)
+    DATABASE_URL=mysql+pymysql://DB_USER:DB_PASSWORD@localhost:3306/testdb
+
+    # Google Gemini / AI key
+    AI_KEY=YOUR_GOOGLE_AI_API_KEY
+
+    # --- CẤU HÌNH GỬI EMAIL (SMTP) ---
+    # Nếu dùng Gmail
+    SMTP_SERVER=smtp.gmail.com
+    SMTP_PORT=587
+    SENDER_EMAIL=your_email@gmail.com
+    # Lưu ý: Đây là Mật khẩu ứng dụng (App Password), KHÔNG PHẢI mật khẩu đăng nhập Gmail
+    SENDER_PASSWORD=YOUR_APP_PASSWORD
+    ```
+
+    Ghi chú ngắn:
+    - Thay DB_USER và DB_PASSWORD bằng username/password MySQL của bạn.
+    - Nếu database tên khác, đổi phần cuối của DATABASE_URL (ví dụ testdb → stach).
+    - AI_KEY: lấy từ aistudio.google.com hoặc nơi cung cấp API key.
+    - SENDER_PASSWORD: dùng App Password nếu dùng Gmail (không phải mật khẩu tài khoản).
+    - Lưu file .env ngang hàng với thư mục app/ và KHÔNG commit file này vào git.
+    ### **Hướng dẫn lấy SENDER_PASSWORD (Cho Gmail)**
+    Để lấy SENDER_PASSWORD cho tài khoản Gmail, bạn cần thực hiện các bước sau:
+
+    1. **Bật xác thực 2 bước**:
+      - Truy cập vào tài khoản Google của bạn.
+      - Vào phần "Bảo mật" (Security).
+      - Tìm mục "Xác thực 2 bước" (2-Step Verification) và bật tính năng này.
+
+    2. **Tạo mật khẩu ứng dụng**:
+      - Sau khi bật xác thực 2 bước, quay lại phần "Bảo mật".
+      - Tìm mục "Mật khẩu ứng dụng" (App Passwords).
+      - Chọn ứng dụng và thiết bị mà bạn muốn tạo mật khẩu (ví dụ: chọn "Mail" và "Máy tính" hoặc "Khác" và nhập tên tùy ý).
+      - Nhấn "Tạo" (Generate) để nhận mật khẩu ứng dụng.
+
+    3. **Sao chép mật khẩu ứng dụng**:
+      - Mật khẩu ứng dụng sẽ được hiển thị. Sao chép mật khẩu này và sử dụng làm SENDER_PASSWORD trong file .env của bạn.
+
+    Lưu ý: Mật khẩu ứng dụng này chỉ sử dụng cho ứng dụng cụ thể và không thay thế cho mật khẩu tài khoản Gmail của bạn.
+
+### **Bước 2.3: Khởi chạy Server**
+Đứng tại thư mục gốc (chứa file .env và folder app), chạy lệnh:
+    ```python
+    uvicorn app.main:app --reload
+    ```
+
+Server sẽ chạy tại: http://127.0.0.1:8000
+API Documentation (Swagger): http://127.0.0.1:8000/docs
+*Lưu ý: Khi chạy lần đầu, models.py sẽ tự động tạo các bảng (Users, Accommodations, Bookings...) vào database MySQL.*
+
+## **3. Cài đặt & Chạy Frontend (React + Vite)**
+Frontend nằm trong thư mục frontend1/
+
+### **Bước 3.1: Cài đặt thư viện (Node Modules)**
+Di chuyển vào thư mục frontend:
+    ```console
+    cd frontend1  
+    npm install
+    ```
+### **Bước 3.2: Cấu hình môi trường (.env)**
+Tạo file .env trong thư mục gốc của Frontend:
+    VITE_API_URL=http://127.0.0.1:8000
+
+### **Bước 3.3: Khởi chạy Client**
+```console
+npm run dev
+```
+*Frontend thường sẽ chạy tại: http://localhost:5173 (hoặc port hiển thị trên terminal).*
+
+## 4. Kiểm tra hoạt động (Smoke Test)
+Database: Kiểm tra trong MySQL xem các bảng users, accommodations đã được tạo chưa.
+Backend, Frontend: Kiểm tra xem server có khởi chạy thành công không, có báo lỗi gì không.
+
+
