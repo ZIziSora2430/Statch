@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Star } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import { Hotel } from 'lucide-react';
+import { Hotel, Star, Check, DollarSign, Clock } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -20,15 +19,23 @@ const renderHotelClassStars = (starCount) => {
 // 2. Helper: Config màu sắc
 const getStatusConfig = (status) => {
     switch (status) {
+        case 'pending_approval':
+            return { bg: 'bg-blue-600', label: 'Chờ duyệt', icon: Clock };
+        case 'pending_payment':
+            return { bg: 'bg-orange-500', label: 'Chờ thanh toán', icon: DollarSign };
+        case 'pending_confirmation':
+            return { bg: 'bg-purple-600', label: 'Chờ xác nhận', icon: Clock };
         case 'confirmed':
-            return { bg: 'bg-[#00C851]', label: 'Đã xác nhận' };
-        case 'success':
-        case 'completed':
-            return { bg: 'bg-gradient-to-br from-[#D50000] to-[#900000]', label: 'Đã thành công' };
+            return { bg: 'bg-[#00C851]', label: 'Đã đặt xong', icon: Check };
+        case 'reported':
+            return { bg: 'bg-red-500', label: 'Đang xử lý', icon: AlertTriangle };
         case 'cancelled':
-            return { bg: 'bg-black', label: 'Đã Hủy' };
+        case 'rejected':
+            return { bg: 'bg-black', label: 'Đã hủy/Từ chối', icon: X };
+        case 'completed':
+            return { bg: 'bg-gray-500', label: 'Hoàn thành', icon: Check };
         default:
-            return { bg: 'bg-gray-400', label: 'Chờ xử lý' };
+            return { bg: 'bg-gray-400', label: 'Chờ xử lý', icon: Clock };
     }
 };
 
@@ -38,7 +45,7 @@ const BookingCard = ({ booking }) => {
     const config = getStatusConfig(booking.status);
     
     // Kiểm tra xem trạng thái có phải là "Đã xong/Hủy" không để phủ màu
-    const isInactive = ['success', 'completed', 'cancelled'].includes(booking.status);
+    const isInactive = ['cancelled', 'rejected', 'completed'].includes(booking.status);
     
     const imageUrl = booking.accommodation_image 
         ? booking.accommodation_image.split(',')[0] 
@@ -55,7 +62,7 @@ const BookingCard = ({ booking }) => {
     const handleViewDetail = (e) => {
         // Ngăn chặn sự kiện nổi bọt nếu bấm vào các nút con
         e?.stopPropagation(); 
-        navigate(`/accommodations/${booking.accommodation_id}`);
+        navigate("/confirm", { state: { bookingId: booking.booking_id } });
     };
     return (
         <div className="relative flex w-full bg-white rounded-2xl shadow-md overflow-hidden mb-6 h-40 border border-gray-100 transition-transform hover:-translate-y-1 duration-300 group"
@@ -103,8 +110,12 @@ const BookingCard = ({ booking }) => {
                         <path d="M20,0 L20,100 L0,100 Q20,50 0,0 Z" 
                               fill={
                                   booking.status === 'confirmed' ? '#00C851' :
+                                  booking.status === 'pending_approval' ? '#2563EB' : // Blue-600
+                                  booking.status === 'pending_payment' ? '#F97316' : // Orange-500
+                                  booking.status === 'pending_confirmation' ? '#9333EA' : // Purple-600
+                                  booking.status === 'reported' ? '#EF4444' : // Red-500
                                   booking.status === 'cancelled' ? '#000000' :
-                                  '#D50000'
+                                  '#9CA3AF' // Gray
                               } 
                         />
                      </svg>
@@ -115,22 +126,29 @@ const BookingCard = ({ booking }) => {
                     {config.label}
                 </span>
 
-                {/* Action Buttons (Chỉ hiện khi Confirmed) */}
-                {booking.status === 'confirmed' && (
-                    <div className="mt-2 flex flex-col items-center gap-1 relative z-10 w-full px-2">
+                {/* NÚT THANH TOÁN (Chỉ hiện khi pending_payment) */}
+                {booking.status === 'pending_payment' && (
+                    <div className="mt-2 relative z-10 animate-pulse">
                         <button 
-                            className="bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold py-1 px-3 rounded-full transition backdrop-blur-sm border border-white/20 w-fit"
-                            onClick={() => alert("Đã gửi yêu cầu hủy")}
+                            className="bg-white text-orange-600 text-[10px] font-bold py-1.5 px-3 rounded-full shadow-lg hover:bg-gray-100 transition"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate("/confirm", { state: { bookingId: booking.booking_id } });
+                            }}
                         >
-                            Hủy đặt
-                        </button>
-                        <button 
-                            className="text-[9px] text-white/90 hover:text-white underline mt-1 cursor-pointer"
-                            onClick={() => navigate(`/accommodations/${booking.accommodation_id}`)}
-                        >
-                            Xem chi tiết &gt;&gt;
+                            Thanh toán ngay
                         </button>
                     </div>
+                )}
+                
+                {/* Nút Xem chi tiết */}
+                {booking.status !== 'pending_payment' && (
+                     <button 
+                        className="text-[10px] text-white/80 hover:text-white underline mt-2 cursor-pointer z-10"
+                        onClick={handleViewDetail}
+                    >
+                        Xem chi tiết
+                    </button>
                 )}
             </div>
         </div>

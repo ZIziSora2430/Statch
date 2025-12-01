@@ -15,6 +15,11 @@ export default function BookingConfirmPage() {
 
   const [bookingData, setBookingData] = useState(null);
 
+  // State để lưu file user chọn
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  
   useEffect(() => {
     // Nếu không có ID (ví dụ user F5 lại trang), điều hướng về trang chủ hoặc báo lỗi
     if (!bookingId) {
@@ -36,10 +41,10 @@ export default function BookingConfirmPage() {
         return res.json();
       })
       .then((data) => {
-        // 3. QUAN TRỌNG: Map dữ liệu từ Backend (snake_case) sang Frontend (camelCase)
-        // Backend trả về: accommodation_title, date_start...
-        // Frontend đang cần: roomName, checkin...
+        // Map dữ liệu từ Backend (snake_case) sang Frontend (camelCase)
+
         const mappedData = {
+            bookingId: data.booking_id,
             bookingCode: data.booking_code,
             status: data.status,
             roomName: data.accommodation_title, // Lấy từ accommodation_title
@@ -60,7 +65,39 @@ export default function BookingConfirmPage() {
         setBookingData(mappedData);
       })
       .catch((err) => console.error("Lỗi fetch:", err));
-  }, [bookingId, navigate]); // Thêm dependencies
+  }, [bookingId, navigate]);
+
+
+  // Hàm upload ảnh
+  const handleUpload = async () => {
+    if (!selectedFile) return alert("Vui lòng chọn ảnh!");
+    
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch(`${API_URL}/api/bookings/${bookingData.bookingId}/upload-proof`, { 
+            method: "POST",
+            headers: { 
+              "Authorization": `Bearer ${token}` 
+            }, 
+            body: formData
+        });
+        
+        if (res.ok) {
+            alert("Đã gửi xác nhận thanh toán!");
+            window.location.reload(); // Reload để cập nhật trạng thái mới
+        } else {
+            alert("Lỗi upload.");
+        }
+    } catch (e) {
+        alert("Lỗi kết nối.");
+    } finally {
+        setUploading(false);
+    }
+  };
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
@@ -78,24 +115,69 @@ export default function BookingConfirmPage() {
       <Navbar />
 
       <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-20 pb-12 flex-1">
-        {/* Card xác nhận */}
-        <section className="bg-white rounded-2xl shadow-sm p-5 sm:p-7 space-y-5">
-          {/* Header */}
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-              <span className="text-green-600 text-xl">✓</span>
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Đặt phòng thành công!
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Cảm ơn bạn đã lựa chọn Statch. Thông tin chi tiết đơn đặt phòng
-                của bạn được hiển thị bên dưới.
-              </p>
-            </div>
-          </div>
+        {/* PHẦN STATUS BAR MỚI */}
+          <div className="border rounded-xl p-4 bg-gray-50 mb-6">
+            <h3 className="font-bold text-lg text-gray-800 mb-2">Trạng thái đơn hàng</h3>
+            
+            {/* TRƯỜNG HỢP 1: Mới đặt -> Chờ duyệt */}
+            {bookingData.status === "pending_approval" && (
+                <div className="text-orange-600 flex items-center gap-2">
+                    <span>⏳</span> 
+                    <span>Đang chờ chủ nhà duyệt yêu cầu. Bạn chưa cần thanh toán lúc này.</span>
+                </div>
+            )}
 
+            {/* TRƯỜNG HỢP 2: Đã duyệt -> Hiện QR Code & Nút Upload */}
+            {bookingData.status === "pending_payment" && (
+                <div className="space-y-4">
+                    <div className="text-green-600 font-medium">
+                        ✅ Chủ nhà đã đồng ý! Vui lòng chuyển khoản để giữ phòng.
+                    </div>
+                    
+                    {/* Khu vực thông tin chuyển khoản (Demo) */}
+                    <div className="bg-white p-4 border border-blue-200 rounded-lg">
+                        <p className="font-bold text-gray-700">Thông tin chuyển khoản:</p>
+                        <p>Ngân hàng: <span className="font-mono">MB Bank</span></p>
+                        <p>Số tài khoản: <span className="font-mono font-bold text-lg">9999 8888 7777</span></p>
+                        <p>Chủ tài khoản: <span className="uppercase">NGUYEN VAN CHU NHA</span></p>
+                        <p>Nội dung: <span className="font-bold text-red-600">{bookingData.bookingCode}</span></p>
+                    </div>
+
+                    {/* Form Upload */}
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium">Tải lên ảnh biên lai:</label>
+                        <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => setSelectedFile(e.target.files[0])}
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        <button 
+                            onClick={handleUpload}
+                            disabled={uploading}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-gray-400"
+                        >
+                            {uploading ? "Đang gửi..." : "Xác nhận đã chuyển khoản"}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* TRƯỜNG HỢP 3: Đã upload -> Chờ confirm */}
+            {bookingData.status === "pending_confirmation" && (
+                <div className="text-blue-600 flex items-center gap-2">
+                    <span>Bạn đã gửi minh chứng thanh toán. Đang chờ chủ nhà xác nhận chuyển khoản thành công.</span>
+                </div>
+            )}
+
+            {/* TRƯỜNG HỢP 4: Thành công */}
+            {bookingData.status === "confirmed" && (
+                <div className="text-green-600 font-bold flex items-center gap-2">
+                    <span>🎉</span>
+                    <span>Đặt phòng thành công! Hãy chuẩn bị hành lý.</span>
+                </div>
+            )}
+          </div>
           {/* Mã đơn + trạng thái */}
           <div className="flex flex-wrap items-center justify-between gap-2 border rounded-xl px-3 py-2 bg-gray-50">
             <div className="text-sm sm:text-base">
@@ -222,7 +304,6 @@ export default function BookingConfirmPage() {
               Về trang chủ
             </button>
           </div>
-        </section>
       </main>
       
       {/* Footer giữ nguyên */}

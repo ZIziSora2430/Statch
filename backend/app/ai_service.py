@@ -197,3 +197,64 @@ async def calculate_match_score(user_preference: str, accommodations: list) -> l
         print(f"❌ Lỗi AI Matchmaker: {e}")
         # Fallback: Nếu AI lỗi, trả về list rỗng (code router sẽ tự fallback về top rate)
         return []
+    
+async def rank_search_results(user_query: str, accommodations: list) -> list:
+    """
+    Dùng AI để sắp xếp lại kết quả tìm kiếm dựa trên độ phù hợp ngữ nghĩa.
+    Input: "Homestay chill cho cặp đôi"
+    Output: Danh sách đã sắp xếp lại, ưu tiên các phòng lãng mạn/yên tĩnh.
+    """
+    if not user_query or not accommodations:
+        return accommodations
+
+    try:
+        # 1. Chuẩn bị dữ liệu gọn nhẹ gửi cho AI
+        candidates_json = []
+        for acc in accommodations:
+            # Lấy thông tin từ object SQLAlchemy
+            candidates_json.append({
+                "id": acc.accommodation_id,
+                "desc": f"{acc.title} - {acc.property_type} - {acc.tags or ''}"
+            })
+
+        # 2. Prompt
+        prompt = f"""
+        Nhiệm vụ: Sắp xếp lại danh sách chỗ ở dựa trên độ phù hợp với tìm kiếm của người dùng.
+        
+        User Search: "{user_query}"
+        Candidates: {json.dumps(candidates_json, ensure_ascii=False)}
+
+        Yêu cầu Output:
+        - Trả về JSON Array các object gồm "id" (int) và "score" (0-100).
+        - Đánh giá dựa trên ngữ nghĩa (Ví dụ: Tìm "yên tĩnh" -> ưu tiên tag "xa trung tâm", "vườn").
+        - KHÔNG giải thích.
+        """
+
+        # 3. Cấu hình ép buộc JSON
+        generation_config = genai.types.GenerationConfig(
+            temperature=0.5,
+            response_mime_type="application/json"
+        )
+
+        # 4. Gọi AI
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=generation_config
+        )
+        
+        # 5. Xử lý kết quả
+        ranking_data = json.loads(response.text.strip())
+        
+        # Tạo map điểm số: {id: score}
+        score_map = {item['id']: item['score'] for item in ranking_data}
+
+        # 6. Sắp xếp danh sách gốc dựa trên điểm số (Cao -> Thấp)
+        # Nếu AI không chấm điểm phòng nào đó, mặc định cho 0 điểm
+        accommodations.sort(key=lambda x: score_map.get(x.accommodation_id, 0), reverse=True)
+        
+        print(f"✅ AI Ranked {len(accommodations)} items for query: '{user_query}'")
+        return accommodations
+
+    except Exception as e:
+        print(f"⚠️ AI Ranking failed: {e}. Returning original order.")
+        return accommodations

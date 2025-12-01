@@ -150,23 +150,18 @@ def search_accommodations(
     Sử dụng công thức Haversine.
     """
     print(f"SEARCH START: Text='{location_text}', Date={check_in_date} -> {check_out_date}")    
-    query = select(models.Accommodation)
-    query = query.where(models.Accommodation.status == 'available')
+    query = select(models.Accommodation).where(models.Accommodation.status == 'available')
 
     # Lọc theo Số lượng Khách
     if number_of_guests is not None:
-        query = query.where(
-            models.Accommodation.max_guests >= number_of_guests
-        )
+        query = query.where(models.Accommodation.max_guests >= number_of_guests)
     
     # Lọc theo Ngày (Kiểm tra Availability - Model Booking của bạn)
     if check_in_date is not None and check_out_date is not None:
         
         # 1. Tìm ra ID của các phòng ĐÃ BỊ ĐẶT và BỊ CHỒNG LẤN
         # CHỒNG LẤN: Booking.date_end > check_in_date VÀ Booking.date_start < check_out_date
-        booked_accommodations_subquery = (
-            select(models.Booking.accommodation_id)
-            .where(
+        busy_rooms_subquery = select(models.Booking.accommodation_id).where(
                 and_(
                     models.Booking.date_end > check_in_date,
                     models.Booking.date_start < check_out_date,
@@ -174,15 +169,10 @@ def search_accommodations(
                     models.Booking.status == 'confirmed'
                 )
             )
-            .subquery()
-        ) 
-        # 2. Loại bỏ các phòng đã bị đặt (các ID có trong subquery)
-        # SỬ DỤNG models.Accommodation.accommodation_id vì đây là Primary Key của Model Accommodation
-        query = query.where(
-            models.Accommodation.accommodation_id.notin_(
-                select(booked_accommodations_subquery.c.accommodation_id)
-            )
-        )
+            
+        # 2. Loại bỏ các phòng đã bị đặt
+        query = query.where(models.Accommodation.accommodation_id.notin_(busy_rooms_subquery))
+
 
         # --- STRATEGY 1: TÌM THEO TỌA ĐỘ (Ưu tiên) ---
     results = []
@@ -203,41 +193,36 @@ def search_accommodations(
             )
         ).label("distance")
 
-        geo_query = geo_query.add_columns(distance_col).having(distance_col <= radius).order_by(distance_col)
-        
-        # Thực thi
-        geo_results = db.execute(geo_query).all()
-        results = [row[0] for row in geo_results]
+        query = query.add_columns(distance_col).where(distance_col <= radius).order_by(distance_col)  
 
-    # --- STRATEGY 2: FALLBACK SANG TEXT (Nếu Strategy 1 rỗng) ---
-    # Nếu không tìm thấy bằng tọa độ NHƯNG người dùng có nhập text -> Tìm bằng text match
-    if not results and location_text:
-        print(f"⚠️ Chuyển sang tìm text bằng Python Filter: '{location_text}'")
-        
-        # A. Lấy tất cả ứng viên từ DB (thỏa mãn điều kiện khách/ngày)
-        candidates_rows = db.execute(query).all()
-        candidates = [row[0] for row in candidates_rows]
 
-        # B. Chuẩn hóa từ khóa tìm kiếm 
-        search_normalized = remove_accents(location_text.lower())
+    # CASE B: Tìm theo Text (Keyword Search)
+    elif location_text:
+        print(f"🔤 Searching by Text SQL: '{location_text}'")
+        search_term = f"%{location_text}%"
         
-        filtered_results = []
-        for acc in candidates:
-            if acc.location:
-                acc_loc_normalized = remove_accents(acc.location.lower())
-                # Kiểm tra có chứa từ khóa không
-                if search_normalized in acc_loc_normalized:
-                    filtered_results.append(acc)
+        # Tìm kiếm trên 3 trường: Title, Location VÀ Tags
+        # Sử dụng ilike để không phân biệt hoa thường (Case-insensitive)
+        query = query.where(
+            or_(
+                models.Accommodation.title.ilike(search_term),
+                models.Accommodation.location.ilike(search_term),
+                models.Accommodation.tags.ilike(search_term) # Tìm trong cả Tags AI tạo ra
+            )
+        )
         
-        results = filtered_results
-    # --- Thực thi Query ---
-    if not results and lat is None and location_text is None:
-         all_results = db.execute(query).all()
-         results = [row[0] for row in all_results]
-
-    for acc in results:
+    # Thực thi Query
+    # Limit 50 để tránh load quá nhiều
+    results = db.execute(query.limit(50)).all()
+    
+    # Xử lý kết quả trả về
+    accommodations = []
+    for row in results:
+        acc = row[0] 
         _attach_rating_info(db, acc)
-    return results
+        accommodations.append(acc)
+
+    return accommodations
 
 
 def get_accommodations_by_owner(db: Session, owner_id: int):
@@ -291,54 +276,54 @@ def get_booking_details(db: Session, booking_id: int, user_id: int):
         return False # Không có quyền
 
 
-# Hàm logic tạo booking mới
-def create_new_booking(db: Session, booking_data: schemas.BookingCreate, user_id: int):
-    """
-    Hàm logic để tạo một booking mới và kiểm tra tính khả dụng cuối cùng.
-    """
+# # Hàm logic tạo booking mới
+# def create_new_booking(db: Session, booking_data: schemas.BookingCreate, user_id: int):
+#     """
+#     Hàm logic để tạo một booking mới và kiểm tra tính khả dụng cuối cùng.
+#     """
     
-    # 1. KIỂM TRA TÍNH KHẢ DỤNG LẦN CUỐI
-    overlapping_bookings_count = db.scalar(
-        select(func.count(models.Booking.booking_id))
-        .where(
-            and_(
-                models.Booking.accommodation_id == booking_data.accommodation_id,
-                models.Booking.date_end > booking_data.date_start,
-                models.Booking.date_start < booking_data.date_end,
-                models.Booking.status.in_(['confirmed', 'pending_confirmation'])
-            )
-        )
-    )
+#     # 1. KIỂM TRA TÍNH KHẢ DỤNG LẦN CUỐI
+#     overlapping_bookings_count = db.scalar(
+#         select(func.count(models.Booking.booking_id))
+#         .where(
+#             and_(
+#                 models.Booking.accommodation_id == booking_data.accommodation_id,
+#                 models.Booking.date_end > booking_data.date_start,
+#                 models.Booking.date_start < booking_data.date_end,
+#                 models.Booking.status.in_(['confirmed', 'pending_confirmation'])
+#             )
+#         )
+#     )
 
-    if overlapping_bookings_count > 0:
-        return {"error": "Phòng đã có người đặt trong khoảng thời gian này.", "code": 409}
+#     if overlapping_bookings_count > 0:
+#         return {"error": "Phòng đã có người đặt trong khoảng thời gian này.", "code": 409}
 
-    # 2. KIỂM TRA SỨC CHỨA
-    accommodation = db.scalar(
-        select(models.Accommodation)
-        .where(models.Accommodation.accommodation_id == booking_data.accommodation_id)
-    )
+#     # 2. KIỂM TRA SỨC CHỨA
+#     accommodation = db.scalar(
+#         select(models.Accommodation)
+#         .where(models.Accommodation.accommodation_id == booking_data.accommodation_id)
+#     )
 
-    if not accommodation or accommodation.max_guests < booking_data.number_of_guests: # Dùng max_guests
-        return {"error": "Số lượng khách vượt quá sức chứa tối đa.", "code": 400}
+#     if not accommodation or accommodation.max_guests < booking_data.number_of_guests: # Dùng max_guests
+#         return {"error": "Số lượng khách vượt quá sức chứa tối đa.", "code": 400}
 
-    # 3. TẠO BOOKING
-    db_booking = models.Booking(
-        **booking_data.model_dump(), # Ánh xạ tất cả các trường từ schema
-        user_id=user_id, 
-        status='pending_confirmation' 
-        # Cần tính toán và gán total_price ở đây nếu cần
-    )
+#     # 3. TẠO BOOKING
+#     db_booking = models.Booking(
+#         **booking_data.model_dump(), # Ánh xạ tất cả các trường từ schema
+#         user_id=user_id, 
+#         status='pending_confirmation' 
+#         # Cần tính toán và gán total_price ở đây nếu cần
+#     )
     
-    try:
-        db.add(db_booking)
-        db.commit()
-        db.refresh(db_booking)
-        return db_booking
-    except Exception as e:
-        db.rollback()
-        print(f"Lỗi khi tạo booking: {e}")
-        return {"error": "Lỗi server khi lưu booking.", "code": 500}
+#     try:
+#         db.add(db_booking)
+#         db.commit()
+#         db.refresh(db_booking)
+#         return db_booking
+#     except Exception as e:
+#         db.rollback()
+#         print(f"Lỗi khi tạo booking: {e}")
+#         return {"error": "Lỗi server khi lưu booking.", "code": 500}
     
 # --- HÀM HELPER TÍNH ĐIỂM ---
 def _attach_rating_info(db: Session, accommodation):

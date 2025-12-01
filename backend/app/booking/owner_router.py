@@ -45,6 +45,17 @@ def get_booking_detail(
     return service.build_booking_read(db, booking)
 
 
+@router.put("/{booking_id}/approve")
+def owner_approve_booking_endpoint(
+    booking_id: int,
+    db: Session = Depends(database.get_db),
+    current_owner: models.User = Depends(get_current_active_owner)
+):
+    try:
+        return service.owner_approve_booking(db, booking_id, current_owner.id)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
 # CONFIRM BOOKING
 @router.put("/{booking_id}/confirm")
 def owner_confirm_booking(
@@ -63,3 +74,15 @@ def owner_cancel_booking(
     current_owner: models.User = Depends(get_current_active_owner)
 ):
     return service.owner_cancel_booking(db, booking_id, current_owner.id)
+
+# Report booking
+@router.put("/{booking_id}/report")
+def owner_report_booking_endpoint(
+    booking_id: int,
+    db: Session = Depends(database.get_db),
+    current_owner: models.User = Depends(get_current_active_owner)
+):
+    try:
+        return service.owner_report_issue(db, booking_id, current_owner.id)
+    except ValueError as e:
+        raise HTTPException(400, str(e))

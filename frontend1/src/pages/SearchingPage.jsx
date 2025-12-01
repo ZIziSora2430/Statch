@@ -59,7 +59,7 @@ export default function SearchingPage() {
     return "Điểm thấp";
   };
 
-  // --- HANDLERS (Giữ nguyên) ---
+  // --- Bộ lọc ---
   const handleFilterChange = (field, rawValue) => {
     setFilters((prev) => {
       let value = Number(rawValue);
@@ -105,8 +105,9 @@ export default function SearchingPage() {
         if (!isMatch) return false;
       }
 
-      if (filters.minRating !== null && item.ratingScore) {
-        if (item.ratingScore < filters.minRating) return false;
+      if (filters.minRating !== null) {
+        const score = item.rating_score || 0; 
+        if (score < filters.minRating) return false;
       }
       return true;
     });

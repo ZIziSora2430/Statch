@@ -21,11 +21,6 @@ export default function PasswordSection({ showNotify }) {
       return;
     }
 
-    if (newPass.length < 6) {
-      showNotify("Mật khẩu mới phải có ít nhất 6 ký tự.", "error");
-      return;
-    }
-
     setLoading(true);
 
     // 2. Gọi API

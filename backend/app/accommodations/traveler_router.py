@@ -62,7 +62,7 @@ async def get_smart_recommendations(
     "/search/", 
     response_model=List[schemas.AccommodationRead] 
 )
-def search_accommodations_endpoint(
+async def search_accommodations_endpoint(
     # Tìm theo tọa độ 
     # Ví dụ: /search/?lat=10.77&lng=106.69&radius=5 (tìm trong bán kính 5km)
     lat: Optional[float] = Query(None, description="Vĩ độ của điểm tìm kiếm"),
@@ -97,9 +97,15 @@ def search_accommodations_endpoint(
             check_out_date=check_out_date,
             number_of_guests=number_of_guests
         )
+        if location_text and accommodations and len(accommodations) > 1:
+            print("🤖 Đang nhờ AI sắp xếp lại kết quả cho phù hợp nhất...")
+            # AI sẽ hiểu: "Homestay chill" -> Ưu tiên phòng có tag 'yên tĩnh', 'đà lạt', 'view núi'
+            accommodations = await ai_service.rank_search_results(location_text, accommodations)
+
         return accommodations
+
     except Exception as e:
-        raise HTTPException (
+        raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Lỗi khi tìm kiếm: {str(e)}"
         )
@@ -148,63 +154,63 @@ def get_accommodation_details_endpoint(
         )
     return accommodation
 
-# API Lấy Chi tiết Booking
-@router.get(
-    "/bookings/{booking_id}", 
-    response_model=schemas.BookingRead 
-)
-def get_booking_details_endpoint(
-    booking_id: int,
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(get_current_user) 
-):
-    """
-    API Endpoint cho traveler hoặc owner xem chi tiết một Booking cụ thể.
-    """
+# # API Lấy Chi tiết Booking
+# @router.get(
+#     "/bookings/{booking_id}", 
+#     response_model=schemas.BookingRead 
+# )
+# def get_booking_details_endpoint(
+#     booking_id: int,
+#     db: Session = Depends(database.get_db),
+#     current_user: models.User = Depends(get_current_user) 
+# ):
+#     """
+#     API Endpoint cho traveler hoặc owner xem chi tiết một Booking cụ thể.
+#     """
     
-    booking = service.get_booking_details(
-        db=db, 
-        booking_id=booking_id, 
-        user_id=current_user.id
-    )
+#     booking = service.get_booking_details(
+#         db=db, 
+#         booking_id=booking_id, 
+#         user_id=current_user.id
+#     )
     
-    if booking is False:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bạn không có quyền xem chi tiết booking này."
-        )
-    elif booking is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Không tìm thấy Booking."
-        )
+#     if booking is False:
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN,
+#             detail="Bạn không có quyền xem chi tiết booking này."
+#         )
+#     elif booking is None:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="Không tìm thấy Booking."
+#         )
         
-    return booking
+#     return booking
 
-# API TẠO BOOKING MỚI (POST Request)
-@router.post(
-    "/bookings/create",
-    response_model=schemas.BookingRead, 
-    status_code=status.HTTP_201_CREATED
-)
-def create_booking_endpoint(
-    booking_data: schemas.BookingCreate, 
-    db: Session = Depends(database.get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    """
-    API Endpoint để Traveler gửi yêu cầu đặt phòng.
-    """
-    result = service.create_new_booking(
-        db=db,
-        booking_data=booking_data,
-        user_id=current_user.id
-    )
+# # API TẠO BOOKING MỚI (POST Request)
+# @router.post(
+#     "/bookings/create",
+#     response_model=schemas.BookingRead, 
+#     status_code=status.HTTP_201_CREATED
+# )
+# def create_booking_endpoint(
+#     booking_data: schemas.BookingCreate, 
+#     db: Session = Depends(database.get_db),
+#     current_user: models.User = Depends(get_current_user)
+# ):
+#     """
+#     API Endpoint để Traveler gửi yêu cầu đặt phòng.
+#     """
+#     result = service.create_new_booking(
+#         db=db,
+#         booking_data=booking_data,
+#         user_id=current_user.id
+#     )
     
-    if "error" in result:
-        raise HTTPException(
-            status_code=result["code"],
-            detail=result["error"]
-        )
+#     if "error" in result:
+#         raise HTTPException(
+#             status_code=result["code"],
+#             detail=result["error"]
+#         )
 
-    return result
+#     return result
