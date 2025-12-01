@@ -3,42 +3,95 @@ import SignUpInBackGround from "../components/SignUpInBackGround";
 import { useNavigate } from "react-router-dom";
 import '../index.css';
 
+
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 function SignInPage() {
   const navigate = useNavigate();
+  // Các bước: 1 (Nhập Email), 2 (Nhập Mã), 3 (Nhập Pass mới)
+  const [step, setStep] = useState(1);
   
   const [email, setEmail] = useState("");
   const [confirmCode, setConfirmCode] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const [codeVerified, setCodeVerified] = useState(false); // ✅ Check if code is correct
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Dummy function to simulate code verification
-  const handleVerifyCode = () => {
-    if (confirmCode === "123456") { // replace with real API check
-      setCodeVerified(true);
-      setError("");
-    } else {
-      setError("Mã xác nhận không đúng");
+  // --- BƯỚC 1: Gửi yêu cầu lấy mã ---
+  const handleSendCode = async () => {
+    setError("");
+    setMessage("");
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStep(2); // Chuyển sang bước nhập mã
+        setMessage("Mã xác nhận đã được gửi vào email của bạn.");
+      } else {
+        setError("Có lỗi xảy ra, vui lòng thử lại.");
+      }
+    } catch (err) {
+      setError("Không thể kết nối đến server.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleResetPassword = () => {
-    if (newPassword !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+  // --- BƯỚC 2: Xác nhận mã (Chuyển sang giao diện nhập pass) ---
+  const handleVerifyCodeUI = () => {
+    if (confirmCode.length < 6) {
+      setError("Vui lòng nhập mã xác nhận hợp lệ.");
       return;
     }
     setError("");
+    setStep(3); // Chuyển sang bước nhập pass mới
+  };
+
+  // --- BƯỚC 3: Gửi API đặt lại mật khẩu ---
+  const handleResetPassword = async () => {
+    if (newPassword !== confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp.");
+      return;
+    }
+
+    setError("");
     setLoading(true);
 
-    // ✅ Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${API_URL}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          code: confirmCode,
+          new_password: newPassword
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
+        navigate("/");
+      } else {
+        setError(data.detail || "Mã xác nhận sai hoặc đã hết hạn.");
+        if(data.detail === "Mã xác nhận không hợp lệ hoặc đã hết hạn"){
+            setStep(2); // Quay lại bước nhập mã nếu sai
+        }
+      }
+    } catch (err) {
+      setError("Lỗi kết nối server.");
+    } finally {
       setLoading(false);
-      alert("Đặt lại mật khẩu thành công!");
-      navigate("/signin");
-    }, 1000);
+    }
   };
 
   return (
@@ -59,48 +112,56 @@ function SignInPage() {
           }}
         >
           <h1 style={{ color: '#B01C29', textAlign: 'center', marginBottom: '20px', fontSize: '24px', fontWeight: '700' }}>
-            Quên mật khẩu
+            {step === 1 ? "Quên mật khẩu" : step === 2 ? "Nhập mã xác nhận" : "Tạo mật khẩu mới"}
           </h1>
 
-          <h1 style={{ marginBottom: '5px', fontSize: '15px', fontWeight: '450' }}>Email đã liên kết</h1>
-          <input
-            type="email"
-            placeholder="Nhập email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px', width: '100%', marginBottom: '15px', fontSize: '15px' }}
-          />
+          {/* Hiển thị thông báo lỗi hoặc thành công */}
+          {error && <p style={{ color: 'red', textAlign: 'center', marginBottom: '10px', fontSize: '14px', background: '#ffe6e6', padding: '5px', borderRadius: '5px' }}>{error}</p>}
+          {message && <p style={{ color: 'green', textAlign: 'center', marginBottom: '10px', fontSize: '14px' }}>{message}</p>}
 
-          <label style={{ marginBottom: '5px', fontWeight: '450', fontSize: '15px' }}>Mã xác nhận</label>
-          <input
-            placeholder="Nhập mã"
-            value={confirmCode}
-            onChange={(e) => setConfirmCode(e.target.value)}
-            required
-            style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px', width: '100%', marginBottom: '10px', fontSize: '15px' }}
-          />
+          {step === 1 && (
+            <>
+              <h1 style={{ marginBottom: '5px', fontSize: '15px', fontWeight: '450' }}>Email đã liên kết</h1>
+              <input
+                type="email"
+                placeholder="Nhập email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px', width: '100%', marginBottom: '15px', fontSize: '15px' }}
+              />
+              <button onClick={handleSendCode} disabled={loading} style={buttonStyle(loading)}>
+                {loading ? 'Đang gửi...' : 'Gửi mã xác nhận'}
+              </button>
+            </>
+          )}
 
-          {!codeVerified ? (
-            <button
-              type="button"
-              onClick={handleVerifyCode}
-              style={{
-                backgroundColor: '#B01C29',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '12px',
-                paddingTop: 10,
-                width: '100%',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'background-color 0.3s'
-              }}
-            >
-              Xác nhận mã
-            </button>
-          ) : (
+          {/* --- STEP 2: NHẬP MÃ OTP --- */}
+          {step === 2 && (
+            <>
+              <p style={{marginBottom: '15px', color: '#666', fontSize: '14px'}}>Vui lòng kiểm tra email <b>{email}</b> và nhập mã 6 số.</p>
+              <input
+                placeholder="Nhập mã"
+                value={confirmCode}
+                onChange={(e) => setConfirmCode(e.target.value)}
+                required
+                style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px', width: '100%', marginBottom: '10px', fontSize: '15px' }}
+              />
+
+              <button onClick={handleVerifyCodeUI} style={buttonStyle(false)}>
+                Tiếp tục
+              </button>
+              <button 
+                onClick={() => setStep(1)} 
+                style={{width: '100%', marginTop: '10px', background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline'}}
+              >
+                Gửi lại mã?
+              </button>
+            </>
+          )}
+
+            {/* --- STEP 3: ĐỔI MẬT KHẨU --- */}
+            {step === 3 && (
             <>
               <label style={{ marginTop: '15px', fontWeight: '450', fontSize: '15px' }}>Mật khẩu mới</label>
               <input
@@ -160,5 +221,17 @@ function SignInPage() {
     </div>
   );
 }
+const inputStyle = {
+  padding: '12px', border: '1px solid #ddd', borderRadius: '8px', 
+  width: '100%', marginBottom: '15px', fontSize: '15px', outline: 'none',
+  boxSizing: 'border-box' // Quan trọng để padding không làm vỡ layout
+};
 
+const buttonStyle = (loading) => ({
+  backgroundColor: loading ? '#ccc' : '#B01C29',
+  color: 'white', border: 'none', borderRadius: '8px',
+  padding: '12px', width: '100%', cursor: loading ? 'not-allowed' : 'pointer',
+  fontWeight: 'bold', fontSize: '16px', transition: '0.3s',
+  boxShadow: '0 2px 5px rgba(176, 28, 41, 0.3)'
+});
 export default SignInPage;
