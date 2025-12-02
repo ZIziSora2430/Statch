@@ -1,5 +1,5 @@
 // CommunityPage.jsx
-import React, { useState, useEffect } from "react"; // [Cite: React Hooks]
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Search, Pencil } from "lucide-react";
 import CityButton from "../components/CityButton";
@@ -10,8 +10,37 @@ import CreatePost from "../components/CreatePost.jsx";
 import { Link } from "react-router-dom";
 import SelectDistrict from "../components/SelectDistrict.jsx";
 
-// Cấu hình URL API (Chỉnh lại port nếu cần)
+// Cấu hình URL API
 const API_BASE_URL = "http://localhost:8000"; 
+
+// Map value -> label để hiển thị trên CityButton
+const LOCATION_LABELS = {
+  "": "Chọn địa điểm",
+  district1: "Quận 1",
+  district2: "Quận 2",
+  district3: "Quận 3",
+  district4: "Quận 4",
+  district5: "Quận 5",
+  district6: "Quận 6",
+  district7: "Quận 7",
+  district8: "Quận 8",
+  district9: "Quận 9",
+  district10: "Quận 10",
+  district11: "Quận 11",
+  district12: "Quận 12",
+  binh_thanh: "Quận Bình Thạnh",
+  binh_tan: "Quận Bình Tân",
+  phu_nhuan: "Quận Phú Nhuận",
+  tan_binh: "Quận Tân Bình",
+  tan_phu: "Quận Tân Phú",
+  go_vap: "Quận Gò Vấp",
+  thu_duc: "TP Thủ Đức",
+  hoc_mon: "Huyện Hóc Môn",
+  binh_chanh: "Huyện Bình Chánh",
+  nha_be: "Huyện Nhà Bè",
+  can_gio: "Huyện Cần Giờ",
+  cu_chi: "Huyện Củ Chi",
+};
 
 function CommunityPage() {
   const [posts, setPosts] = useState([]); 
@@ -19,64 +48,75 @@ function CommunityPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-
+  const [selectedLocation, setSelectedLocation] = useState(""); // ĐÃ ĐỔI TÊN
 
   // State cho trạng thái verify
   const [isVerified, setIsVerified] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState("");
 
-// --- CALL API 1: Lấy trạng thái Verified Traveler ---
-const fetchVerifiedStatus = async () => {
-  try {
-    // 1. Lấy token thật từ localStorage (kiểm tra tên key của bạn là 'access_token' hay 'token')
-    const token = localStorage.getItem("access_token"); 
-    
-    // Nếu không có token (chưa đăng nhập) thì thôi không gọi API này nữa
-    if (!token) return; 
+  // --- CALL API 1: Lấy trạng thái Verified Traveler ---
+  const fetchVerifiedStatus = async () => {
+    try {
+      const token = localStorage.getItem("access_token"); 
+      if (!token) return; 
 
-    const response = await fetch(`${API_BASE_URL}/verified-status`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}` // <--- QUAN TRỌNG: Gửi token lên
+      const response = await fetch(`${API_BASE_URL}/verified-status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsVerified(data.is_verified);
+        setVerifyMessage(data.message);
       }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      setIsVerified(data.is_verified);
-      setVerifyMessage(data.message);
+    } catch (error) {
+      console. error("Lỗi khi check verify:", error);
     }
-  } catch (error) {
-    console.error("Lỗi khi check verify:", error);
-  }
-};
+  };
 
-  // --- CALL API 2: Lấy danh sách bài viết ---
+  // --- CALL API 2: Lấy danh sách bài viết (CÓ FILTER LOCATION) ---
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/posts?skip=0&limit=50`, {
-        method: "GET"
-      });
+      
+      // ĐÃ SỬA: Thêm param location nếu có
+      let url = `${API_BASE_URL}/posts?skip=0&limit=50`;
+      if (selectedLocation) {
+        url += `&location=${selectedLocation}`;
+      }
 
-      if (response.ok) {
+      const response = await fetch(url, { method: "GET" });
+
+      if (response. ok) {
         const data = await response.json();
-        setPosts(data); // Cập nhật danh sách bài viết từ Backend
+        setPosts(data);
       }
     } catch (error) {
-      console.error("Lỗi khi lấy bài viết:", error);
+      console. error("Lỗi khi lấy bài viết:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Gọi API khi component được load (mount)
+  // Gọi API khi component được load
   useEffect(() => {
     fetchVerifiedStatus();
-    fetchPosts();
   }, []);
+
+  // ĐÃ THÊM: Gọi lại API khi đổi location
+  useEffect(() => {
+    fetchPosts();
+  }, [selectedLocation]);
+
+  // Lọc theo search (client-side)
+  const filteredPosts = posts.filter((p) =>
+    p.content?. toLowerCase().includes(search.toLowerCase()) ||
+    p. title?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -85,7 +125,11 @@ const fetchVerifiedStatus = async () => {
       <div className="flex">
         {/* Sidebar trái */}
         <aside className="w-1/5 px-4 pb-4 pt-18 flex flex-col gap-4 top-1 h-fit">
-          <CityButton onClick={() => setIsCityModalOpen(true)} />
+          {/* ĐÃ SỬA: Truyền label để hiển thị */}
+          <CityButton 
+            onClick={() => setIsCityModalOpen(true)} 
+            label={LOCATION_LABELS[selectedLocation] || "Chọn địa điểm"}
+          />
           <SearchButton value={search} onChange={setSearch} />
         </aside>
 
@@ -102,14 +146,14 @@ const fetchVerifiedStatus = async () => {
         {/* Nội dung chính */}
         <main className="flex-1 px-6 pt-18 pb-6">
 
-          {/* 🟥 BANNER cảnh báo khi chưa verify */}
-          {!isVerified && (
+          {/* BANNER cảnh báo khi chưa verify */}
+          {! isVerified && (
             <div className="w-full bg-red-700 text-white text-center py-3 rounded-xl font-medium mb-6 shadow-md">
               {verifyMessage || "Bạn chỉ có thể đăng bài hoặc bình luận khi đã đặt phòng"}
             </div>
           )}
 
-          {/* Ô “Bạn đang nghĩ gì” – CHỈ HIỆN KHI ĐÃ VERIFY */}
+          {/* Ô "Bạn đang nghĩ gì" – CHỈ HIỆN KHI ĐÃ VERIFY */}
           {isVerified && (
             <div 
               onClick={() => setIsModalOpen(true)}
@@ -133,40 +177,39 @@ const fetchVerifiedStatus = async () => {
           <div className="flex flex-col gap-4">
             {isLoading ? (
               <p className="text-center text-gray-500">Đang tải bài viết...</p>
+            ) : filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => (
+                <Link 
+                  to={`/post/${post.id}`}
+                  key={post.id}
+                  className="no-underline text-black"
+                >
+                  <PostCard post={post} />
+                </Link>
+              ))
             ) : (
-              posts
-                .filter((p) => 
-                  (!selectedDistrict || p.district === selectedDistrict) &&
-                  (p.content?.toLowerCase().includes(search.toLowerCase()) ||
-                  p.title?.toLowerCase().includes(search.toLowerCase()))
-                )
-                .map((post) => (
-                  <Link 
-                    to={`/post/${post.id}`}
-                    key={post.id}
-                    className="no-underline text-black"
-                  >
-                    <PostCard post={post} />
-                  </Link>
-                ))
+              <p className="text-center text-gray-500 py-10">
+                Không có bài viết nào {selectedLocation && `tại ${LOCATION_LABELS[selectedLocation]}`}
+              </p>
             )}
           </div>
 
         </main>
       </div>
+
       {/* Modal chọn quận */}
       {isCityModalOpen && (
         <SelectDistrict
+          selectedValue={selectedLocation}
           onClose={() => setIsCityModalOpen(false)}
-          onSelect={(district) => {
-          setSelectedDistrict(district);
-          setIsCityModalOpen(false);
+          onSelect={(value) => {
+            setSelectedLocation(value);
+            setIsCityModalOpen(false);
           }}
-         />
+        />
       )}
 
       {/* Modal tạo bài viết */}
-      {/* Truyền thêm hàm fetchPosts để refresh lại list sau khi đăng bài thành công */}
       {isVerified && isModalOpen && (
         <CreatePost 
           onClose={() => setIsModalOpen(false)} 

@@ -15,34 +15,39 @@ const formatTimeAgo = (dateString) => {
   return date.toLocaleDateString('vi-VN');
 };
 
-const CATEGORY_LABELS = {
-  District1: "Quận 1",
-  District2: "Quận 2",
-  District3: "Quận 3",
-  District4: "Quận 4",
-  District5: "Quận 5",
-  District6: "Quận 6",
-  District7: "Quận 7",
-  District8: "Quận 8",
-  District9: "Quận 9",
-  District10: "Quận 10",
-  District11: "Quận 11",
-  District12: "Quận 12",
+// ĐÃ SỬA: Key khớp với Backend (snake_case, lowercase)
+const LOCATION_LABELS = {
+  // Quận 1-12
+  district1: "Quận 1",
+  district2: "Quận 2",
+  district3: "Quận 3",
+  district4: "Quận 4",
+  district5: "Quận 5",
+  district6: "Quận 6",
+  district7: "Quận 7",
+  district8: "Quận 8",
+  district9: "Quận 9",
+  district10: "Quận 10",
+  district11: "Quận 11",
+  district12: "Quận 12",
 
-  BinhThanh: "Quận Bình Thạnh",
-  BinhTan: "Quận Bình Tân",
-  PhuNhuan: "Quận Phú Nhuận",
-  TanBinh: "Quận Tân Bình",
-  TanPhu: "Quận Tân Phú",
-  GoVap: "Quận Gò Vấp",
+  // Các quận khác
+  binh_thanh: "Quận Bình Thạnh",
+  binh_tan: "Quận Bình Tân",
+  phu_nhuan: "Quận Phú Nhuận",
+  tan_binh: "Quận Tân Bình",
+  tan_phu: "Quận Tân Phú",
+  go_vap: "Quận Gò Vấp",
 
-  ThuDuc: "TP Thủ Đức",
+  // TP Thủ Đức
+  thu_duc: "TP Thủ Đức",
 
-  HocMon: "Huyện Hóc Môn",
-  BinhChanh: "Huyện Bình Chánh",
-  NhaBe: "Huyện Nhà Bè",
-  CanGio: "Huyện Cần Giờ",
-  CuChi: "Huyện Củ Chi",
+  // Huyện
+  hoc_mon: "Huyện Hóc Môn",
+  binh_chanh: "Huyện Bình Chánh",
+  nha_be: "Huyện Nhà Bè",
+  can_gio: "Huyện Cần Giờ",
+  cu_chi: "Huyện Củ Chi",
 };
 
 
@@ -51,27 +56,23 @@ function PostCard({ post }) {
     <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer">
       <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-          {post.author?.username?.charAt(0).toUpperCase() || "U"}
+          {post. author?.username?.charAt(0).toUpperCase() || "U"}
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-800">
-              {post.author?.username || "Ẩn danh"}
+              {post. author?.username || "Ẩn danh"}
             </span>
-            {post.author?.is_verified_traveler && (
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                ✓ Verified
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Clock size={12} />
             <span>{formatTimeAgo(post.created_at)}</span>
-            {post.category && (
+            {/* ĐÃ SỬA: Đổi từ post.category sang post.location */}
+            {post.location && (
               <>
                 <span>•</span>
-                <span className="bg-gray-100 px-2 py-0.5 rounded">
-                  {CATEGORY_LABELS[post.category] || post.category}
+                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                  {LOCATION_LABELS[post.location] || post.location}
                 </span>
               </>
             )}

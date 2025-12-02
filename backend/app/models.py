@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy import TEXT, DateTime
-from .database import Base
+from . database import Base
 import enum
 
 # =====================================================
@@ -23,13 +23,39 @@ class UserRole(str, enum.Enum):
     traveler = "traveler"
     owner = "owner"
 
-class PostCategory(str, enum.Enum):
-    """Danh mục bài viết forum"""
-    general = "general"
-    tips = "tips"
-    questions = "questions"
-    reviews = "reviews"
-    stories = "stories"
+class PostLocation(str, enum. Enum):
+    """Địa điểm bài viết forum - Quận/Huyện TP. HCM"""
+    # Quận 1-12
+    district1 = "district1"
+    district2 = "district2"
+    district3 = "district3"
+    district4 = "district4"
+    district5 = "district5"
+    district6 = "district6"
+    district7 = "district7"
+    district8 = "district8"
+    district9 = "district9"
+    district10 = "district10"
+    district11 = "district11"
+    district12 = "district12"
+    
+    # Các quận khác
+    binh_thanh = "binh_thanh"
+    binh_tan = "binh_tan"
+    phu_nhuan = "phu_nhuan"
+    tan_binh = "tan_binh"
+    tan_phu = "tan_phu"
+    go_vap = "go_vap"
+    
+    # TP Thủ Đức
+    thu_duc = "thu_duc"
+    
+    # Huyện
+    hoc_mon = "hoc_mon"
+    binh_chanh = "binh_chanh"
+    nha_be = "nha_be"
+    can_gio = "can_gio"
+    cu_chi = "cu_chi"
 
 class PostStatus(str, enum.Enum):
     """Trạng thái bài viết"""
@@ -54,13 +80,11 @@ class User(Base):
     role = Column(Enum(UserRole), nullable=False, default=UserRole.traveler)
     full_name = Column(String(100), nullable=True)
     sex = Column(String(20), nullable=True)
-    dob = Column(DATE, nullable=True) # dob = Date of Birth     
+    dob = Column(DATE, nullable=True)
     phone = Column(String(20), nullable=True, unique=True)
     preference = Column(TEXT, nullable=True)
     reset_code = Column(String(10), nullable=True)
     reset_code_expires = Column(DateTime, nullable=True)
-
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.traveler)
     
     # Forum features
     bookings_count = Column(Integer, default=0, comment="Số lần đặt chỗ thành công")
@@ -68,7 +92,7 @@ class User(Base):
     
     # Timestamps
     verified_at = Column(TIMESTAMP, nullable=True)
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    created_at = Column(TIMESTAMP, server_default=func. now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # =====================================================
@@ -121,7 +145,7 @@ class Accommodation(Base):
     
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func. now())
 
     # =====================================================
     # Relationships
@@ -143,7 +167,7 @@ class Booking(Base):
     # Primary key
     booking_id = Column(Integer, primary_key=True, autoincrement=True)
     
-    # Foreign keys
+    # Foreign keys - ĐÃ SỬA: Xóa khoảng trắng thừa
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     accommodation_id = Column(Integer, ForeignKey("accommodations.accommodation_id", ondelete="CASCADE"), nullable=False)
     
@@ -153,13 +177,12 @@ class Booking(Base):
 
     # CÁC CỘT MỚI THÊM VÀO
     guests = Column(Integer, nullable=False, default=1)  
-    note = Column(TEXT, nullable=True) # Lưu ghi chú của khách
-    guest_name = Column(String(100), nullable=True)  # Tên người ở
-    guest_email = Column(String(100), nullable=True) # Email liên hệ
-    guest_phone = Column(String(20), nullable=True)  # SĐT liên hệ
+    note = Column(TEXT, nullable=True)
+    guest_name = Column(String(100), nullable=True)
+    guest_email = Column(String(100), nullable=True)
+    guest_phone = Column(String(20), nullable=True)
     
     total_price = Column(DECIMAL(10, 2), nullable=False, default=0)
-
     booking_code = Column(String(50), unique=True, nullable=True)
 
     # Trạng thái booking
@@ -167,7 +190,7 @@ class Booking(Base):
     
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func. now(), onupdate=func.now())
 
     # =====================================================
     # Relationships
@@ -224,7 +247,7 @@ class Post(Base):
     # Post content
     title = Column(String(200), nullable=False)
     content = Column(TEXT, nullable=False)
-    category = Column(Enum(PostCategory), nullable=False, default=PostCategory.general)
+    location = Column(Enum(PostLocation), nullable=False, default=PostLocation.district1)
     status = Column(Enum(PostStatus), default=PostStatus.active)
     
     # Counters
@@ -233,7 +256,7 @@ class Post(Base):
     
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func. now(), onupdate=func.now())
 
     # =====================================================
     # Relationships
@@ -242,7 +265,7 @@ class Post(Base):
     replies = relationship("Reply", back_populates="post", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Post(id={self.id}, title='{self.title}', category='{self.category}')>"
+        return f"<Post(id={self.id}, title='{self.title}', location='{self.location}')>"
 
 # =====================================================
 # Bảng 6: Replies (Forum - Comments)
@@ -277,21 +300,8 @@ class Reply(Base):
 
 
 # =====================================================
-# Export tất cả models
+# Bảng 7: Notification
 # =====================================================
-__all__ = [
-    "Base",
-    "User",
-    "UserRole",
-    "Accommodation",
-    "Booking",
-    "Review",
-    "Post",
-    "Reply",
-    "PostCategory",
-    "PostStatus"
-]
-    # --- Bảng 5: Notification ---
 class Notification(Base):
     __tablename__ = "Notification"
 
@@ -303,3 +313,21 @@ class Notification(Base):
 
     # Quan hệ ngược: 1 user có nhiều notification
     user = relationship("User", backref="notifications")
+
+
+# =====================================================
+# Export tất cả models
+# =====================================================
+__all__ = [
+    "Base",
+    "User",
+    "UserRole",
+    "Accommodation",
+    "Booking",
+    "Review",
+    "Post",
+    "Reply",
+    "PostLocation",
+    "PostStatus",
+    "Notification"
+]
