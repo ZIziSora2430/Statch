@@ -197,3 +197,66 @@ async def calculate_match_score(user_preference: str, accommodations: list) -> l
         print(f"❌ Lỗi AI Matchmaker: {e}")
         # Fallback: Nếu AI lỗi, trả về list rỗng (code router sẽ tự fallback về top rate)
         return []
+    
+async def rank_search_results(user_query: str, accommodations: list, user_preference: str = "") -> list:
+    """
+    Sắp xếp và LỌC danh sách dựa trên:
+    1. Query tìm kiếm (VD: "Chilling")
+    2. Sở thích người dùng (VD: "Thích yên tĩnh, ghét ồn ào")
+    """
+    if not accommodations:
+        return []
+
+    try:
+        # 1. Chuẩn bị dữ liệu rút gọn
+        candidates_json = []
+        for acc in accommodations:
+            candidates_json.append({
+                "id": acc.accommodation_id,
+                "info": f"{acc.title} - {acc.tags or ''} - {acc.location} - {acc.description[:100]}"
+            })
+
+        # 2. Prompt thông minh hơn
+        prompt = f"""
+        Nhiệm vụ: Bạn là chuyên gia du lịch. Hãy chọn ra các chỗ ở phù hợp nhất.
+        
+        1. User Input: "{user_query}"
+        2. User Preference (Sở thích cá nhân): "{user_preference}"
+        3. Danh sách ứng viên: {json.dumps(candidates_json, ensure_ascii=False)}
+
+        Yêu cầu:
+        - Đánh giá độ phù hợp (score 0-100) dựa trên ngữ nghĩa của Input và Sở thích.
+        - Ví dụ: User tìm "Chilling", thích "Yên tĩnh" -> Ưu tiên các phòng có tag "Núi", "Hồ", "Vườn".
+        - Trả về JSON Array: [{{"id": 1, "score": 90}}, ...]
+        """
+
+        generation_config = genai.types.GenerationConfig(
+            temperature=0.5,
+            response_mime_type="application/json"
+        )
+
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=generation_config
+        )
+        
+        ranking_data = json.loads(response.text.strip())
+        score_map = {item['id']: item['score'] for item in ranking_data}
+
+        # 3. Lọc và Sắp xếp
+        # Chỉ lấy những phòng có điểm > 0 (AI thấy có liên quan)
+        results = []
+        for acc in accommodations:
+            score = score_map.get(acc.accommodation_id, 0)
+            if score > 10: # Ngưỡng lọc (ví dụ > 10 điểm mới lấy)
+                acc.match_score = score # Gán điểm ảo để FE hiển thị nếu muốn
+                results.append(acc)
+        
+        # Sắp xếp điểm cao lên đầu
+        results.sort(key=lambda x: getattr(x, 'match_score', 0), reverse=True)
+        
+        return results
+
+    except Exception as e:
+        print(f"⚠️ AI Ranking failed: {e}")
+        return accommodations # Fallback: trả về nguyên gốc

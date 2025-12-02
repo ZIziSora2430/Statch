@@ -8,6 +8,22 @@ from .security_helpers import get_current_user
 
 router = APIRouter()
 
+
+
+# ======= Forgot password =======
+@router.post("/forgot-password")
+def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
+    # Luôn trả về thành công để tránh lộ thông tin email nào đã đăng ký
+    service.request_password_reset(db, payload.email)
+    return {"message": "Nếu email tồn tại, mã xác nhận đã được gửi."}
+
+@router.post("/reset-password")
+def reset_password_endpoint(payload: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
+    try:
+        service.reset_password(db, payload)
+        return {"message": "Đặt lại mật khẩu thành công."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 # ======= Signup =======
 @router.post("/signup", response_model=schemas.UserResponse)
 def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -31,7 +47,19 @@ def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
         print(f"❌ Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
+# ====== Đặt lại mật khẩu ==========
+@router.put("/users/change-password")
+def change_password_endpoint(
+    payload: schemas.ChangePasswordRequest, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user) # Yêu cầu phải đăng nhập
+):
+    is_success = service.change_user_password(db, current_user, payload)
+    
+    if not is_success:
+        raise HTTPException(status_code=400, detail="Mật khẩu hiện tại không chính xác.")
+        
+    return {"message": "Đổi mật khẩu thành công."}
 # ======= Login =======
 @router.post("/login", response_model=schemas.Token)
 def login(form_data: schemas.UserLogin, db: Session = Depends(get_db)):

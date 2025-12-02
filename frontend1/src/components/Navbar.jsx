@@ -213,7 +213,7 @@ useEffect(() => {
             {/* Hiển thị chấm đỏ nếu có thông báo mới (optional) */}
             {unreadCount > 0 && (
               <span style={{
-                position: 'absolute', top: -5, right: -5,
+                position: 'absolute', top: 7, right: 120,
                 background: 'red', color: 'white', borderRadius: '50%',
                 width: 15, height: 15, fontSize: 10, display: 'flex',
                 alignItems: 'center', justifyContent: 'center'

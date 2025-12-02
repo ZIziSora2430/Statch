@@ -1,6 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-export default function PasswordSection() {
+export default function PasswordSection({ showNotify }) {
+  const [oldPass, setOldPass] = useState("");
+  const [newPass, setNewPass] = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // 1. Validate cơ bản
+    if (!oldPass || !newPass || !confirmPass) {
+      showNotify("Vui lòng điền đầy đủ thông tin.", "error");
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      showNotify("Mật khẩu mới không khớp.", "error");
+      return;
+    }
+
+    setLoading(true);
+
+    // 2. Gọi API
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(`${API_URL}/users/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          old_password: oldPass,
+          new_password: newPass,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showNotify("Đổi mật khẩu thành công!", "success");
+        // Reset form
+        setOldPass("");
+        setNewPass("");
+        setConfirmPass("");
+      } else {
+        showNotify(data.detail || "Đổi mật khẩu thất bại.", "error");
+      }
+    } catch (error) {
+      showNotify("Lỗi kết nối server.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div style={{
         position:'absolute',
@@ -25,43 +79,80 @@ export default function PasswordSection() {
       }}>
       </h2>
 
-      {/* Password Row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: 'white',
-        padding: '20px 25px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        {/* Left side - Label */}
-        <span style={{
-          fontSize: '16px',
-          fontWeight: '600',
-          color: '#333'
-        }}>
-          Mật khẩu
-        </span>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "500px" }}>
+        
+        {/* Mật khẩu cũ */}
+        <div>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#555" }}>
+            Mật khẩu hiện tại
+          </label>
+          <input
+            type="password"
+            value={oldPass}
+            onChange={(e) => setOldPass(e.target.value)}
+            placeholder="Nhập mật khẩu hiện tại"
+            style={inputStyle}
+          />
+        </div>
 
-        {/* Right side - Button */}
-        <button style={{
-          backgroundColor: '#DC143C',
-          color: 'white',
-          padding: '12px 30px',
-          borderRadius: '8px',
-          border: 'none',
-          fontSize: '15px',
-          fontWeight: '600',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.target.style.backgroundColor = '#B01030'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = '#DC143C'}
+        {/* Mật khẩu mới */}
+        <div>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#555" }}>
+            Mật khẩu mới
+          </label>
+          <input
+            type="password"
+            value={newPass}
+            onChange={(e) => setNewPass(e.target.value)}
+            placeholder="Nhập mật khẩu mới"
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Nhập lại mật khẩu mới */}
+        <div>
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", color: "#555" }}>
+            Xác nhận mật khẩu mới
+          </label>
+          <input
+            type="password"
+            value={confirmPass}
+            onChange={(e) => setConfirmPass(e.target.value)}
+            placeholder="Nhập lại mật khẩu mới"
+            style={inputStyle}
+          />
+        </div>
+
+        <button 
+            type="submit" 
+            disabled={loading}
+            style={{
+                marginTop: "20px",
+                padding: "12px 24px",
+                backgroundColor: "#AD0000",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "16px",
+                fontWeight: "bold",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.7 : 1,
+                transition: "background 0.3s"
+            }}
         >
-          Đổi mật khẩu
+            {loading ? "Đang xử lý..." : "Lưu thay đổi"}
         </button>
-      </div>
+      </form>
     </div>
   );
 }
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px",
+  borderRadius: "8px",
+  border: "1px solid #ddd",
+  fontSize: "15px",
+  outline: "none",
+  transition: "border 0.3s",
+};

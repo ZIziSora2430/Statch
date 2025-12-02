@@ -5,12 +5,14 @@ from typing import Optional
 
 
 class BookingStatusEnum(str, Enum):
-    pending_confirmation = "pending_confirmation"
-    confirmed = "confirmed"
+    pending_approval = "pending_approval"       # 1. Mới đặt, chờ chủ nhà accept yêu cầu đặt phòng
+    pending_payment = "pending_payment"         # 2. Chủ nhà OK, chờ khách chuyển tiền
+    pending_confirmation = "pending_confirmation" # 3. Khách đã chuyển, chờ chủ nhà check tiền
+    confirmed = "confirmed"                     # 4. Xong
     cancelled = "cancelled"
     rejected = "rejected"
     completed = "completed"
-
+    reported = "reported" #
 
 class BookingCreate(BaseModel):
     """
@@ -55,6 +57,7 @@ class BookingRead(BaseModel):
     accommodation_image: str
 
     status: BookingStatusEnum
+    payment_proof: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

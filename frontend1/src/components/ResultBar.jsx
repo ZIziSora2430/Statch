@@ -118,7 +118,6 @@ export default function ResultBar({
   ratingText = "Mới",
   ratingCount = 0,
   ratingScore = 0,
-  stars = 0, 
   tags = [], // Mảng các tag phụ (VD: view biển, hồ bơi)
   categories = [], // Mảng loại phòng (VD: Villa, Khách sạn)
   dateRangeLabel = "Chọn ngày để kiểm tra",

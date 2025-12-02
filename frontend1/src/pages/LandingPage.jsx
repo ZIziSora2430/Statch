@@ -189,7 +189,7 @@ export default function LandingPage() {
                    {/* Ảnh với hiệu ứng zoom khi hover */}
                   <div className="h-56 w-full bg-gray-200 overflow-hidden relative">
                     <img 
-                      src={item.picture_url || "https://via.placeholder.com/400"} 
+                      src={item.picture_url ? item.picture_url.split(',')[0] : "https://via.placeholder.com/400"} 
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
@@ -208,7 +208,7 @@ export default function LandingPage() {
                         <MapPin size={14} /> {item.location}
                     </p>
                     
-                    {/* AI REASON BOX - Thiết kế lại cho đỡ giống thông báo lỗi */}
+                    {/* AI REASON BOX */}
                     {item.match_reason && (
                         <div className="mb-4 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
                             <div className="flex items-start gap-2">
@@ -286,7 +286,7 @@ export default function LandingPage() {
              img={Q7} 
              title="Quận 7" 
              className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("quận 10")} 
+             onClick={() => handleDestinationClick("quận 7")} 
              />
           </div>
         </section>

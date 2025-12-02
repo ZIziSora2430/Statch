@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import Footer from "../components/Footer";
 import '../index.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { TableRowsSplitIcon } from "lucide-react";
+
 
 // ✅ MỚI THÊM: Environment variable cho API URL - giúp dễ dàng thay đổi URL khi deploy
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -16,7 +20,6 @@ function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false); // ✅ THÊM: Loading state
   const navigate = useNavigate();
@@ -34,13 +37,13 @@ function SignUpPage() {
 
     // ✅ THÊM: Validate mật khẩu khớp nhau
     if (password !== confirmPassword) {
-      setError("Mật khẩu không khớp!");
+      toast.error("Mật khẩu không khớp!", {autoClose: 900});
       return;
     }
 
     // ✅ THÊM: Validate đã chọn role
     if (!role) {
-      setError("Vui lòng chọn vai trò!");
+      toast.error("Vui lòng chọn vai trò!", {autoClose: 900});
       return;
     }
 
@@ -75,23 +78,26 @@ function SignUpPage() {
 
       if (response.ok) {
         // ✅ THÊM: Nếu đăng ký thành công, thông báo và chuyển về trang login
-        alert("Đăng ký thành công! Vui lòng đăng nhập.");
-        navigate("/"); // Quay về trang login
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {autoClose: 1000});
+        setTimeout(() => {
+          navigate("/"); // Quay về trang login
+        }, 1500);
+        
       } else {
         
         // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
         // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 400 (Bad Request)
         if (response.status === 400) {
-          setError(data.detail || "Username đã tồn tại!");
+          toast.error(data.detail || "Username đã tồn tại!", {autoClose: 900});
         } else {
-          setError(data.detail || "Đăng ký thất bại!");
+          toast.error(data.detail || "Đăng ký thất bại!", {autoClose: 900});
         }
       }
     } catch (err) {
       // ✅ THÊM: Xử lý lỗi khi không kết nối được server
       // ✅ MỚI CẬP NHẬT: Thông báo cụ thể hơn về lỗi kết nối
       console.error('❌ Signup error:', err);
-      setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
+      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!", {autoClose: 900});
       console.error("Signup error:", err);
       console.error("Signup error:", err);
     } finally {
@@ -226,20 +232,6 @@ function SignUpPage() {
             }}
           />
 
-          {/* ✅ THÊM: Hiển thị thông báo lỗi nếu có */}
-          {/* ✅ MỚI CẬP NHẬT: Thêm background màu đỏ nhạt để dễ nhận biết */}
-          {error && (
-            <p style={{
-              color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand thay vì 'red'
-      
-              marginBottom: '10px',
-              fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size từ 14px xuống 13px
-              textAlign: 'center',
-              backgroundColor: '#ffe6e6', // ✅ MỚI THÊM: Background nhạt
-              padding: '8px', // ✅ MỚI THÊM: Padding cho đẹp
-              borderRadius: '5px' // ✅ MỚI THÊM: Bo góc
-            }}>{error}</p>
-          )}
 
           <p style={{
             textAlign: 'right',
@@ -339,6 +331,7 @@ function SignUpPage() {
           </p>
         </form>
       </div>
+      <ToastContainer/>
     </div>
   );
 }
