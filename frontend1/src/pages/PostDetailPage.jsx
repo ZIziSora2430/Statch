@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { ArrowLeft, Clock, Heart, MessageCircle, ArrowBigRight, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Eye, MessageCircle, ArrowBigRight, Loader2, Trash2 } from "lucide-react";
 import Avatar from '../images/Avatar.png';
 
 // Cấu hình URL API
@@ -243,7 +243,7 @@ const handleSubmitReply = async () => {
 
                 <div className="flex items-center gap-4 text-sm text-gray-500 pt-3 border-t">
                     <div className="flex items-center gap-1">
-                        <Heart size={16} />
+                        <Eye size={16} />
                         <span>{post.views_count || 0}</span>
                     </div>
                     <div className="flex items-center gap-1">

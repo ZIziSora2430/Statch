@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from typing import List
 
 from .. import models, database
 from ..feature_login.security_helpers import get_current_active_owner

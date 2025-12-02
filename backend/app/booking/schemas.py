@@ -20,8 +20,10 @@ class BookingCreate(BaseModel):
     date_start: date
     date_end: date
     guests: int
-    rooms: int
-
+    note: Optional[str] = None
+    guest_name: str
+    guest_email: str
+    guest_phone: str
 
 class BookingRead(BaseModel):
     """
@@ -38,12 +40,16 @@ class BookingRead(BaseModel):
     nights: int
 
     guests: int
-    rooms: int
-
+    note: Optional[str] = None
     total_price: float
     price_per_night: float
 
-    # Accommodation info for FE display
+    guest_name: Optional[str] = None
+    guest_email: Optional[str] = None
+    guest_phone: Optional[str] = None
+    note: Optional[str] = None # Trả về note riêng
+
+    # Accommodation info 
     accommodation_title: str
     accommodation_location: str
     accommodation_image: str

@@ -19,7 +19,7 @@ if not DATABASE_URL:
     raise ValueError(
         "❌ DATABASE_URL not found in .env file!\n"
         "Please create .env file with:\n"
-        "DATABASE_URL=mysql+pymysql://devuser:devpass123@localhost:3306/testdb"
+        "DATABASE_URL=mysql+pymysql://root:123456@localhost:3306/STACH"
     )
 
 # =====================================================
@@ -55,7 +55,7 @@ SessionLocal = sessionmaker(
 # Base class cho tất cả models
 # =====================================================
 Base = declarative_base()
-
+    
 # =====================================================
 # Dependency function cho FastAPI
 # =====================================================

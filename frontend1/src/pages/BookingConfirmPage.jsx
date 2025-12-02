@@ -1,26 +1,66 @@
-// src/pages/BookingConfirmPage.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+
+// 1. Định nghĩa API_URL để tránh lỗi reference
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 export default function BookingConfirmPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Nếu bạn navigate từ trang trước có truyền state thì lấy ra,
-  // nếu không sẽ dùng dữ liệu mặc định để không bị lỗi trắng trang.
-  const [bookingData, setBookingData] = React.useState(null);
+  // 2. Lấy bookingId từ state (được truyền từ trang BookingForm)
+  // Dùng toán tử ?. để tránh lỗi nếu state bị null
+  const bookingId = location.state?.bookingId;
 
-  React.useEffect(() => {
-  if (!location.state?.bookingId) return;
+  const [bookingData, setBookingData] = useState(null);
 
-  fetch(`${import.meta.env.VITE_API_URL}/api/bookings/${location.state.bookingId}`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-  })
-    .then(res => res.json())
-    .then(data => setBookingData(data))
-    .catch(err => console.error("Error loading booking:", err));
-}, []);
+  useEffect(() => {
+    // Nếu không có ID (ví dụ user F5 lại trang), điều hướng về trang chủ hoặc báo lỗi
+    if (!bookingId) {
+      alert("Không tìm thấy mã đơn hàng. Vui lòng thử lại."); 
+      return;
+    }
 
+    const token = localStorage.getItem("access_token");
+
+    console.log("Fetching:", `${API_URL}/api/bookings/${bookingId}`);
+
+    fetch(`${API_URL}/api/bookings/${bookingId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Lỗi server: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        // 3. QUAN TRỌNG: Map dữ liệu từ Backend (snake_case) sang Frontend (camelCase)
+        // Backend trả về: accommodation_title, date_start...
+        // Frontend đang cần: roomName, checkin...
+        const mappedData = {
+            bookingCode: data.booking_code,
+            status: data.status,
+            roomName: data.accommodation_title, // Lấy từ accommodation_title
+            hotelLocation: data.accommodation_location,
+            checkin: data.date_start,
+            checkout: data.date_end,
+            guests: data.guests,
+            guestName: data.guest_name, 
+            guestEmail: data.guest_email,
+            guestPhone: data.guest_phone,
+            fullNote: data.note,
+            nights: data.nights,
+            pricePerNight: data.price_per_night,
+            totalPrice: data.total_price,
+        };
+        
+        // 4. Sửa setBooking -> setBookingData
+        setBookingData(mappedData);
+      })
+      .catch((err) => console.error("Lỗi fetch:", err));
+  }, [bookingId, navigate]); // Thêm dependencies
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
@@ -28,9 +68,11 @@ export default function BookingConfirmPage() {
       currency: "VND",
       maximumFractionDigits: 0,
     }).format(value);
+
   if (!bookingData) {
-  return <div className="pt-20 text-center">Đang tải thông tin đặt phòng...</div>;
-}
+    return <div className="pt-20 text-center">Đang tải thông tin đặt phòng...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -74,6 +116,8 @@ export default function BookingConfirmPage() {
                 ? "Chờ chủ nhà xác nhận"
                 : bookingData.status === "confirmed"
                 ? "Đã xác nhận"
+                : bookingData.status === "cancelled"
+                ? "Đã hủy"
                 : "Không xác định"}
             </span>
           </div>
@@ -155,10 +199,9 @@ export default function BookingConfirmPage() {
 
           {/* Action buttons */}
           <div className="flex flex-wrap justify-end gap-3 pt-2">
-            {/* NÚT ĐẶT PHÒNG KHÁC  */}
             <button
               type="button"
-              onClick={() => navigate("/booking")} // route tới trang chọn phòng
+              onClick={() => navigate("/home")} 
               className="px-4 py-2 rounded-full border border-[#BF1D2D] text-sm sm:text-base text-[#BF1D2D] hover:bg-red-50 transition"
             >
               Đặt phòng khác
@@ -181,21 +224,11 @@ export default function BookingConfirmPage() {
           </div>
         </section>
       </main>
-
+      
+      {/* Footer giữ nguyên */}
       <footer className="bg-gray-900 text-gray-300 py-6 mt-4 text-center">
         <div className="container mx-auto">
           <p className="text-sm">© 2025 Statch. All rights reserved.</p>
-          <div className="mt-2 flex justify-center gap-4 text-xs sm:text-sm">
-            <a href="#" className="hover:text-white transition">
-              Về chúng tôi
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Liên hệ
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Điều khoản
-            </a>
-          </div>
         </div>
       </footer>
     </div>

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-
+from datetime import date
 from .. import models, database
 from ..feature_login.security_helpers import get_current_user
 from . import schemas, service
@@ -28,7 +28,7 @@ def create_booking_endpoint(
         )
 
         # return booking vừa tạo
-        return service.get_booking_by_id(db, booking.booking_id)
+        return service.build_booking_read(db, booking)
 
     except ValueError as e:
         raise HTTPException(
@@ -59,5 +59,16 @@ def get_my_booking_detail_endpoint(
     if booking.user_id != current_user.id:
         raise HTTPException(403, "Không có quyền xem")
 
-    return booking
+    return service.build_booking_read(db, booking)
+
+@router.get("/disabled-dates/{accommodation_id}", response_model=List[date]) # Hoặc List[str] nếu FE cần string
+def get_disabled_dates_endpoint(
+    accommodation_id: int,
+    db: Session = Depends(database.get_db)
+    # Không cần check login cũng được, vì lịch trống thường là thông tin công khai
+):
+    # Kiểm tra xem accommodation có tồn tại không (tùy chọn)
+    # ...
+
+    return service.get_disabled_dates(db, accommodation_id)
 

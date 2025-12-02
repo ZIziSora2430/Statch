@@ -92,7 +92,7 @@ export default function ProfileForm({
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                     <div className="md:col-span-3 flex flex-col gap-2">
                         <label className="text-gray-700 font-bold text-sm">Giới tính</label>
-                        <select value={sex} disabled={!isEditingInfo} onChange={(e) => setSex(e.target.value)} className={`w-full p-3 rounded-xl font-bold outline-none ${isEditingInfo ? 'bg-white border border-gray-300 shadow-sm' : 'bg-gray-100'}`}>
+                        <select value={sex} disabled={!isEditingInfo} onChange={(e) => setSex(e.target.value)} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
                             <option value="male">Nam</option>
                             <option value="female">Nữ</option>
                             <option value="undisclosed">Khác</option>
@@ -105,13 +105,13 @@ export default function ProfileForm({
                     <div className="md:col-span-6 flex flex-col gap-2">
                         <label className="text-gray-700 font-bold text-sm">Ngày sinh</label>
                         <div className="flex gap-2">
-                             <select value={dob.day} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, day: e.target.value})} className={`flex-1 p-3 rounded-xl font-bold outline-none ${isEditingInfo ? 'bg-white border border-gray-300 shadow-sm' : 'bg-gray-100'}`}>
+                             <select value={dob.day} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, day: e.target.value})} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
                                 {[...Array(31)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
                             </select>
-                            <select value={dob.month} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, month: e.target.value})} className={`flex-1 p-3 rounded-xl font-bold outline-none ${isEditingInfo ? 'bg-white border border-gray-300 shadow-sm' : 'bg-gray-100'}`}>
+                            <select value={dob.month} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, month: e.target.value})} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
                                 {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>Tháng {i+1}</option>)}
                             </select>
-                            <select value={dob.year} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, year: e.target.value})} className={`flex-1 p-3 rounded-xl font-bold outline-none ${isEditingInfo ? 'bg-white border border-gray-300 shadow-sm' : 'bg-gray-100'}`}>
+                            <select value={dob.year} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, year: e.target.value})} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
                                 {[...Array(100)].map((_, i) => <option key={i} value={2025-i}>{2025-i}</option>)}
                             </select>
                         </div>

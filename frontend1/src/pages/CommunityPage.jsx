@@ -8,6 +8,7 @@ import PostCard from "../components/Postcard";
 import Avatar from '../images/Avatar.png';
 import CreatePost from "../components/CreatePost.jsx";
 import { Link } from "react-router-dom";
+import SelectDistrict from "../components/SelectDistrict.jsx";
 
 // Cấu hình URL API (Chỉnh lại port nếu cần)
 const API_BASE_URL = "http://localhost:8000"; 
@@ -17,6 +18,9 @@ function CommunityPage() {
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+
 
   // State cho trạng thái verify
   const [isVerified, setIsVerified] = useState(false);
@@ -81,7 +85,7 @@ const fetchVerifiedStatus = async () => {
       <div className="flex">
         {/* Sidebar trái */}
         <aside className="w-1/5 px-4 pb-4 pt-18 flex flex-col gap-4 top-1 h-fit">
-          <CityButton />
+          <CityButton onClick={() => setIsCityModalOpen(true)} />
           <SearchButton value={search} onChange={setSearch} />
         </aside>
 
@@ -128,24 +132,38 @@ const fetchVerifiedStatus = async () => {
           {/* Danh sách bài viết */}
           <div className="flex flex-col gap-4">
             {isLoading ? (
-               <p className="text-center text-gray-500">Đang tải bài viết...</p>
+              <p className="text-center text-gray-500">Đang tải bài viết...</p>
             ) : (
               posts
-              .filter((p) => p.content?.toLowerCase().includes(search.toLowerCase()) || p.title?.toLowerCase().includes(search.toLowerCase()))
-              .map((post) => (
-                <Link 
-                  to={`/post/${post.id}`} 
-                  key={post.id} 
-                  className="no-underline text-black"
-                >
-                  <PostCard post={post} />
-                </Link>
-              ))
+                .filter((p) => 
+                  (!selectedDistrict || p.district === selectedDistrict) &&
+                  (p.content?.toLowerCase().includes(search.toLowerCase()) ||
+                  p.title?.toLowerCase().includes(search.toLowerCase()))
+                )
+                .map((post) => (
+                  <Link 
+                    to={`/post/${post.id}`}
+                    key={post.id}
+                    className="no-underline text-black"
+                  >
+                    <PostCard post={post} />
+                  </Link>
+                ))
             )}
           </div>
 
         </main>
       </div>
+      {/* Modal chọn quận */}
+      {isCityModalOpen && (
+        <SelectDistrict
+          onClose={() => setIsCityModalOpen(false)}
+          onSelect={(district) => {
+          setSelectedDistrict(district);
+          setIsCityModalOpen(false);
+          }}
+         />
+      )}
 
       {/* Modal tạo bài viết */}
       {/* Truyền thêm hàm fetchPosts để refresh lại list sau khi đăng bài thành công */}

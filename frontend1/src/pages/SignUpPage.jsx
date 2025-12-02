@@ -4,6 +4,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SignUpInBackGround from "../components/SignUpInBackGround";
+import Footer from "../components/Footer";
 import '../index.css';
 
 // ✅ MỚI THÊM: Environment variable cho API URL - giúp dễ dàng thay đổi URL khi deploy

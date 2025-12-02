@@ -64,6 +64,7 @@ function SignInPage() {
         } else {
           navigate("/home"); // Các role khác
         }
+        console.log(data.access_token);
       } else {
         // ✅ THÊM: Hiển thị lỗi nếu đăng nhập thất bại
         // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 401 (Unauthorized)
@@ -179,7 +180,7 @@ function SignInPage() {
           {/* ✅ MỚI CẬP NHẬT: Đổi <a> thành <button> để tránh navigation không mong muốn */}
           <button
             type="button"
-            onClick={() => {/* TODO: Implement forgot password */}}
+            onClick={() => navigate("/forgotpass")}
             style={{
               background: 'none',
               border: 'none',
@@ -189,7 +190,6 @@ function SignInPage() {
               color: '#333',
               textDecoration: 'none',
               marginBottom: '20px',
-        
               cursor: 'pointer'
             }}
           >
@@ -243,6 +243,7 @@ function SignInPage() {
           </p>
         </form>
       </div>
+      
     </div>
   );
 }

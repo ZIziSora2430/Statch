@@ -17,6 +17,7 @@ import BookingFormPage from './pages/BookingFormPage.jsx';
 import ModifyAccommodationForm from './pages/ModifyAccommodationForm.jsx';
 import CommunityPage from './pages/CommunityPage.jsx';
 import PostDetailPage from './pages/PostDetailPage.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/home" element={<LandingPage />} />
+        <Route path="/forgotpass" element={<ForgotPassword/>} />
         
         {/* --- Search --- */}
         <Route path="/search" element={<SearchingPage />} />

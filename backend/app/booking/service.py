@@ -1,8 +1,8 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from datetime import timedelta
-
+from datetime import timedelta, date
+from fastapi import HTTPException
 from .. import models
 from . import schemas
 from ..notifications.service import create_notification
@@ -19,8 +19,9 @@ def calculate_nights(start, end):
     return (end - start).days
 
 
-def calculate_total_price(price_per_night, nights, rooms):
-    return float(price_per_night) * nights * rooms
+def calculate_total_price(price_per_night, nights):
+    return float(price_per_night) * nights
+
 
 
 def get_booking_by_id(db: Session, booking_id: int):
@@ -60,7 +61,6 @@ def get_bookings_for_user(db: Session, user_id: int) -> List[schemas.BookingRead
                 date_end=booking.date_end,
                 nights=nights,
                 guests=booking.guests,
-                rooms=booking.rooms,
                 total_price=booking.total_price,
                 price_per_night=float(price),
                 accommodation_title=title,
@@ -103,7 +103,6 @@ def get_bookings_for_owner(db: Session, owner_id: int):
                 date_end=booking.date_end,
                 nights=nights,
                 guests=booking.guests,
-                rooms=booking.rooms,
                 total_price=booking.total_price,
                 price_per_night=float(price),
                 accommodation_title=title,
@@ -132,7 +131,10 @@ def build_booking_read(db: Session, booking):
         date_end=booking.date_end,
         nights=nights,
         guests=booking.guests,
-        rooms=booking.rooms,
+        guest_name=booking.guest_name,
+        guest_email=booking.guest_email,
+        guest_phone=booking.guest_phone,
+        note=booking.note,
         total_price=booking.total_price,
         price_per_night=float(accom.price),
         accommodation_title=accom.title,
@@ -144,18 +146,56 @@ def build_booking_read(db: Session, booking):
 def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
     booking = get_booking_by_id(db, booking_id)
     if not booking:
-        raise ValueError("Booking không tồn tại")
+        raise HTTPException(status_code=404, detail="Booking không tồn tại")
 
     accom = db.scalar(select(models.Accommodation).where(
         models.Accommodation.accommodation_id == booking.accommodation_id
     ))
     if accom.owner_id != owner_id:
         raise ValueError("Không có quyền xác nhận")
+    
+    # 3. Check xem trong lúc chờ pending, đã có ai nhanh tay confirm trước chưa (Safety check)
+    # (Trường hợp 2 owner cùng quản lý 1 acc hoặc lag mạng)
+    double_check_conflict = db.scalar(
+        select(models.Booking).where(
+            models.Booking.accommodation_id == booking.accommodation_id,
+            models.Booking.status == 'confirmed',
+            models.Booking.booking_id != booking_id, # Không check chính nó
+            models.Booking.date_start < booking.date_end,
+            models.Booking.date_end > booking.date_start
+        )
+    )
+    if double_check_conflict:
+        raise ValueError("Lỗi: Đã có một booking khác được xác nhận trong khung giờ này!")
 
     booking.status = "confirmed"
+
+    # 5. --- LOGIC TỰ ĐỘNG HỦY CÁC KÈO TRÙNG ---
+    # Tìm tất cả các booking đang 'pending' mà bị trùng ngày với booking vừa confirm này
+    overlapping_pendings = db.scalars(
+        select(models.Booking).where(
+            models.Booking.accommodation_id == booking.accommodation_id,
+            models.Booking.status == 'pending_confirmation',
+            models.Booking.booking_id != booking_id, # Trừ chính thằng đang confirm ra
+            models.Booking.date_start < booking.date_end, # Logic trùng ngày
+            models.Booking.date_end > booking.date_start
+        )
+    ).all()
+
+    # Duyệt qua danh sách và Reject tự động
+    for conflict_booking in overlapping_pendings:
+        conflict_booking.status = "cancelled"
+        
+        # Gửi thông báo chia buồn cho khách bị hủy
+        create_notification(
+            db,
+            user_id=conflict_booking.user_id,
+            message=f"Rất tiếc, yêu cầu đặt phòng tại {accom.title} ({conflict_booking.date_start} - {conflict_booking.date_end}) đã bị từ chối do kín lịch."
+        )
+
     db.commit()
     db.refresh(booking)
-    # Gửi thông báo cho khách hàng
+    # Gửi thông báo thành công cho khách hàng
     create_notification(
         db,
         user_id=booking.user_id,
@@ -166,13 +206,20 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
 def owner_cancel_booking(db: Session, booking_id: int, owner_id: int):
     booking = get_booking_by_id(db, booking_id)
     if not booking:
-        raise ValueError("Booking không tồn tại")
+        raise HTTPException(status_code=404, detail="Booking không tồn tại")
 
     accom = db.scalar(select(models.Accommodation).where(
         models.Accommodation.accommodation_id == booking.accommodation_id
     ))
     if accom.owner_id != owner_id:
-        raise ValueError("Không có quyền hủy booking này")
+        raise HTTPException(status_code=403, detail="Không có quyền hủy booking này")
+
+    # Chỉ cho phép hủy nếu đang chờ
+    if booking.status != schemas.BookingStatusEnum.pending_confirmation.value:
+        raise HTTPException(
+            status_code=400,
+            detail="Chỉ có thể hủy booking đang chờ xác nhận"
+        )
 
     booking.status = "cancelled"
     db.commit()
@@ -195,7 +242,7 @@ def create_booking(
     booking_data: schemas.BookingCreate
 ):
     if booking_data.date_end <= booking_data.date_start:
-        raise ValueError("date_end phải lớn hơn date_start")
+        raise HTTPException(status_code=403, detail="Không có quyền hủy booking này")
 
     accommodation = db.scalar(
         select(models.Accommodation).where(
@@ -204,27 +251,26 @@ def create_booking(
     )
 
     if not accommodation:
-        raise ValueError("Accommodation không tồn tại")
+        raise HTTPException(status_code=404, detail="Accommodation không tồn tại")
 
-    # Check overlap
+    #  Chặn trùng lịch đã xác nhận
     conflict = db.scalar(
         select(models.Booking)
         .where(
             models.Booking.accommodation_id == booking_data.accommodation_id,
-            models.Booking.status.in_([
-                schemas.BookingStatusEnum.pending_confirmation.value,
-                schemas.BookingStatusEnum.confirmed.value
-            ]),
+            models.Booking.status == schemas.BookingStatusEnum.confirmed.value, 
             models.Booking.date_start <= booking_data.date_end,
             models.Booking.date_end >= booking_data.date_start
         )
     )
-
+    if conflict:
+         # Sửa thông báo lỗi cho chính xác hơn
+        raise ValueError("Rất tiếc, chỗ nghỉ này đã được XÁC NHẬN trong khoảng thời gian bạn chọn.")
+    
     status = schemas.BookingStatusEnum.pending_confirmation.value
 
-
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
-    total_price = calculate_total_price(accommodation.price, nights, booking_data.rooms)
+    total_price = calculate_total_price(accommodation.price, nights)
 
     new_booking = models.Booking(
         user_id=user_id,
@@ -232,7 +278,10 @@ def create_booking(
         date_start=booking_data.date_start,
         date_end=booking_data.date_end,
         guests=booking_data.guests,
-        rooms=booking_data.rooms,
+        guest_name=booking_data.guest_name,
+        guest_email=booking_data.guest_email,
+        guest_phone=booking_data.guest_phone,
+        note=booking_data.note,        
         total_price=total_price,
         booking_code=generate_booking_code(),
         status=status
@@ -242,14 +291,12 @@ def create_booking(
     db.commit()
     db.refresh(new_booking)
 
-    # Lấy accommodation để biết owner_id
-    acc = accommodation
-
     # Gửi thông báo cho chủ nhà
     create_notification(
         db,
-        user_id=acc.owner_id,
-        message=f"Khách vừa đặt phòng: {acc.title}"
+        user_id=accommodation.owner_id,
+        message=f"Khách vừa đặt phòng: {accommodation.title}"
     )
 
     return new_booking
+

@@ -1,6 +1,6 @@
 // ==================== PostCard.jsx ====================
 import React from "react";
-import { MessageCircle, Heart, Clock } from "lucide-react";
+import { MessageCircle, Eye, Clock } from "lucide-react";
 
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
@@ -16,12 +16,35 @@ const formatTimeAgo = (dateString) => {
 };
 
 const CATEGORY_LABELS = {
-  general: "Tổng hợp",
-  tips: "Mẹo du lịch",
-  questions: "Hỏi đáp",
-  reviews: "Đánh giá",
-  stories: "Câu chuyện",
+  District1: "Quận 1",
+  District2: "Quận 2",
+  District3: "Quận 3",
+  District4: "Quận 4",
+  District5: "Quận 5",
+  District6: "Quận 6",
+  District7: "Quận 7",
+  District8: "Quận 8",
+  District9: "Quận 9",
+  District10: "Quận 10",
+  District11: "Quận 11",
+  District12: "Quận 12",
+
+  BinhThanh: "Quận Bình Thạnh",
+  BinhTan: "Quận Bình Tân",
+  PhuNhuan: "Quận Phú Nhuận",
+  TanBinh: "Quận Tân Bình",
+  TanPhu: "Quận Tân Phú",
+  GoVap: "Quận Gò Vấp",
+
+  ThuDuc: "TP Thủ Đức",
+
+  HocMon: "Huyện Hóc Môn",
+  BinhChanh: "Huyện Bình Chánh",
+  NhaBe: "Huyện Nhà Bè",
+  CanGio: "Huyện Cần Giờ",
+  CuChi: "Huyện Củ Chi",
 };
+
 
 function PostCard({ post }) {
   return (
@@ -66,7 +89,7 @@ function PostCard({ post }) {
 
       <div className="flex items-center gap-4 text-sm text-gray-500 pt-3 border-t">
         <div className="flex items-center gap-1">
-          <Heart size={16} />
+          <Eye size={16} />
           <span>{post.views_count || 0}</span>
         </div>
         <div className="flex items-center gap-1">

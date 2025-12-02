@@ -1,5 +1,5 @@
-from sqlalchemy import select, func, text, and_
-from sqlalchemy.orm import Session
+from sqlalchemy import select, func, text, and_, or_
+from sqlalchemy.orm import Session, joinedload
 from datetime import date
 from datetime import datetime, date
 from .. import models
@@ -9,6 +9,8 @@ from decimal import Decimal
 from geopy.geocoders import Nominatim
 from sqlalchemy.sql.expression import func 
 import unicodedata
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 
 #Hàm helper xóa dấu
 def remove_accents(input_str):
@@ -80,6 +82,7 @@ def get_accommodation_by_id(db: Session, accommodation_id: int):
     """
     accommodation = db.scalar(
         select(models.Accommodation)
+        .options(joinedload(models.Accommodation.owner))
         .where(models.Accommodation.accommodation_id == accommodation_id)
     )
     
@@ -146,8 +149,9 @@ def search_accommodations(
     Hàm logic để tìm kiếm chỗ ở dựa trên tọa độ và bán kính.
     Sử dụng công thức Haversine.
     """
-    print(f"🔍 SEARCH START: Text='{location_text}', Lat={lat}, Lng={lng}")
+    print(f"SEARCH START: Text='{location_text}', Date={check_in_date} -> {check_out_date}")    
     query = select(models.Accommodation)
+    query = query.where(models.Accommodation.status == 'available')
 
     # Lọc theo Số lượng Khách
     if number_of_guests is not None:
@@ -166,8 +170,8 @@ def search_accommodations(
                 and_(
                     models.Booking.date_end > check_in_date,
                     models.Booking.date_start < check_out_date,
-                    # Chỉ loại trừ các booking đã được xác nhận hoặc chờ xử lý (tùy theo logic của bạn)
-                    models.Booking.status.in_(['confirmed', 'pending_confirmation'])
+                    # Chỉ loại trừ các booking đã được xác nhận
+                    models.Booking.status == 'confirmed'
                 )
             )
             .subquery()
@@ -372,3 +376,72 @@ def _attach_rating_info(db: Session, accommodation):
         accommodation.review_count = 0
         
     return accommodation
+
+from sqlalchemy.orm import Session
+from sqlalchemy import select, and_, or_, func, text
+# Giả định models và database đã được import đúng
+
+def get_recommended_accommodations(db: Session, accommodation_id: int, limit: int = 4):
+    """
+    Hàm logic lấy danh sách chỗ ở được gợi ý dựa trên cột 'tags' và fallback ngẫu nhiên.
+    Đã được điều chỉnh để tương thích với MySQL (sử dụng ORDER BY RAND()).
+    """
+    
+    current_acc = db.scalar(
+        select(models.Accommodation).where(models.Accommodation.accommodation_id == accommodation_id)
+    )
+    
+    if not current_acc:
+        return []
+
+    existing_ids = [accommodation_id]
+    results = []
+    
+    # 1. Chuẩn hóa Tags
+    raw_tags = current_acc.tags if current_acc.tags else ""
+    tags_list = [
+        tag.strip()
+        for tag in raw_tags.lower().replace(",", " ").split()
+        if tag.strip() and len(tag.strip()) > 2
+    ]
+
+    # --- 2. TRUY VẤN THEO TAGS (Ưu tiên) ---
+    if tags_list:
+        tag_conditions = []
+        for tag in tags_list:
+            # Dùng LOWER(tags) LIKE '%%{tag}%%' (Tương thích với MySQL)
+            tag_conditions.append(text(f"LOWER(tags) LIKE '%%{tag}%%'")) 
+            
+        tag_query = select(models.Accommodation).where(
+            and_(
+                models.Accommodation.accommodation_id.notin_(existing_ids),
+                or_(*tag_conditions)
+            )
+        )
+        
+        # 🚨 SỬA LỖI QUAN TRỌNG: Dùng text("RAND()") cho MySQL
+        recommended_by_tags = db.scalars(
+            tag_query.order_by(text("RAND()")) 
+            .limit(limit)
+        ).all()
+        
+        results.extend(recommended_by_tags)
+        existing_ids.extend([acc.accommodation_id for acc in recommended_by_tags])
+
+
+    # --- 3. FALLBACK (Tìm Ngẫu nhiên Tuyệt đối để lấp đầy) ---
+    if len(results) < limit:
+        additional_limit = limit - len(results)
+        
+        fallback_query = select(models.Accommodation).where(
+            models.Accommodation.accommodation_id.notin_(existing_ids)
+        )
+        
+        # 🚨 SỬA LỖI QUAN TRỌNG: Dùng text("RAND()") cho MySQL
+        additional_results = db.scalars(
+            fallback_query.order_by(text("RAND()")).limit(additional_limit)
+        ).all()
+        
+        results.extend(additional_results)
+    
+    return results

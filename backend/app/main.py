@@ -113,6 +113,7 @@ app.include_router(
 # Accommodation routes - Traveler
 app.include_router(
     traveler_router,
+    prefix="/api",
     tags=["🏠 Accommodations (Traveler)"]
 )
 #Notifications

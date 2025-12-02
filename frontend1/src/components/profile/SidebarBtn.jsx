@@ -22,7 +22,7 @@ function SidebarBtn({ label, active, onClick }){
             style={{ 
                 position: 'absolute', left: 20, top: 10, 
                 fontSize: 24, fontWeight: '700', 
-                background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Montserrat',
+                background: 'none', border: 'none', cursor: 'pointer',
                 // Transition màu chữ
                 color: active ? '#AD0000' : 'white',
                 transition: 'color 0.3s ease'

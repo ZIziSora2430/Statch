@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 from .. import ai_service
@@ -9,7 +9,6 @@ from . import schemas, service
 
 # Import dependency bảo mật (để kiểm tra owner)
 from ..feature_login.security_helpers import get_current_active_owner
-
 
 # --- ĐỊNH NGHĨA ROUTER ---
 # Đây là biến "router" mà app/main.py đang tìm kiếm
@@ -192,3 +191,19 @@ def get_my_accommodations_endpoint(
     """
     return service.get_accommodations_by_owner(db, owner_id=current_owner.id)
 
+@router.get(
+    "/accommodations/{accommodation_id}/recommendations", 
+    response_model=List[schemas.AccommodationRead] 
+)
+def get_recommendations_endpoint(
+    accommodation_id: int,
+    limit: int = Query(4),
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_active_owner) 
+):
+    recommendations = service.get_recommended_accommodations(
+        db=db, 
+        accommodation_id=accommodation_id, 
+        limit=limit
+    )
+    return recommendations

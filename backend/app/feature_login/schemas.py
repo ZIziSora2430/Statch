@@ -56,3 +56,13 @@ class UserUpdate(BaseModel):
     city: str | None = None
     phone: str | None = None
     preference: str | None = None
+
+# Yêu cầu gửi mã
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+# Xác thực mã & Đặt lại mật khẩu
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    code: str
+    new_password: str

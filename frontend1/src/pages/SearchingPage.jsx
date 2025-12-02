@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 
 // Import Components
 import Navbar from "../components/Navbar";
@@ -125,6 +126,9 @@ export default function SearchingPage() {
       const lng = searchParamsURL.get("lng");
       const radius = searchParamsURL.get("radius");
       const locationText = searchParamsURL.get("location_text");
+      const checkin = searchParamsURL.get("checkin");
+      const checkout = searchParamsURL.get("checkout");
+      const guests = searchParamsURL.get("guests");
 
       if (lat && lng) {
         params.append("lat", lat);
@@ -137,7 +141,10 @@ export default function SearchingPage() {
         setIsLoading(false);
         return;
       }
-
+      if (checkin) params.append("checkin", checkin);
+      if (checkout) params.append("checkout", checkout);
+      if (guests) params.append("guests", guests);
+      
       try {
         const headers = token ? { "Authorization": `Bearer ${token}` } : {};
         const response = await fetch(`${API_BASE_URL}/api/accommodations/search/?${params.toString()}`, {
@@ -356,6 +363,7 @@ export default function SearchingPage() {
           </section>
         </div>
       </main>
+      <Footer/>
     </div>
   );
 }

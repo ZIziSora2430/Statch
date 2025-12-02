@@ -4,14 +4,18 @@ export default function PasswordSection() {
   return (
     <div style={{
         position:'absolute',
-      backgroundColor: '#ffffffff',
+      backgroundColor: 'transparent',
       minHeight: '100vh',
       width: 867,
       height:300,
-      top:57,
+      top:-40,
       left: 31,
-      fontFamily: 'montserrat'
     }}>
+      <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+        <div className="w-1.5 h-8 bg-[#AD0000] rounded-full"></div>
+        <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">Riêng tư và bảo mật</h1>
+      </div>
+
       {/* Title */}
       <h2 style={{
         color: 'rgba(135, 135, 135, 1)',
@@ -19,7 +23,6 @@ export default function PasswordSection() {
         fontWeight: '600',
         marginBottom: '13px'
       }}>
-        Bảo mật
       </h2>
 
       {/* Password Row */}
