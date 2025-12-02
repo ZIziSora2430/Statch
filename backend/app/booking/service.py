@@ -2,7 +2,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import timedelta, date
-form fastapi import HTTPException
+from fastapi import HTTPException
 from .. import models
 from . import schemas
 from ..notifications.service import create_notification

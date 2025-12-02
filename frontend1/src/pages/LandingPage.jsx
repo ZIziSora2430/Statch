@@ -7,11 +7,11 @@ import Banner from "../components/Banner";
 import SkeletonCard from "../components/SkeletonCard";
 import Community from "../components/JoinCommunity";
 
-import ConDao from "../images/Con-Dao.jpg";
-import HaNoi from "../images/Ha-Noi.jpg";  
-import CanTho from "../images/Can-Tho.jpg";
-import HoiAn from "../images/Hoi-An.jpg";
-import TPHCM from "../images/TPHCM.jpg";
+import GV from "../images/Gò Vấp.jpg";
+import Q1 from "../images/quận 1.png";  
+import Q7 from "../images/quận 7.jpg";
+import TĐ from "../images/Thủ Đức.jpg";
+import Q5 from "../images/quận 5.jpg";
 
 import { useNavigate } from "react-router-dom"; 
 import React, { useState, useEffect } from "react"; 
@@ -255,50 +255,44 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
              {/* Hàng trên: 2 ảnh lớn */}
              <DestinationCard 
-             img={ConDao} 
-             title="Côn Đảo" 
+             img={GV} 
+             title="Gò Vấp" 
              className="h-64 md:h-80" 
-             onClick={() => handleDestinationClick("Côn Đảo")}
+             onClick={() => handleDestinationClick("Gò Vấp")}
              />
              <DestinationCard 
-             img={HaNoi} 
-             title="Hà Nội" 
+             img={Q1} 
+             title="Quận 1" 
              className="h-64 md:h-80" 
-             onClick={() => handleDestinationClick("Hà Nội")}
+             onClick={() => handleDestinationClick("quận 1")}
              />
-          </div>
+          </div>      
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
              {/* Hàng dưới: 3 ảnh nhỏ */}
              <DestinationCard 
-             img={TPHCM} s
-             title="TP. Hồ Chí Minh" 
+             img={Q5} s
+             title="Quận 5" 
              className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("TP. Hồ Chí Minh")}
+             onClick={() => handleDestinationClick("quận 5")}
              />
              <DestinationCard 
-             img={HoiAn} 
-             title="Hội An" 
+             img={TĐ} 
+             title="Thủ Đức" 
              className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("Hội An")}
+             onClick={() => handleDestinationClick("Thủ Đức")}
              />
              <DestinationCard 
-             img={CanTho} 
-             title="Cần Thơ" 
+             img={Q7} 
+             title="Quận 7" 
              className="h-56 md:h-64"
-             onClick={() => handleDestinationClick("Cần Thơ")} 
+             onClick={() => handleDestinationClick("quận 10")} 
              />
           </div>
         </section>
 
         {/* --- PHẦN 3: ƯU ĐÃI (PROMO) --- */}
         <section className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-               Ưu đãi hôm nay
-             </h2>
-             <p className="text-gray-500">Đừng bỏ lỡ những khuyến mãi hấp dẫn nhất</p>
-          </div>
           <div className="bg-white rounded-2xl shadow-sm p-2 border border-gray-100">
             <Promo />
           </div>
