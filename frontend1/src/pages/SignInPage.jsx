@@ -21,7 +21,7 @@ function SignInPage() {
   // ✅ THÊM: Hàm xử lý submit form - GỌI API LOGIN
   const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn reload trang
-    setError(""); // Xóa lỗi cũ
+  
     setLoading(true); // Bật loading
 
     // ✅ MỚI THÊM: Log để debug (giống SignUp)

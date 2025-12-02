@@ -31,7 +31,7 @@ function SignUpPage() {
   // ✅ THÊM: Hàm xử lý submit form - GỌI API SIGNUP
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Xóa lỗi cũ
+
 
     // ✅ ĐÃ BỎ: Các validation phức tạp để test dễ hơn
 

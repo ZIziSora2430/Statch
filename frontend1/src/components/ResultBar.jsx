@@ -126,6 +126,7 @@ export default function ResultBar({
   priceNote = "Đã bao gồm thuế và phí",
   onClick = () => {},
 }) {
+  const stars = Math.round((ratingScore / 2) * 2) / 2;
   return (
     <article 
       onClick={onClick}
