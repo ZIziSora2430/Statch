@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Hotel, Star, Check, DollarSign, Clock } from 'lucide-react';
+import { AlertTriangle } from "lucide-react";
+import { X } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -28,7 +30,7 @@ const getStatusConfig = (status) => {
         case 'confirmed':
             return { bg: 'bg-[#00C851]', label: 'Đã đặt xong', icon: Check };
         case 'reported':
-            return { bg: 'bg-red-500', label: 'Đang xử lý', icon: AlertTriangle };
+            return { bg: 'bg-[#FFFF00]', label: 'Đang xử lý', icon: AlertTriangle };
         case 'cancelled':
         case 'rejected':
             return { bg: 'bg-black', label: 'Đã hủy/Từ chối', icon: X };
@@ -113,7 +115,7 @@ const BookingCard = ({ booking }) => {
                                   booking.status === 'pending_approval' ? '#2563EB' : // Blue-600
                                   booking.status === 'pending_payment' ? '#F97316' : // Orange-500
                                   booking.status === 'pending_confirmation' ? '#9333EA' : // Purple-600
-                                  booking.status === 'reported' ? '#EF4444' : // Red-500
+                                  booking.status === 'reported' ? '#FFFF00' : // Red-500
                                   booking.status === 'cancelled' ? '#000000' :
                                   '#9CA3AF' // Gray
                               } 

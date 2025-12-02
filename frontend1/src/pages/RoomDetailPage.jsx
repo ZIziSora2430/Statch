@@ -579,7 +579,7 @@ useEffect(() => {
                     recommendations.map((item) => (
                         <div 
                             key={item.accommodation_id} // Dùng ID thực tế làm key
-                            // Thêm logic chuyển trang (ví dụ: navigate(`/rooms/${item.accommodation_id}`))
+                            onClick={() => navigate(`/accommodations/${item.accommodation_id}`)}
                             className="flex flex-col sm:flex-row gap-4 border border-gray-200 rounded-xl p-3 hover:shadow-md transition bg-white cursor-pointer"
                         >
                             <div className="w-full sm:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">

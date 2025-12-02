@@ -6,9 +6,6 @@ import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import defaultAvatar from "../images/avatar-default.svg";
 import community from '../images/community_icon.png'
-import logo from '../images/Slogo.svg'
-import statch from '../images/STATCH.svg'
-import background from '../images/navbarbg.svg'
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -20,6 +17,7 @@ export default function Navbar() {
   const [openNoti, setOpenNoti] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
   const handleDeleteNotification = async (id) => {
   try {
     const token = localStorage.getItem("access_token");
@@ -305,22 +303,23 @@ useEffect(() => {
               )}
 
               {/* SEE MORE BUTTON */}
-              {notifications.length > 0 && (
-                <div
-                  style={{
-                    padding: "10px",
-                    textAlign: "center",
-                    color: "#BF1D2D",
-                    fontWeight: "bold",
-                    fontSize: "13px",
-                    cursor: "pointer",
-                    borderTop: "1px solid #eee",
-                  }}
-                  onClick={() => navigate("/notifications")}
-                >
-                  Xem tất cả
-                </div>
-              )}
+             {notifications.length > 0 && (
+  <div
+    style={{
+      padding: "10px",
+      textAlign: "center",
+      color: "#BF1D2D",
+      fontWeight: "bold",
+      fontSize: "13px",
+      cursor: "pointer",
+      borderTop: "1px solid #eee",
+    }}
+    onClick={() => setShowAllNotifications(!showAllNotifications)}
+  >
+    {showAllNotifications ? "Thu gọn ▲" : "Xem tất cả ▼"}
+  </div>
+)}
+
             </div>
           )}
         </div>

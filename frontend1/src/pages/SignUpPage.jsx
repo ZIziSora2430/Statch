@@ -65,7 +65,7 @@ function SignUpPage() {
           username: username.trim(), // ✅ MỚI THÊM: .trim() để xóa khoảng trắng thừa
           email: email,
           password: password,
-          role: role, // ✅ THÊM: Gửi role (traveler/owner/admin)
+          role: role, // ✅ THÊM: Gửi role (traveler/owner)
           full_name: null // Có thể thêm field này sau
         }),
       });
@@ -276,7 +276,7 @@ function SignUpPage() {
             }}
           >
             <option value="">--Bạn đăng ký với vai trò gì--</option>
-            {/* ✅ SỬA: Đổi value để khớp với backend API (traveler, owner, admin) */}
+            {/* ✅ SỬA: Đổi value để khớp với backend API (traveler, owner) */}
             <option value="traveler">Người dùng</option>
             <option value="owner">Chủ trọ</option>
           </select>
