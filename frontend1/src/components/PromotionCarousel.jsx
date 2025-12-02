@@ -115,14 +115,6 @@ export default function PromotionCarousel() {
           <ArrowRightIcon />
         </button>
       </div>
-
-      {/* Link "Điều kiện" giống trong hình */}
-      <a
-        href="#"
-        className="mt-8 text-sm font-medium text-gray-800 uppercase tracking-wider border-b-2 border-red-700 pb-1 hover:text-red-700 transition-colors"
-      >
-        Điều kiện
-      </a>
     </div>
   );
   

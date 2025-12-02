@@ -475,7 +475,7 @@ useEffect(() => {
         </div>
 
         {/* 5. REVIEWS SECTION (RED BACKGROUND) - Thiết kế gốc */}
-        <section className="bg-[#AD0000] rounded-2xl p-6 md:p-8 mb-10 shadow-lg text-white">
+        <section className="bg-white rounded-2xl p-6 md:p-8 mb-10 shadow-lg text-[#AD0000]">
             <div className="flex justify-between items-center mb-6 border-b border-white/20 pb-4">
                 <h2 className="text-2xl font-bold flex items-center gap-2">
                     Đánh giá <span className="text-sm font-normal opacity-80">({reviews.length} lượt nhận xét)</span>
@@ -516,7 +516,7 @@ useEffect(() => {
                         </div>
                     </div>
                 )) : (
-                    <div className="col-span-3 text-center py-8 text-white/80 italic border border-white/20 rounded-xl border-dashed">
+                    <div className="col-span-3 text-center py-8 text-black/80 italic border border-white/20 rounded-xl border-dashed">
                         Chưa có đánh giá nào. Hãy là người đầu tiên trải nghiệm!
                     </div>
                 )}
@@ -561,7 +561,7 @@ useEffect(() => {
                         <button 
                             onClick={handlePostReview}
                             disabled={submitting}
-                            className="absolute bottom-2 right-2 bg-[#AD0000] text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-[#850000] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="absolute bottom-3 right-2 bg-[#AD0000] text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-[#850000] transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {submitting ? "Đang gửi..." : "Gửi đánh giá"}
                         </button>
