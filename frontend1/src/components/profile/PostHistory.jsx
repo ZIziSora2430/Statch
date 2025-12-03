@@ -66,14 +66,12 @@ export default function PostHistory() {
   }
 
   return (
-    <div className="w-full h-auto px-6 md:px-10 pb-10 pt-0 relative -mt-[55px]">
+    <div className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
 
       {/* Title */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-1.5 h-8 bg-[#AD0000] rounded-full shrink-0"></div>
-        <h1 className="text-2xl font-bold text-gray-800">
-          Lịch sử đăng bài
-        </h1>
+      <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
+        <div className="w-1.5 h-8 bg-[#AD0000] rounded-full"></div>
+        <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">Lịch sử đăng bài</h1>
       </div>
       <div className="flex flex-col gap-4 max-h-[600px] overflow-y-auto pr-4"> 
         {posts.length === 0 ? (
