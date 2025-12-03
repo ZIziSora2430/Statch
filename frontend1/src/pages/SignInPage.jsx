@@ -16,6 +16,7 @@ function SignInPage() {
   // ✅ THÊM: State để lưu thông tin đăng nhập
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false); 
   
   // ✅ THÊM: Hàm xử lý submit form - GỌI API LOGIN
@@ -149,22 +150,40 @@ function SignInPage() {
           }}>Mật khẩu</label>
 
           {/* ✅ THÊM: value và onChange để lưu password vào state */}
-          <input
-            type="password"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required // ✅ THÊM: Bắt buộc nhập
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '10px',
-             
-              fontSize: '15px'
-            }}
-          />
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required // ✅ THÊM: Bắt buộc nhập
+              style={{
+                padding: '10px 40px 10px 10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                width: '100%',
+                marginBottom: '10px',
+                fontSize: '15px'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: 21,
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >
+              {showPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
 
           {/* ✅ MỚI CẬP NHẬT: Đổi <a> thành <button> để tránh navigation không mong muốn */}
           <button

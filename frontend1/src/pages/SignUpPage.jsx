@@ -19,7 +19,10 @@ function SignUpPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false); // ✅ THÊM: Loading state
   const navigate = useNavigate();
@@ -81,8 +84,8 @@ function SignUpPage() {
         toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {autoClose: 1000});
         setTimeout(() => {
           navigate("/"); // Quay về trang login
-        }, 1500);
-        
+        }, 1500);  
+
       } else {
         
         // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
@@ -182,29 +185,47 @@ function SignUpPage() {
           {/* Password */}
           <label style={{
             marginBottom: '5px',
-      
+            
             fontWeight: '450',
             fontSize: '15px'
           }}>Mật khẩu</label>
 
           {/* ✅ THÊM: required */}
           {/* ✅ ĐÃ BỎ: minLength để test dễ hơn */}
-          <input
-            type="password"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required // ✅ THÊM
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '10px',
-     
-              fontSize: '15px'
-            }}
-          />
+          <div>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required // ✅ THÊM
+              style={{
+                padding: '10px 40px 10px 10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                width: '100%',
+                marginBottom: '10px',
+
+                fontSize: '15px'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: 310,
+                right:50,
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >{showPassword ? "Ẩn" : "Hiện"}</button>
+          </div>
 
           {/* Confirm Password */}
           <label style={{
@@ -215,23 +236,55 @@ function SignUpPage() {
           }}>Xác nhận mật khẩu</label>
 
           {/* ✅ THÊM: required */}
-          <input
-            type="password"
-            placeholder="Nhập lại mật khẩu"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required // ✅ THÊM
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '10px',
- 
-              fontSize: '15px'
-            }}
-          />
+          <div>
+            <input
+              type={showPassword2 ? "text" : "password"}
+              placeholder="Nhập lại mật khẩu"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required // ✅ THÊM
+              style={{
+                padding: '10px 40px 10px 10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                width: '100%',
+                marginBottom: '10px',
 
+                fontSize: '15px'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword2(!showPassword2)}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: 387,
+                right:50,
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >{showPassword2 ? "Ẩn" : "Hiện"}</button>
+          </div>
+
+          {/* ✅ THÊM: Hiển thị thông báo lỗi nếu có */}
+          {/* ✅ MỚI CẬP NHẬT: Thêm background màu đỏ nhạt để dễ nhận biết */}
+          {error && (
+            <p style={{
+              color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand thay vì 'red'
+      
+              marginBottom: '10px',
+              fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size từ 14px xuống 13px
+              textAlign: 'center',
+              backgroundColor: '#ffe6e6', // ✅ MỚI THÊM: Background nhạt
+              padding: '8px', // ✅ MỚI THÊM: Padding cho đẹp
+              borderRadius: '5px' // ✅ MỚI THÊM: Bo góc
+            }}>{error}</p>
+          )}
 
           <p style={{
             textAlign: 'right',
