@@ -21,7 +21,7 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const isHome = pathname === "/home";
 
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = isHome ? useState(false) : useState(true);
 
   useEffect(() => {
     if (!isHome) return; // skip adding scroll listener on other pages
