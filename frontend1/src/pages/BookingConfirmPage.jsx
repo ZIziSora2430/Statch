@@ -23,7 +23,7 @@ export default function BookingConfirmPage() {
   useEffect(() => {
     // Nếu không có ID (ví dụ user F5 lại trang), điều hướng về trang chủ hoặc báo lỗi
     if (!bookingId) {
-      alert("Không tìm thấy mã đơn hàng. Vui lòng thử lại."); 
+      alert("Không tìm thấy booking. Vui lòng thử lại."); 
       return;
     }
 

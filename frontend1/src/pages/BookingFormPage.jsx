@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import RoomDetailPage from "./RoomDetailPage";
+import validateInput from "../utils/helper"
+import {toast, ToastContainer} from "react-toastify"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 export default function BookingFormPage() {
@@ -141,6 +142,12 @@ export default function BookingFormPage() {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errorMsg = validateInput(guestPhone, guestEmail);
+    if (errorMsg) {
+        toast.error(errorMsg, {autoClose:800}); 
+        return; 
+    }
+
     setSubmitting(true);
 
     const token = localStorage.getItem("access_token");
@@ -324,6 +331,7 @@ export default function BookingFormPage() {
           <p className="text-sm">© 2025 Statch. All rights reserved.</p>
         </div>
       </footer>
+    <ToastContainer/>
     </div>
   );
 }

@@ -9,6 +9,5 @@ export default function CityButton({ onClick }) {
       <MapPin size={18} />
       Chọn địa điểm
     </button>
-    
   );
 }

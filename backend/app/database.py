@@ -10,10 +10,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from dotenv import load_dotenv
 import os
 
+load_dotenv()
 # =====================================================
 # Lấy DATABASE_URL từ .env
 # =====================================================
-DATABASE_URL = "mysql+pymysql://root:123456@localhost:3306/STATCH"    
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
     raise ValueError(

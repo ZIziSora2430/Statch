@@ -1,9 +1,8 @@
 from datetime import date
 from enum import Enum
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional
 from app.accommodations.schemas import OwnerInfo
-
 
 
 class BookingStatusEnum(str, Enum):
@@ -28,6 +27,22 @@ class BookingCreate(BaseModel):
     guest_name: str
     guest_email: str
     guest_phone: str
+
+    @field_validator('guest_phone')
+    def validate_phone(cls, v):
+        if v is None: return v
+        # Kiểm tra chỉ chứa số và độ dài từ 10
+        if not re.match(r'^\d{10}$', v):
+            raise ValueError('Số điện thoại phải bao gồm 10 chữ số')
+        return v
+    
+    @field_validator('guest_email')
+    def validate_gmail(cls, v):
+        if v is None: return v
+        # Kiểm tra đuôi @gmail.com
+        if not v.endswith('@gmail.com'):
+            raise ValueError('Hệ thống chỉ chấp nhận địa chỉ Gmail (@gmail.com)')
+        return v
 
 class BookingRead(BaseModel):
     booking_id: int

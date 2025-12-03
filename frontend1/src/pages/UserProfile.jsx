@@ -12,6 +12,8 @@
     import ProfileForm from "../components/profile/ProfileForm";
     import Notification from "../components/profile/Notification";
     import SidebarBtn from "../components/profile/SidebarBtn";
+    import PostHistory from "../components/profile/PostHistory";
+
 
     // --- IMPORT IMAGES ---
     import TravellerProfilebg from "../images/ProfileAvaterbg.png";
@@ -321,7 +323,7 @@
                                 />
                             )}                        
                             {activeSection === "history" && role === "traveler" && <HotelBookingList />}
-                            {activeSection === "statusPost" && role === "traveler" && <div>(Component Lịch sử đăng bài đang phát triển)</div>}
+                            {activeSection === "statusPost" && role === "traveler" && <PostHistory />}
                             {activeSection === "accoList" && role === "owner" && <OwnerDashBoard />}
                             {activeSection === "bookCalen" && role === "owner" && <BookingList />}
                             {activeSection === "setting" && <ChangePass showNotify={showNotify}/>}

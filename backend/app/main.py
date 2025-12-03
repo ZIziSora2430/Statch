@@ -21,13 +21,13 @@ from .booking.owner_router import router as owner_booking_router
 from .reviews import router as reviews_router
 from .notifications.router import router as notifications_router
 
-# Feature Login (Authentication) - ✅ CÓ RỒI
+# Feature Login (Authentication) 
 from app.feature_login.router import router as auth_router
 
-# System Forum (Posts & Replies) - ⚠️ TẠM THỜI COMMENT
+# System Forum (Posts & Replies)
 from app.system_forum.routes import router as forum_router
 
-# Accommodations (Booking system) - ✅ KIỂM TRA TÊN FILE
+# Accommodations (Booking system) 
 from app.accommodations.traveler_router import router as traveler_router
 from app.accommodations.owner_router import router as owner_router
 
@@ -113,7 +113,7 @@ app.include_router(
 # Forum routes (system_forum) - TẠM THỜI COMMENT
 app.include_router(
     forum_router,
-    prefix="/forum",
+    prefix="",
     tags=["💬 Forum"]
 )
 
@@ -150,8 +150,6 @@ app.include_router(
     tags=["⭐ Reviews"]
 )
 
-# 5. Forum 
-app.include_router(forum_router, prefix="/forum", tags=["💬 Forum"])
 
 # =====================================================
 # Root endpoints

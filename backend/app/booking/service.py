@@ -1,7 +1,7 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from datetime import timedelta, date
+from datetime import timedelta, datetime
 from fastapi import HTTPException
 from .. import models
 from . import schemas
@@ -14,6 +14,46 @@ import string
 import os
 import shutil
 from fastapi import UploadFile
+
+# Cấu hình thời gian timeout (Ví dụ: 24 giờ)
+TIMEOUT_HOURS = 24 
+
+def scan_and_expire_bookings(db: Session):
+    """
+    Hàm này sẽ chạy định kỳ để hủy các đơn quá hạn.
+    """
+    now = datetime.now()
+    cutoff_time = now - timedelta(hours=TIMEOUT_HOURS)
+
+    # 1. Tìm các đơn "Chờ duyệt" quá lâu (Dựa trên created_at)
+    expired_approvals = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == 'pending_approval',
+            models.Booking.created_at < cutoff_time
+        )
+    ).all()
+
+    # 2. Tìm các đơn "Chờ thanh toán" quá lâu (Dựa trên updated_at - thời điểm cuối cùng đổi trạng thái)
+    expired_payments = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == 'pending_payment',
+            models.Booking.updated_at < cutoff_time
+        )
+    ).all()
+
+    count = 0
+    # Xử lý hủy
+    all_expired = expired_approvals + expired_payments
+    
+    for booking in all_expired:
+        booking.status = 'cancelled'
+        # (Optional) Gửi thông báo cho User: "Đơn của bạn đã bị hủy do quá hạn."
+        # create_notification(db, booking.user_id, f"Booking {booking.booking_code} đã hết hạn.")
+        count += 1
+    
+    if count > 0:
+        db.commit()
+        print(f"🧹 [Auto-Clean] Đã hủy {count} đơn quá hạn.")
 
 
 def generate_booking_code():
