@@ -21,6 +21,20 @@ const API_URL = import.meta.env. VITE_API_URL || "http://127.0.0.1:8000";
 
 
 export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+
+
+
   const [currentUserName, setCurrentUserName] = useState("bạn");
   const [accommodations, setAccommodations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,8 +171,13 @@ export default function LandingPage() {
       {/* Wrapper chính có margin âm để đẩy content đè lên banner 1 chút tạo chiều sâu */}
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
         
-        <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 mb-12 max-w-5xl mx-auto border border-gray-100">
-          <SearchingBar initialLocation={selectedDestination} />
+        <div
+          className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out
+            ${scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+        >
+          <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
+            <SearchingBar initialLocation={selectedDestination} />
+          </div>
         </div>
 
         {/* --- PHẦN 1: GỢI Ý CHỖ Ở (AI RECOMMENDATIONS) --- */}

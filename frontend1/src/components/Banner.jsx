@@ -2,18 +2,22 @@ import React from 'react';
 
 const Banner = ({ username }) => {
     return (
-        <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
+        <div className="relative w-full h-[750px] overflow-hidden">
             {/* 1. ẢNH NỀN (Background Image) */}
             {/* Bạn có thể thay link ảnh này bằng ảnh local trong máy */}
-            <img 
-                src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073&auto=format&fit=crop" 
-                alt="Travel Background" 
+
+            <video 
+                src="https://res.cloudinary.com/drzs4mgqk/video/upload/v1764771949/videoplayback_1_p4yoap.mp4" 
                 className="absolute inset-0 w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
             />
 
             {/* 2. LỚP PHỦ MÀU (Overlay) */}
             {/* Giúp chữ trắng nổi bật trên mọi loại ảnh nền */}
-            <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/60"></div>
+            <div className="absolute inset-0 bg-linear-to-b from-black/25 via-black/25 to-black/60"></div>
 
             {/* 3. NỘI DUNG CHÍNH */}
             <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 max-w-5xl mx-auto">
