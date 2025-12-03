@@ -1,18 +1,38 @@
-import new_logo from '../images/new_logo.jpg';
-import Bell from '../images/Bell.png';
 import Avatar from '../images/Avatar.png';
 import home from '../images/Home.svg';
 import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import defaultAvatar from "../images/avatar-default.svg";
-import community from '../images/community_icon.png'
+import community from '../images/Community.svg'
+import communitysub from '../images/Communitysub.svg'
 import new_logo2 from '../images/new_logo2.svg'
+import new_logo2sub from '../images/new_logo2sub.svg'
+import homesub from '../images/Homesub.svg';
+import notification from '../images/Notification.svg'
+import notificationsub from '../images/Notificationsub.svg'
+import { useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 
 export default function Navbar() {
   const navigate = useNavigate();
+
+  const { pathname } = useLocation();
+  const isHome = pathname === "/home";
+
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHome) return; // skip adding scroll listener on other pages
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHome]);
 
   const [openAvatar, setOpenAvatar] = useState(false);
   const [openNoti, setOpenNoti] = useState(false);
@@ -117,10 +137,11 @@ useEffect(() => {
 
   return (
     <div
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300
+        ${scrolled ? "bg-white shadow-lg py-2" : "bg-transparent py-6"}
+      `}
       style={{
-        width: '100%',
         height: 50,
-        background: 'white',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -133,7 +154,7 @@ useEffect(() => {
       }}
     >
       {/* Logo */}
-      <img src={new_logo2} 
+      <img src={scrolled ? new_logo2 : new_logo2sub} 
       onClick={() => navigate('/home')}
       alt="Logo" 
       style={{ height: 20, cursor: "pointer" }} />
@@ -144,9 +165,9 @@ useEffect(() => {
         {/* Home */}
         <div className="h-[25px] flex flex-col items-center group">
           <button onClick={() => navigate("/home")}>
-            <img src={home} 
+            <img src={scrolled ? home : homesub} 
             alt="Home" 
-            className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125" />
+            className="h-[23px] cursor-pointer transition-transform duration-200 group-hover:scale-125" />
           </button>
 
           <span 
@@ -163,12 +184,12 @@ useEffect(() => {
         </div>
 
         {/* Community Icon */}
-        <div className="h-[25px] flex flex-col items-center group">
+        <div className="h-[37px] flex flex-col items-center group">
           <button onClick={() => navigate("/community")}>
             <img
-              src={community}
+              src={scrolled ? community : communitysub}
               alt="community"
-              className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125"
+              className="h-[37px] cursor-pointer transition-transform duration-200 group-hover:scale-125"
             />
           </button>
 
@@ -192,10 +213,11 @@ useEffect(() => {
               setOpenNoti(!openNoti);
               setOpenAvatar(false);
             }}
-            className="h-[25px] flex flex-col items-center group"
+            className="h-[27px] flex flex-col items-center group"
           >
-            <img src={Bell} alt="Bell" 
-            className="h-[25px] cursor-pointer transition-transform duration-200 group-hover:scale-125" />
+            <img src={scrolled ? notification : notificationsub} alt="Bell" 
+            style={{height:27, width:27}}
+            className="cursor-pointer transition-transform duration-200 group-hover:scale-125" />
 
             <span 
             style={{
@@ -332,7 +354,7 @@ useEffect(() => {
             style = {{
                 width: 40,
                 height: 40,
-                backgroundColor: "#ded7d7ff",
+                backgroundColor: scrolled ? "#ded7d7ff" : "#ffffffff",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
