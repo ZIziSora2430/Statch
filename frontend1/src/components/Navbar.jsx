@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useState, useRef, useEffect } from "react";
 import defaultAvatar from "../images/avatar-default.svg";
 import community from '../images/community_icon.png'
+import new_logo2 from '../images/new_logo2.svg'
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -132,10 +133,10 @@ useEffect(() => {
       }}
     >
       {/* Logo */}
-      <img src={new_logo} 
+      <img src={new_logo2} 
       onClick={() => navigate('/home')}
       alt="Logo" 
-      style={{ height: 25, cursor: "pointer" }} />
+      style={{ height: 20, cursor: "pointer" }} />
 
       {/* Right icons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
