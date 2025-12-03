@@ -3,7 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional
 from app.accommodations.schemas import OwnerInfo
-
+import re
 
 class BookingStatusEnum(str, Enum):
     pending_approval = "pending_approval"       # 1. Mới đặt, chờ chủ nhà accept yêu cầu đặt phòng
