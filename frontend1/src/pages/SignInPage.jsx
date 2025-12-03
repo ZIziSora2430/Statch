@@ -5,8 +5,9 @@ import React, { useState } from "react";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import { useNavigate } from "react-router-dom";
 import '../index.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// ✅ MỚI THÊM: Environment variable cho API URL (giống SignUp)
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function SignInPage() {
@@ -15,13 +16,12 @@ function SignInPage() {
   // ✅ THÊM: State để lưu thông tin đăng nhập
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // ✅ THÊM: Hiển thị lỗi nếu có
-  const [loading, setLoading] = useState(false); // ✅ THÊM: Trạng thái loading khi đang gọi API
-
+  const [loading, setLoading] = useState(false); 
+  
   // ✅ THÊM: Hàm xử lý submit form - GỌI API LOGIN
   const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn reload trang
-    setError(""); // Xóa lỗi cũ
+  
     setLoading(true); // Bật loading
 
     // ✅ MỚI THÊM: Log để debug (giống SignUp)
@@ -54,30 +54,34 @@ function SignInPage() {
         localStorage.setItem("user_role", data.role);
         localStorage.setItem("username", username);
 
-        console.log('✅ Login successful! Role:', data.role);
+        toast.success("Đăng nhập thành công! Đang chuyển hướng...", {
+          position: "top-right",
+          autoClose: 900
+        });
 
         // ✅ THÊM: Điều hướng dựa trên role của user
-        if (data.role === "owner") {
-          navigate("/profileo"); // Chủ trọ -> dashboard
-        } else if (data.role === "traveler") {
-          navigate("/home"); // Người dùng -> home
-        } else {
-          navigate("/home"); // Các role khác
-        }
-        console.log(data.access_token);
+        setTimeout(() => {
+            if (data.role === "owner") {
+            navigate("/profileo"); // Chủ trọ -> dashboard
+          } else if (data.role === "traveler") {
+            navigate("/home"); // Người dùng -> home
+          } else {
+            navigate("/home"); // Các role khác
+          }
+          console.log(data.access_token);
+        }, 1200);
+        
       } else {
-        // ✅ THÊM: Hiển thị lỗi nếu đăng nhập thất bại
-        // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 401 (Unauthorized)
         if (response.status === 401) {
-          setError("Tên đăng nhập hoặc mật khẩu không đúng!");
+          toast.error("Tên đăng nhập hoặc mật khẩu không đúng!", {autoClose: 900});
         } else {
-          setError(data.detail || "Đăng nhập thất bại!");
+          toast.error(data.detail || "Đăng nhập thất bại!", {autoClose: 900});
         }
       }
     } catch (err) {
       // ✅ THÊM: Xử lý lỗi khi không kết nối được server
       console.error('❌ Login error:', err);
-      setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
+      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
       console.error("Login error:", err);
     } finally {
       setLoading(false); // Tắt loading
@@ -162,21 +166,6 @@ function SignInPage() {
             }}
           />
 
-          {/* ✅ THÊM: Hiển thị thông báo lỗi nếu có */}
-          {/* ✅ MỚI CẬP NHẬT: Style giống SignUp (có background màu đỏ nhạt) */}
-          {error && (
-            <p style={{
-              color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand
-       
-              marginBottom: '10px',
-              fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size
-              textAlign: 'center',
-              backgroundColor: '#ffe6e6', // ✅ MỚI THÊM: Background nhạt
-              padding: '8px', // ✅ MỚI THÊM
-              borderRadius: '5px' // ✅ MỚI THÊM
-            }}>{error}</p>
-          )}
-
           {/* ✅ MỚI CẬP NHẬT: Đổi <a> thành <button> để tránh navigation không mong muốn */}
           <button
             type="button"
@@ -243,7 +232,7 @@ function SignInPage() {
           </p>
         </form>
       </div>
-      
+      <ToastContainer />
     </div>
   );
 }

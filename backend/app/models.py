@@ -151,7 +151,6 @@ class Booking(Base):
     date_start = Column(DATE, nullable=False)
     date_end = Column(DATE, nullable=False)
 
-    # CÁC CỘT MỚI THÊM VÀO
     guests = Column(Integer, nullable=False, default=1)  
     note = Column(TEXT, nullable=True) # Lưu ghi chú của khách
     guest_name = Column(String(100), nullable=True)  # Tên người ở
@@ -163,8 +162,9 @@ class Booking(Base):
     booking_code = Column(String(50), unique=True, nullable=True)
 
     # Trạng thái booking
-    status = Column(String(50), nullable=False, default='pending_confirmation')
-    
+    status = Column(String(50), nullable=False, default='pending_approval')
+
+    payment_proof = Column(String(500), nullable=True) # Lưu link ảnh/file
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())

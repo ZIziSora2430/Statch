@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import models
 from app.database import engine, test_connection
 from app.models import Base
+from fastapi.staticfiles import StaticFiles
 
 
 from .feature_login.router import router as login_router
@@ -32,6 +33,9 @@ from app.accommodations.owner_router import router as owner_router
 
 models.Base.metadata.create_all(bind=engine)
 
+
+# mount static files after app is created
+# (moved below app = FastAPI(...))
 # =====================================================
 # FastAPI app instance
 # =====================================================
@@ -69,12 +73,15 @@ app = FastAPI(
     """,
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
 
+# mount static files (app is defined above)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # =====================================================
 # CORS Middleware
+# =====================================================
 # =====================================================
 
 app.add_middleware(

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import date
@@ -72,3 +72,14 @@ def get_disabled_dates_endpoint(
 
     return service.get_disabled_dates(db, accommodation_id)
 
+@router.post("/{booking_id}/upload-proof")
+def upload_proof_endpoint(
+    booking_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    try:
+        return service.traveler_upload_proof(db, booking_id, current_user.id, file)
+    except ValueError as e:
+        raise HTTPException(400, str(e))

@@ -118,7 +118,6 @@ export default function ResultBar({
   ratingText = "Mới",
   ratingCount = 0,
   ratingScore = 0,
-  stars = 0, 
   tags = [], // Mảng các tag phụ (VD: view biển, hồ bơi)
   categories = [], // Mảng loại phòng (VD: Villa, Khách sạn)
   dateRangeLabel = "Chọn ngày để kiểm tra",
@@ -127,6 +126,7 @@ export default function ResultBar({
   priceNote = "Đã bao gồm thuế và phí",
   onClick = () => {},
 }) {
+  const stars = Math.round((ratingScore / 2) * 2) / 2;
   return (
     <article 
       onClick={onClick}

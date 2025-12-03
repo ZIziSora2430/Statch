@@ -20,6 +20,30 @@ from app.system_forum.dependencies import get_current_user
 
 router = APIRouter()  # Không có prefix, sẽ thêm trong main.py
 
+
+# API Lấy danh sách bài viết của chính user đang đăng nhập
+@router.get("/posts/me", response_model=List[PostResponse])
+async def get_my_posts(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1),
+    status_filter: Optional[str] = Query(None, description="Lọc theo status: active, hidden, deleted"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Lấy lịch sử đăng bài của user hiện tại
+    """
+    query = db.query(Post).filter(Post.user_id == current_user.id)
+    
+    # Nếu muốn xem cả bài đã xóa/ẩn thì truyền status_filter, mặc định lấy tất cả trừ deleted nếu không chỉ định
+    if status_filter:
+        query = query.filter(Post.status == status_filter)
+    else:
+        # Mặc định hiển thị active và hidden, ẩn deleted đi cho gọn (tùy logic của bạn)
+        query = query.filter(Post.status != "deleted")
+        
+    posts = query.order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
+    return posts
 # ============= VERIFIED TRAVELER LOGIC =============
 
 def check_verified_traveler(user: User) -> bool:

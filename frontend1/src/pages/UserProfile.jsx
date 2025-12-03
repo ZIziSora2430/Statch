@@ -217,7 +217,6 @@
                 setPhone(originalData.phone);
                 setIsEditingPhone(false);
             }
-            showNotify("Đã hủy thay đổi", "info");
         };
 
         
@@ -325,7 +324,7 @@
                             {activeSection === "statusPost" && role === "traveler" && <div>(Component Lịch sử đăng bài đang phát triển)</div>}
                             {activeSection === "accoList" && role === "owner" && <OwnerDashBoard />}
                             {activeSection === "bookCalen" && role === "owner" && <BookingList />}
-                            {activeSection === "setting" && <ChangePass />}
+                            {activeSection === "setting" && <ChangePass showNotify={showNotify}/>}
                             </div>
                         </div>
                     </div>

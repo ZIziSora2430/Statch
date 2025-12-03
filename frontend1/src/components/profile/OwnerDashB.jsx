@@ -245,7 +245,12 @@ export default function OwnerDashB() {
   );
 
   return (
-    <div className="w-full h-auto bg-white px-6 md:px-10 pb-10 pt-2 relative -mt-[55px] rounded-t-2xl">
+    <div 
+    style={{
+      height: 980,
+      overflow: 'auto'
+    }}
+    className="w-full bg-white px-6 md:px-10 pb-10 pt-2 relative -mt-[55px] rounded-t-2xl">
       
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-end mb-10 pb-4 border-b border-gray-100">

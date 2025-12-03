@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Users, FileText, MessageSquare, Check, X, Clock, BedDouble, ArrowRight } from "lucide-react";
+import { Calendar, Users, FileText, MessageSquare, Check, X, Archive,
+          Clock, BedDouble, ArrowRight, DollarSign, Eye, AlertTriangle } from "lucide-react";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function BookingList() {
@@ -15,20 +16,9 @@ export default function BookingList() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        // const token = localStorage.getItem("token");
         const token = localStorage.getItem("access_token");
-
-        // const res = await fetch(
-        //   `${import.meta.env.VITE_API_URL}/api/owner/bookings`,
-        //   {
-        //     headers: {
-        //       Authorization: `Bearer ${token}`,
-        //     },
-        //   }
-        // );
-
-const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
-  headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch(`${API_URL}/api/owner/bookings`, {
+          headers: { Authorization: `Bearer ${token}` }
 });
 
         const data = await res.json();
@@ -44,8 +34,39 @@ const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
     fetchBookings();
   }, []);
 
+  // --- HÀM DUYỆT YÊU CẦU  ---
+  // Chuyển từ pending_approval -> pending_payment
+  const handleApprove = async (bookingId) => {
+    try {
+      const token = getToken();
+      const res = await fetch(
+        `${API_URL}/api/owner/bookings/${bookingId}/approve`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.ok) {
+        setBookingList((prev) =>
+          prev.map((b) =>
+            b.booking_id === bookingId ? { ...b, status: "pending_payment" } : b
+          )
+        );
+        alert("Đã duyệt yêu cầu! Đang chờ khách thanh toán.");
+      } else {
+        const errData = await res.json();
+        alert(`Lỗi: ${errData.detail || "Không thể duyệt"}`);
+      }
+    } catch (err) {
+      console.error("Lỗi approve:", err);
+    }
+  };
+
   // Xử lí accept booking 
+  // Chuyển từ pending_confirmation -> confirmed
   const handleConfirm = async (bookingId) => {
+    if (!confirm("Bạn xác nhận đã nhận đủ tiền và muốn chốt lịch này?")) return;
     try {
       const token = getToken();
       // Gọi endpoint confirm trong owner_router.py
@@ -66,13 +87,42 @@ const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
             b.booking_id === bookingId ? { ...b, status: "confirmed" } : b
           )
         );
-        alert("Đã xác nhận đặt phòng!");
+        alert("Đã xác nhận thanh toán thành công!");
       } else {
         const errData = await res.json();
         alert(`Lỗi: ${errData.detail || "Không thể xác nhận"}`);
       }
     } catch (err) {
       console.error("Lỗi confirm:", err);
+    }
+  };
+
+  const handleReport = async (bookingId) => {
+    if (!confirm("Bạn chưa nhận được tiền? Hệ thống sẽ chuyển đơn này sang trạng thái 'Đang chờ xử lý' để Admin kiểm tra.")) return;
+
+    try {
+      const token = getToken();
+      const res = await fetch(
+        `${API_URL}/api/owner/bookings/${bookingId}/report`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.ok) {
+        setBookingList((prev) =>
+          prev.map((b) =>
+            b.booking_id === bookingId ? { ...b, status: "reported" } : b
+          )
+        );
+        alert("Đã báo cáo. Đơn hàng đang ở trạng thái 'Đang chờ xử lý'.");
+      } else {
+        const errData = await res.json();
+        alert(`Lỗi: ${errData.detail || "Không thể báo cáo"}`);
+      }
+    } catch (err) {
+      console.error("Lỗi report:", err);
     }
   };
 
@@ -110,18 +160,35 @@ const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
     }
   };
 
-  /// 2. Helper: Config màu sắc & Icon theo trạng thái
+
+  {/*Hàm helper config màu sắc */}
   const getStatusConfig = (status) => {
       switch (status) {
-        case "pending_confirmation":
+        case "pending_approval": // 1. Mới đặt
             return { 
-                color: "border-yellow-400", 
-                bg: "bg-yellow-50", 
-                text: "text-yellow-700", 
-                label: "Chờ xác nhận", 
+                color: "border-blue-400", 
+                bg: "bg-blue-50", 
+                text: "text-blue-700", 
+                label: "Chờ duyệt", 
                 icon: Clock 
             };
-        case "confirmed":
+        case "pending_payment": // 2. Đã duyệt, chờ tiền
+            return { 
+                color: "border-orange-400", 
+                bg: "bg-orange-50", 
+                text: "text-orange-700", 
+                label: "Chờ thanh toán", 
+                icon: DollarSign 
+            };
+        case "pending_confirmation": // 3. Khách đã chuyển, chờ check
+            return { 
+                color: "border-purple-500", 
+                bg: "bg-purple-50", 
+                text: "text-purple-700", 
+                label: "Chờ xác thực tiền", 
+                icon: Eye 
+            };
+        case "confirmed": // 4. Xong
             return { 
                 color: "border-green-500", 
                 bg: "bg-green-50", 
@@ -137,13 +204,44 @@ const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
                 label: "Đã hủy", 
                 icon: X 
             };
+        case "rejected":
+             return { 
+                 color: "border-red-300", 
+                 bg: "bg-red-50", 
+                 text: "text-red-500", 
+                 label: "Đã từ chối", 
+                 icon: X 
+             };
+
+        case "reported":
+            return { 
+                color: "border-red-500", 
+                bg: "bg-red-50", 
+                text: "text-red-600", 
+                label: "Đang chờ xử lý", 
+                icon: AlertTriangle 
+            };
+        case "completed":
+            return { 
+                color: "border-slate-500", 
+                bg: "bg-slate-100", 
+                text: "text-slate-600", 
+                label: "Đã trả phòng", 
+                icon: Archive
+            };
+
         default:
             return { color: "border-gray-200", bg: "bg-white", text: "text-gray-600", label: status, icon: FileText };
       }
   };
-
   return (
-    <div className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
+    <div 
+    style={{
+      maxHeight: 980,
+      minHeight: 538,
+      overflow: 'auto'
+    }}
+    className="w-full px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
       
       {/* Header Section */}
       <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
@@ -227,23 +325,78 @@ const res = await fetch('http://127.0.0.1:8000/api/owner/bookings', {
                         </div>
                     </div>
 
-                    {/* Hàng 3: Action Buttons (Chỉ hiện khi Pending) */}
-                    {booking.status === "pending_confirmation" && (
-                        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
-                            <button
-                                onClick={() => handleCancel(booking.booking_id)}
-                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 font-bold text-sm hover:bg-gray-50 transition"
-                            >
-                                Từ chối
-                            </button>
-                            <button
-                                onClick={() => handleConfirm(booking.booking_id)}
-                                className="px-6 py-2 rounded-lg bg-[#AD0000] text-white font-bold text-sm shadow-md hover:bg-[#850000] transition transform active:scale-95 flex items-center gap-2"
-                            >
-                                <Check size={16} /> Chấp nhận đơn
-                            </button>
+                    {/* --- HIỂN THỊ ẢNH CHUYỂN KHOẢN (Nếu có) --- */}
+                    {booking.payment_proof && (
+                        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                             <p className="text-xs font-bold text-gray-500 mb-2">Ảnh biên lai chuyển khoản:</p>
+                             <a 
+                                href={`${API_URL}/${booking.payment_proof}`} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="text-blue-600 underline text-sm hover:text-blue-800"
+                             >
+                                Bấm vào đây để xem ảnh xác thực
+                             </a>
                         </div>
                     )}
+
+                   {/* --- ACTION BUTTONS (Logic mới) --- */}
+                    <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                        
+                        {/* 1. Mới đặt -> Duyệt hoặc Từ chối */}
+                        {booking.status === "pending_approval" && (
+                            <>
+                                <button
+                                    onClick={() => handleCancel(booking.booking_id)}
+                                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 font-bold text-sm hover:bg-gray-50 transition"
+                                >
+                                    Từ chối
+                                </button>
+                                <button
+                                    onClick={() => handleApprove(booking.booking_id)}
+                                    className="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold text-sm shadow-md hover:bg-blue-700 transition flex items-center gap-2"
+                                >
+                                    <Check size={16} /> Duyệt yêu cầu
+                                </button>
+                            </>
+                        )}
+
+                        {/* 2. Chờ khách chuyển tiền */}
+                        {booking.status === "pending_payment" && (
+                             <span className="text-orange-600 text-sm font-medium italic flex items-center gap-1">
+                                <Clock size={14}/> Đang chờ khách thanh toán...
+                             </span>
+                        )}
+
+                        {/* 3. Khách đã chuyển -> CHỈ CÓ: Báo cáo & Xác nhận (Không cho hủy) */}
+                        {booking.status === "pending_confirmation" && (
+                            <>
+                                {/* Nút Báo cáo */}
+                                <button
+                                    onClick={() => handleReport(booking.booking_id)} 
+                                    className="px-4 py-2 rounded-lg border border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition flex items-center gap-2"
+                                >
+                                    <AlertTriangle size={16} /> Chưa nhận được tiền?
+                                </button>
+
+                                {/* Nút Xác nhận */}
+                                <button
+                                    onClick={() => handleConfirm(booking.booking_id)}
+                                    className="px-6 py-2 rounded-lg bg-[#AD0000] text-white font-bold text-sm shadow-md hover:bg-[#850000] transition transform active:scale-95 flex items-center gap-2"
+                                >
+                                    <Check size={16} /> Xác nhận đã nhận tiền
+                                </button>
+                            </>
+                        )}
+
+                        {/* 4. Đã báo cáo -> Chỉ hiện thông báo */}
+                        {booking.status === "reported" && (
+                            <span className="text-red-600 text-sm font-medium italic flex items-center gap-1">
+                                <AlertTriangle size={14}/> Yêu cầu đang được Admin xử lý tranh chấp.
+                            </span>
+                        )}
+
+                    </div>
                 </div>
             </div>
           );

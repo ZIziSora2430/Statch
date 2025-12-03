@@ -10,6 +10,10 @@ from ..notifications.service import create_notification
 import random
 import string
 
+import os
+import shutil
+from fastapi import UploadFile
+
 
 def generate_booking_code():
     return "STATCH-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -273,7 +277,7 @@ def create_booking(
             detail="Rất tiếc, chỗ nghỉ này đã được xác nhận trong khoảng thời gian bạn chọn."
         )
     
-    status = schemas.BookingStatusEnum.pending_confirmation.value
+    status = schemas.BookingStatusEnum.pending_approval.value
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
     total_price = calculate_total_price(accommodation.price, nights)
@@ -305,4 +309,68 @@ def create_booking(
     )
 
     return new_booking
+
+
+# Chủ nhà duyệt yêu cầu (Approve) chuyển sang chờ thanh toán
+def owner_approve_booking(db: Session, booking_id: int, owner_id: int):
+    booking = get_booking_by_id(db, booking_id)
+    if not booking:
+        raise ValueError("Booking không tồn tại")
+    
+    if booking.status != "pending_approval":
+        raise ValueError("Booking không ở trạng thái chờ duyệt")
+
+    booking.status = "pending_payment" # Chuyển sang chờ thanh toán
+    db.commit()
+    
+    # Gửi noti cho khách
+    create_notification(db, booking.user_id, "Chủ nhà đã đồng ý! Vui lòng thanh toán để giữ chỗ.")
+    return build_booking_read(db, booking)
+
+# Khách upload ảnh (Upload Proof)
+def traveler_upload_proof(db: Session, booking_id: int, user_id: int, file: UploadFile):
+    booking = get_booking_by_id(db, booking_id)
+    if not booking or booking.user_id != user_id:
+        raise ValueError("Không tìm thấy booking hoặc không có quyền")
+
+    if booking.status != "pending_payment":
+        raise ValueError("Bạn chưa được duyệt hoặc đã thanh toán rồi")
+
+    # Lưu file ảnh (Lưu local đơn giản vào folder static)
+    upload_dir = "static/proofs"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = f"{upload_dir}/{booking_id}_{file.filename}"
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Cập nhật DB
+    booking.payment_proof = file_path
+    booking.status = "pending_confirmation" # Chuyển sang chờ xác nhận tiền
+    db.commit()
+
+    # Báo cho chủ nhà
+    accom = db.scalar(select(models.Accommodation).where(models.Accommodation.accommodation_id == booking.accommodation_id))
+    create_notification(db, accom.owner_id, "Khách đã chuyển khoản! Hãy kiểm tra và xác nhận.")
+    
+    return build_booking_read(db, booking)
+
+
+def owner_report_issue(db: Session, booking_id: int, owner_id: int):
+    booking = get_booking_by_id(db, booking_id)
+    
+    # Check quyền owner...
+    accom = db.scalar(select(models.Accommodation).where(models.Accommodation.accommodation_id == booking.accommodation_id))
+    if accom.owner_id != owner_id:
+        raise ValueError("Không có quyền")
+
+    # Chỉ cho phép report khi đang chờ xác nhận tiền
+    if booking.status != "pending_confirmation":
+        raise ValueError("Chỉ có thể báo cáo khi đang chờ xác nhận tiền")
+
+    booking.status = "reported" # Chuyển sang trạng thái "Bị báo cáo / Chờ xử lý"
+    db.commit()
+    
+    # (Optional) Gửi thông báo cho khách: "Đơn của bạn đang được xem xét lại"
+    return build_booking_read(db, booking)
 
