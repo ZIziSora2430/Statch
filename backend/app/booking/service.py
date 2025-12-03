@@ -7,6 +7,7 @@ from .. import models
 from . import schemas
 from ..notifications.service import create_notification
 
+
 import random
 import string
 
@@ -118,17 +119,36 @@ def get_bookings_for_owner(db: Session, owner_id: int):
     return results
 
 def build_booking_read(db: Session, booking):
+    # Lấy thông tin chỗ ở
     accom = db.scalar(
         select(models.Accommodation).where(
             models.Accommodation.accommodation_id == booking.accommodation_id
         )
     )
 
+    # Lấy thông tin chủ nhà
+    owner = db.scalar(
+        select(models.User).where(models.User.id == accom.owner_id)
+    )
+
+    # Chuyển sang Pydantic OwnerInfo
+    owner_info = None
+    if owner:
+        owner_info = schemas.OwnerInfo(
+            full_name=owner.full_name,
+            email=owner.email,
+            phone=owner.phone
+        )
+
     nights = (booking.date_end - booking.date_start).days
 
     return schemas.BookingRead(
         booking_id=booking.booking_id,
         booking_code=booking.booking_code,
+
+        # 🟢 TRẢ VỀ OWNER Ở ĐÂY
+        owner=owner_info,
+
         user_id=booking.user_id,
         accommodation_id=booking.accommodation_id,
         date_start=booking.date_start,

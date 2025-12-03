@@ -43,23 +43,27 @@ export default function BookingConfirmPage() {
       .then((data) => {
         // Map dữ liệu từ Backend (snake_case) sang Frontend (camelCase)
 
-        const mappedData = {
-            bookingId: data.booking_id,
-            bookingCode: data.booking_code,
-            status: data.status,
-            roomName: data.accommodation_title, // Lấy từ accommodation_title
-            hotelLocation: data.accommodation_location,
-            checkin: data.date_start,
-            checkout: data.date_end,
-            guests: data.guests,
-            guestName: data.guest_name, 
-            guestEmail: data.guest_email,
-            guestPhone: data.guest_phone,
-            fullNote: data.note,
-            nights: data.nights,
-            pricePerNight: data.price_per_night,
-            totalPrice: data.total_price,
-        };
+      const mappedData = {
+    bookingId: data.booking_id,
+    bookingCode: data.booking_code,
+    status: data.status,
+    roomName: data.accommodation_title,
+    hotelLocation: data.accommodation_location,
+    checkin: data.date_start,
+    checkout: data.date_end,
+    guests: data.guests,
+    guestName: data.guest_name, 
+    guestEmail: data.guest_email,
+    guestPhone: data.guest_phone,
+    fullNote: data.note,
+    nights: data.nights,
+    pricePerNight: data.price_per_night,
+    totalPrice: data.total_price,
+    ownerName: data.owner?.full_name,
+    ownerEmail: data.owner?.email,
+    ownerPhone: data.owner?.phone,
+};
+
         
         // 4. Sửa setBooking -> setBookingData
         setBookingData(mappedData);
@@ -233,7 +237,22 @@ export default function BookingConfirmPage() {
                   {bookingData.nights} đêm
                 </p>
               </div>
+              <p className="pt-2 font-semibold text-gray-900">Thông tin chủ nhà</p>
+<p>
+  <span className="font-semibold">Họ tên:</span>{" "}
+  {bookingData.ownerName || "Ẩn danh"}
+</p>
+<p>
+  <span className="font-semibold">Email:</span>{" "}
+  {bookingData.ownerEmail || "Không có"}
+</p>
+<p>
+  <span className="font-semibold">SĐT:</span>{" "}
+  {bookingData.ownerPhone || "Không có"}
+</p>
+
             </div>
+            
 
             {/* Thông tin khách */}
             <div className="space-y-3">

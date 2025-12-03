@@ -2,6 +2,8 @@ from datetime import date
 from enum import Enum
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
+from app.accommodations.schemas import OwnerInfo
+
 
 
 class BookingStatusEnum(str, Enum):
@@ -28,12 +30,11 @@ class BookingCreate(BaseModel):
     guest_phone: str
 
 class BookingRead(BaseModel):
-    """
-    Dữ liệu trả về cho FE (Booking Detail, Booking List)
-    """
     booking_id: int
     booking_code: str
     
+    owner: Optional[OwnerInfo] = None  # Thông tin chủ nhà
+
     user_id: int
     accommodation_id: int
 
@@ -42,16 +43,15 @@ class BookingRead(BaseModel):
     nights: int
 
     guests: int
-    note: Optional[str] = None
+    note: Optional[str] = None   # ✔ CHỈ ĐỂ 1 LẦN
     total_price: float
     price_per_night: float
 
     guest_name: Optional[str] = None
     guest_email: Optional[str] = None
     guest_phone: Optional[str] = None
-    note: Optional[str] = None # Trả về note riêng
 
-    # Accommodation info 
+    # Accommodation info
     accommodation_title: str
     accommodation_location: str
     accommodation_image: str
@@ -60,7 +60,6 @@ class BookingRead(BaseModel):
     payment_proof: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
-
 
 class BookingUpdateStatus(BaseModel):
     status: BookingStatusEnum
