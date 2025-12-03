@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional 
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import List, Optional
 
@@ -13,7 +13,7 @@ from .. import models, database
 from . import schemas, service 
 
 # Import dependency (bảo mật)
-from ..feature_login.security_helpers import get_current_active_owner, get_current_user
+from ..feature_login.security_helpers import get_current_user
 
 router = APIRouter(
     prefix="/accommodations",
@@ -29,8 +29,21 @@ async def get_smart_recommendations(
 ):
     # 1. Lấy sở thích user
     preference = current_user.preference
-    if not preference:
-        # Nếu không có sở thích, trả về random hoặc top rate
+    two_weeks_ago = datetime.now() - timedelta(weeks=2)
+    
+    recent_posts = db.query(models.Post).filter(
+        models.Post.user_id == current_user.id,
+        models.Post.created_at >= two_weeks_ago,
+    ).all()
+
+    history_context = ""
+    if recent_posts:
+        # Gộp tiêu đề và nội dung các bài viết lại thành 1 đoạn văn
+        history_context = ". ".join([f"{p.title}: {p.content[:100]}..." for p in recent_posts])
+        print(f"📜 User History Context (2 weeks): {history_context}")
+
+    if not preference and not history_context:
+        # Không có sở thích VÀ không có bài đăng -> Random
         return service.get_top_accommodations(db, limit=6)
 
     # 2. Lấy danh sách ứng viên thô từ DB (Lấy khoảng 10-20 cái mới nhất/tốt nhất để AI lọc)
@@ -38,7 +51,7 @@ async def get_smart_recommendations(
     candidates = service.get_random_accommodations(db, limit=10) 
     
     # 3. Nhờ AI chấm điểm
-    ai_scores = await ai_service.calculate_match_score(preference, candidates)
+    ai_scores = await ai_service.calculate_match_score(preference, candidates, history_context)
     
     # 4. Ghép điểm số vào object kết quả
     final_results = []
@@ -51,11 +64,15 @@ async def get_smart_recommendations(
             acc.match_score = match['score']
             acc.match_reason = match['reason']
             final_results.append(acc)
+    if not final_results:
+        print("⚠️ AI không tìm thấy kết quả phù hợp hoặc bị lỗi -> Fallback về Top Rated")
+        # Trả về danh sách Top Rated hoặc Random để lấp đầy giao diện
+        return service.get_top_accommodations(db, limit=6)
     
     # 5. Sắp xếp theo điểm số AI giảm dần
     final_results.sort(key=lambda x: x.match_score, reverse=True)
     
-    return final_results[:3] # Chỉ lấy Top 3 cái hợp nhất
+    return final_results[:6] # Chỉ lấy Top 6 cái hợp nhất
 
 # API TÌM KIẾM
 @router.get(

@@ -13,7 +13,7 @@ if not GOOGLE_API_KEY:
     print("⚠️ CẢNH BÁO: Chưa tìm thấy AI_KEY trong biến môi trường!")
 
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 async def generate_tags_from_desc(description: str, location: str) -> str:
     """
@@ -135,10 +135,9 @@ async def generate_description_text(title: str, property_type: str, location: st
     
 import json
 
-async def calculate_match_score(user_preference: str, accommodations: list) -> list:
+async def calculate_match_score(user_preference: str, accommodations: list, user_history_context: str = "") -> list:
     """
     Dùng AI để chấm điểm độ phù hợp.
-    Phiên bản Fix Lỗi JSON + Prompt khéo léo.
     """
     try:
         # 1. Chuẩn bị dữ liệu rút gọn
@@ -151,16 +150,22 @@ async def calculate_match_score(user_preference: str, accommodations: list) -> l
                 "tags": acc.tags
             })
 
+        context_str = ""
+        if user_history_context:
+            context_str = f"\n- Mối quan tâm gần đây (Dựa trên bài đăng Forum 2 tuần qua): {user_history_context}"
+
         # 2. Prompt "Cứng rắn về định dạng" nhưng "Mềm mỏng về nội dung"
         prompt = f"""
         Vai trò: Bạn là một API Backend chỉ trả về JSON.
-        Nhiệm vụ: So khớp sở thích người dùng với danh sách chỗ ở.
+        Nhiệm vụ: So khớp nhu cầu người dùng với danh sách chỗ ở.
 
         Input:
-        - Sở thích: "{user_preference}"
+        - Sở thích: "{user_preference}"{context_str}
         - Ứng viên: {json.dumps(candidates, ensure_ascii=False)}
 
         Yêu cầu Logic (Copywriter):
+        - Kết hợp cả sở thích chung VÀ mối quan tâm gần đây để đánh giá.
+        - Ưu tiên những chỗ ở phù hợp với bài đăng gần đây nhất của họ (Ví dụ: Bài đăng hỏi về "Đà Lạt" thì ưu tiên Homestay Đà Lạt).
         - Viết lý do ngắn gọn (dưới 20 từ) giải thích tại sao chỗ này "có liên quan" đến sở thích.
         - CẤM dùng từ phủ định (VD: "không có núi", "thiếu hồ bơi").
         - Nếu không khớp hoàn toàn, hãy tìm điểm chung về "cảm giác" (Vd: Leo núi -> Cần thiên nhiên -> Nhà vườn cây xanh).
@@ -174,8 +179,8 @@ async def calculate_match_score(user_preference: str, accommodations: list) -> l
 
         # 3. Cấu hình ép buộc JSON (Quan trọng)
         generation_config = genai.types.GenerationConfig(
-            temperature=0.5, # Tăng nhẹ để văn hay hơn
-            response_mime_type="application/json" # <--- THẦN CHÚ: Ép AI trả về JSON chuẩn 100%
+            temperature=0.5, 
+            response_mime_type="application/json" #ép AI trả về dạng json 
         )
 
         # 4. Gọi AI
@@ -187,8 +192,8 @@ async def calculate_match_score(user_preference: str, accommodations: list) -> l
         # 5. Xử lý kết quả
         raw_text = response.text.strip()
         
-        # DEBUG: In ra xem AI trả về cái gì (Nếu lỗi thì nhìn vào terminal biết ngay)
-        print(f"🤖 AI Raw Output: {raw_text[:100]}...") 
+        # DEBUG: In ra xem AI trả về cái gì 
+        print(f"AI Raw Output: {raw_text[:100]}...") 
 
         match_results = json.loads(raw_text)
         return match_results
