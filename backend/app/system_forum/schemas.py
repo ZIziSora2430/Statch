@@ -15,18 +15,45 @@ class PostStatus(str, Enum):
     hidden = "hidden"
     deleted = "deleted"
 
-class PostCategory(str, Enum):
-    general = "general"
-    tips = "tips"
-    questions = "questions"
-    reviews = "reviews"
-    stories = "stories"
+# ĐỔI TỪ CATEGORY SANG LOCATION (Quận/Huyện TP. HCM)
+class PostLocation(str, Enum):
+    # Quận 1-12
+    district1 = "district1"
+    district2 = "district2"
+    district3 = "district3"
+    district4 = "district4"
+    district5 = "district5"
+    district6 = "district6"
+    district7 = "district7"
+    district8 = "district8"
+    district9 = "district9"
+    district10 = "district10"
+    district11 = "district11"
+    district12 = "district12"
+    
+    # Các quận khác
+    binh_thanh = "binh_thanh"
+    binh_tan = "binh_tan"
+    phu_nhuan = "phu_nhuan"
+    tan_binh = "tan_binh"
+    tan_phu = "tan_phu"
+    go_vap = "go_vap"
+    
+    # TP Thủ Đức
+    thu_duc = "thu_duc"
+    
+    # Huyện
+    hoc_mon = "hoc_mon"
+    binh_chanh = "binh_chanh"
+    nha_be = "nha_be"
+    can_gio = "can_gio"
+    cu_chi = "cu_chi"
 
 # Post Schemas
 class PostBase(BaseModel):
-    title: str = Field(..., min_length=5, max_length=255)
+    title: str = Field(... , min_length=5, max_length=255)
     content: str = Field(..., min_length=10)
-    category: PostCategory = PostCategory.general
+    location: PostLocation = PostLocation.district1  # Đổi từ category sang location
 
 class PostCreate(PostBase):
     pass
@@ -34,7 +61,7 @@ class PostCreate(PostBase):
 class PostUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=5, max_length=255)
     content: Optional[str] = Field(None, min_length=10)
-    category: Optional[PostCategory] = None
+    location: Optional[PostLocation] = None  # Đổi từ category sang location
     status: Optional[PostStatus] = None
 
 class PostAuthor(BaseModel):
@@ -58,15 +85,11 @@ class PostResponse(PostBase):
     class Config:
         from_attributes = True
 
-# Reply Schemas
+# Reply Schemas (giữ nguyên)
 class ReplyBase(BaseModel):
     content: str = Field(..., min_length=1)
 
 class ReplyCreate(ReplyBase):
-    """
-    Schema để tạo reply
-    KHÔNG CÓ parent_reply_id (không hỗ trợ nested replies)
-    """
     pass
 
 class ReplyUpdate(BaseModel):

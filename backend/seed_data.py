@@ -11,30 +11,30 @@ from sqlalchemy.orm import Session
 # Import chuẩn từ app
 from app.database import SessionLocal, engine
 from app.models import (
-    User, Accommodation, Booking, Review, Post, Reply, # Bỏ Notification khỏi import nếu không dùng, hoặc giữ để clean
-    UserRole, PostCategory, PostStatus
+    User, Accommodation, Booking, Review, Post, Reply,
+    UserRole, PostLocation, PostStatus  # ĐÃ ĐỔI: PostCategory -> PostLocation
 )
 
 fake = Faker(['vi_VN'])
 
-# --- BỘ DỮ LIỆU ĐỊA ĐIỂM THẬT TẠI TP.HCM ---
+# --- BỘ DỮ LIỆU ĐỊA ĐIỂM THẬT TẠI TP. HCM ---
 REAL_ESTATES = [
     {"address": "2 Công xã Paris, Bến Nghé, Quận 1, TP.HCM", "lat": 10.779785, "lng": 106.699018, "type": "Khách sạn", "area": "Nhà thờ Đức Bà"},
-    {"address": "135 Nam Kỳ Khởi Nghĩa, Bến Thành, Quận 1, TP.HCM", "lat": 10.776993, "lng": 106.695353, "type": "Khách sạn", "area": "Dinh Độc Lập"},
+    {"address": "135 Nam Kỳ Khởi Nghĩa, Bến Thành, Quận 1, TP. HCM", "lat": 10.776993, "lng": 106.695353, "type": "Khách sạn", "area": "Dinh Độc Lập"},
     {"address": "36 Hồ Tùng Mậu, Bến Nghé, Quận 1, TP.HCM", "lat": 10.771867, "lng": 106.703461, "type": "Homestay", "area": "Bitexco"},
-    {"address": "183 Bùi Viện, Phường Phạm Ngũ Lão, Quận 1, TP.HCM", "lat": 10.767432, "lng": 106.692341, "type": "Homestay", "area": "Phố Tây Bùi Viện"},
+    {"address": "183 Bùi Viện, Phường Phạm Ngũ Lão, Quận 1, TP. HCM", "lat": 10.767432, "lng": 106.692341, "type": "Homestay", "area": "Phố Tây Bùi Viện"},
     {"address": "68 Nguyễn Huệ, Bến Nghé, Quận 1, TP.HCM", "lat": 10.774409, "lng": 106.703831, "type": "Khách sạn", "area": "Phố đi bộ Nguyễn Huệ"},
     {"address": "6 Pasteur, Phường 6, Quận 3, TP.HCM", "lat": 10.785321, "lng": 106.693732, "type": "Biệt thự", "area": "Hồ Con Rùa"},
     {"address": "117 Nguyễn Đình Chiểu, Phường 6, Quận 3, TP.HCM", "lat": 10.779340, "lng": 106.691510, "type": "Căn hộ", "area": "Léman Luxury"},
     {"address": "151 Bến Vân Đồn, Phường 6, Quận 4, TP.HCM", "lat": 10.763012, "lng": 106.696123, "type": "Căn hộ", "area": "River Gate Residence"},
     {"address": "18 An Dương Vương, Phường 9, Quận 5, TP.HCM", "lat": 10.757772, "lng": 106.670552, "type": "Khách sạn", "area": "Windsor Plaza"},
     {"address": "161 Xa lộ Hà Nội, Thảo Điền, Quận 2, TP.HCM", "lat": 10.801863, "lng": 106.740772, "type": "Căn hộ", "area": "Masteri Thảo Điền"},
-    {"address": "28 Trần Ngọc Diện, Thảo Điền, Quận 2, TP.HCM", "lat": 10.805052, "lng": 106.733364, "type": "Villa", "area": "Khu biệt thự Thảo Điền"},
+    {"address": "28 Trần Ngọc Diện, Thảo Điền, Quận 2, TP. HCM", "lat": 10.805052, "lng": 106.733364, "type": "Villa", "area": "Khu biệt thự Thảo Điền"},
     {"address": "101 Tôn Dật Tiên, Tân Phú, Quận 7, TP.HCM", "lat": 10.729568, "lng": 106.721627, "type": "Căn hộ", "area": "Crescent Mall"},
     {"address": "208 Nguyễn Hữu Cảnh, Phường 22, Bình Thạnh, TP.HCM", "lat": 10.795122, "lng": 106.721768, "type": "Căn hộ", "area": "Vinhomes Central Park"},
-    {"address": "720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP.HCM", "lat": 10.796123, "lng": 106.723456, "type": "Khách sạn", "area": "Landmark 81"},
-    {"address": "60A Trường Sơn, Phường 2, Tân Bình, TP.HCM", "lat": 10.811234, "lng": 106.663456, "type": "Khách sạn", "area": "Sân bay Tân Sơn Nhất"},
-    {"address": "100 Phan Xích Long, Phường 2, Phú Nhuận, TP.HCM", "lat": 10.798123, "lng": 106.689456, "type": "Homestay", "area": "Phố ẩm thực Phan Xích Long"},
+    {"address": "720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP. HCM", "lat": 10.796123, "lng": 106.723456, "type": "Khách sạn", "area": "Landmark 81"},
+    {"address": "60A Trường Sơn, Phường 2, Tân Bình, TP. HCM", "lat": 10.811234, "lng": 106.663456, "type": "Khách sạn", "area": "Sân bay Tân Sơn Nhất"},
+    {"address": "100 Phan Xích Long, Phường 2, Phú Nhuận, TP. HCM", "lat": 10.798123, "lng": 106.689456, "type": "Homestay", "area": "Phố ẩm thực Phan Xích Long"},
 ]
 
 TRAVEL_KEYWORDS = [
@@ -42,14 +42,18 @@ TRAVEL_KEYWORDS = [
     "muốn yên tĩnh", "thích náo nhiệt", "du lịch bụi", "luxury", "yêu động vật"
 ]
 
+# ĐÃ ĐỔI: Từ FORUM_TOPICS với PostCategory sang FORUM_TOPICS với PostLocation
 FORUM_TOPICS = [
-    ("Kinh nghiệm đi Đà Lạt mùa mưa?", PostCategory.questions),
-    ("Review chuyến đi Phú Quốc 3 ngày 2 đêm", PostCategory.reviews),
-    ("Top 5 quán cà phê đẹp ở Quận 1", PostCategory.tips),
-    ("Cần tìm bạn đồng hành đi Tây Bắc", PostCategory.general),
-    ("Câu chuyện bị lừa khi đặt phòng online và bài học", PostCategory.stories),
-    ("Hỏi về thủ tục thuê xe máy ở Đà Nẵng", PostCategory.questions),
-    ("Review Homestay X ở Sapa - Quá thất vọng!", PostCategory.reviews),
+    ("Kinh nghiệm tìm homestay ở", PostLocation.district1),
+    ("Review chỗ ở giá rẻ tại", PostLocation.district3),
+    ("Top 5 quán cà phê đẹp ở", PostLocation.district1),
+    ("Cần tìm bạn đồng hành khám phá", PostLocation.thu_duc),
+    ("Câu chuyện du lịch thú vị tại", PostLocation. district7),
+    ("Hỏi về chỗ ở an toàn ở", PostLocation. binh_thanh),
+    ("Review Homestay X ở", PostLocation. phu_nhuan),
+    ("Địa điểm check-in đẹp tại", PostLocation. district2),
+    ("Tìm phòng trọ sinh viên ở", PostLocation. go_vap),
+    ("Kinh nghiệm thuê căn hộ tại", PostLocation. district4),
 ]
 
 def clean_database(db: Session):
@@ -60,14 +64,16 @@ def clean_database(db: Session):
         db.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
         
         # Xóa theo thứ tự (tên bảng phải khớp trong database)
-        # Lưu ý: Notification vẫn cần xóa nếu bảng tồn tại
         tables = ["replies", "posts", "reviews", "bookings", "accommodations", "Notification", "users"]
         for table in tables:
             try:
-                db.execute(text(f"TRUNCATE TABLE {table};"))
+                db. execute(text(f"TRUNCATE TABLE {table};"))
             except Exception as table_err:
-                # Fallback nếu tên bảng là chữ thường (tùy config MySQL/MariaDB)
-                db.execute(text(f"TRUNCATE TABLE {table.lower()};"))
+                # Fallback nếu tên bảng là chữ thường
+                try:
+                    db.execute(text(f"TRUNCATE TABLE {table. lower()};"))
+                except:
+                    pass
             
         db.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
         db.commit()
@@ -94,8 +100,8 @@ def seed_data():
         common_password_hash = "$2b$12$10WVg2p82V.cdKfv46RzJe5EYwrf4cy7VofdKpwh7hiGU5x0I9YIa"
         
         for i in range(30):
-            role = random.choice([UserRole.traveler, UserRole.owner])
-            interests = " và ".join(random.sample(TRAVEL_KEYWORDS, k=2))
+            role = random.choice([UserRole.traveler, UserRole. owner])
+            interests = " và ".join(random. sample(TRAVEL_KEYWORDS, k=2))
             
             user = User(
                 username=f"user{i+1}",
@@ -119,9 +125,11 @@ def seed_data():
         travelers = [u for u in users if u.role == UserRole.traveler]
         
         if not owners: 
-            users[0].role = UserRole.owner; owners.append(users[0])
+            users[0].role = UserRole.owner
+            owners.append(users[0])
         if not travelers:
-            users[1].role = UserRole.traveler; travelers.append(users[1])
+            users[1].role = UserRole.traveler
+            travelers.append(users[1])
             
         db.commit()
 
@@ -132,8 +140,8 @@ def seed_data():
         print(f"🏠 2. Đang tạo {len(REAL_ESTATES)} chỗ ở từ dữ liệu thật...")
         
         AVAILABLE_TAGS = [
-        "wifi", "ac", "parking", "kitchen", "pool", "gym", 
-        "breakfast", "pet_friendly", "balcony", "view", "washing_machine"
+            "wifi", "ac", "parking", "kitchen", "pool", "gym", 
+            "breakfast", "pet_friendly", "balcony", "view", "washing_machine"
         ]
 
         MIN_TAGS = 3
@@ -151,10 +159,10 @@ def seed_data():
             accom = Accommodation(
                 owner_id=owner.id,
                 title=f"{real_place['type']} {real_place['area']} - {random.choice(adjectives)}",
-                description=f"Nằm tại {real_place['address']}. Rất gần {real_place['area']}. Tiện nghi đầy đủ.",
+                description=f"Nằm tại {real_place['address']}.  Rất gần {real_place['area']}.  Tiện nghi đầy đủ.",
                 location=real_place['address'],
                 property_type=real_place['type'],
-                max_guests=random.choice([2, 4, 6, 8]),
+                max_guests=random. choice([2, 4, 6, 8]),
                 price=Decimal(random.randint(500, 5000) * 1000),
                 status='available',
                 picture_url=f"https://picsum.photos/seed/{random.randint(1,1000)}/800/600",
@@ -172,7 +180,7 @@ def seed_data():
         # =====================================================
         bookings = []
         reviews = []
-        print("📅 3. Đang tạo Bookings và Reviews...")
+        print("📅 3.  Đang tạo Bookings và Reviews...")
         
         for _ in range(50):
             guest = random.choice(travelers)
@@ -196,24 +204,19 @@ def seed_data():
             
             total = accom.price * stay_days
 
-            # Tạo Booking 
-            # CẬP NHẬT: Đã xóa 'rooms', thêm các trường guest_name, guest_email, guest_phone
             booking = Booking(
                 user_id=guest.id,
                 accommodation_id=accom.accommodation_id,
                 date_start=start_date,   
                 date_end=end_date,
                 guests=random.randint(1, accom.max_guests),
-                
-                # Thông tin liên hệ lấy từ user guest
-                guest_name=guest.full_name,
+                guest_name=guest. full_name,
                 guest_email=guest.email,
                 guest_phone=guest.phone,
-                
                 note=fake.sentence(),
                 total_price=total,
                 status=status,
-                booking_code=str(uuid.uuid4())[:8].upper()
+                booking_code=str(uuid.uuid4())[:8]. upper()
             )
             db.add(booking)
             bookings.append(booking)
@@ -221,7 +224,7 @@ def seed_data():
             # Tạo Review nếu booking đã hoàn thành
             if status == 'completed' and random.random() > 0.3:
                 review = Review(
-                    user_id=guest.id,
+                    user_id=guest. id,
                     accommodation_id=accom.accommodation_id,
                     rating=random.randint(3, 5),
                     content=fake.paragraph(nb_sentences=2)
@@ -234,26 +237,61 @@ def seed_data():
         print(f"   - Đã tạo {len(reviews)} reviews.")
 
         # =====================================================
-        # 4. TẠO FORUM POSTS & REPLIES
+        # 4.  TẠO FORUM POSTS & REPLIES
         # =====================================================
         print("💬 4. Đang tạo dữ liệu Forum...")
+        
+        # Danh sách tất cả locations để random
+        ALL_LOCATIONS = list(PostLocation)
+        
+        # Map location sang tên tiếng Việt để tạo title đẹp hơn
+        LOCATION_NAMES = {
+            PostLocation.district1: "Quận 1",
+            PostLocation. district2: "Quận 2",
+            PostLocation. district3: "Quận 3",
+            PostLocation. district4: "Quận 4",
+            PostLocation. district5: "Quận 5",
+            PostLocation. district6: "Quận 6",
+            PostLocation. district7: "Quận 7",
+            PostLocation. district8: "Quận 8",
+            PostLocation. district9: "Quận 9",
+            PostLocation. district10: "Quận 10",
+            PostLocation. district11: "Quận 11",
+            PostLocation. district12: "Quận 12",
+            PostLocation.binh_thanh: "Bình Thạnh",
+            PostLocation.binh_tan: "Bình Tân",
+            PostLocation.phu_nhuan: "Phú Nhuận",
+            PostLocation.tan_binh: "Tân Bình",
+            PostLocation. tan_phu: "Tân Phú",
+            PostLocation. go_vap: "Gò Vấp",
+            PostLocation.thu_duc: "Thủ Đức",
+            PostLocation.hoc_mon: "Hóc Môn",
+            PostLocation. binh_chanh: "Bình Chánh",
+            PostLocation.nha_be: "Nhà Bè",
+            PostLocation.can_gio: "Cần Giờ",
+            PostLocation.cu_chi: "Củ Chi",
+        }
         
         posts = []
         for _ in range(20):
             author = random.choice(users)
-            topic_title, topic_cat = random.choice(FORUM_TOPICS)
+            topic_title, topic_location = random.choice(FORUM_TOPICS)
+            
+            # Tạo title với tên địa điểm
+            location_name = LOCATION_NAMES.get(topic_location, "TP.HCM")
+            full_title = f"{topic_title} {location_name} #{random.randint(1, 100)}"
             
             post = Post(
                 user_id=author.id,
-                title=f"{topic_title} #{random.randint(1, 100)}",
+                title=full_title,
                 content=fake.text(max_nb_chars=500),
-                category=topic_cat,
+                location=topic_location,  # ĐÃ ĐỔI: category -> location
                 status=PostStatus.active,
                 views_count=random.randint(10, 500),
                 replies_count=0 
             )
             db.add(post)
-            posts.append(post)
+            posts. append(post)
         
         db.commit()
         
@@ -267,9 +305,9 @@ def seed_data():
                 replier = random.choice(users)
                 reply = Reply(
                     post_id=post.id,
-                    user_id=replier.id,
+                    user_id=replier. id,
                     content=fake.sentence(nb_words=15),
-                    status=PostStatus.active
+                    status=PostStatus. active
                 )
                 db.add(reply)
                 replies_count += 1
@@ -281,7 +319,9 @@ def seed_data():
 
     except Exception as e:
         print(f"\n❌ CÓ LỖI XẢY RA: {e}")
-        db.rollback()
+        import traceback
+        traceback.print_exc()
+        db. rollback()
     finally:
         db.close()
 

@@ -4,19 +4,19 @@ Forum routes - Posts & Replies
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy. orm import Session
 from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
 from app.models import User, Post, Reply
 
-from app.system_forum.schemas import (
+from app.system_forum. schemas import (
     PostCreate, PostUpdate, PostResponse,
     ReplyCreate, ReplyUpdate, ReplyResponse,
     VerifiedTravelerStatus
 )
-from app.system_forum.dependencies import get_current_user
+from app.system_forum. dependencies import get_current_user
 
 router = APIRouter()  # Không có prefix, sẽ thêm trong main.py
 
@@ -56,7 +56,7 @@ async def update_verified_status(user: User, db: Session):
     """Tự động cập nhật verified status nếu đủ điều kiện"""
     if not user.is_verified_traveler and check_verified_traveler(user):
         user.is_verified_traveler = True
-        db.commit()
+        db. commit()
         db.refresh(user)
 
 @router.get("/verified-status", response_model=VerifiedTravelerStatus)
@@ -74,13 +74,13 @@ async def get_verified_status(
     bookings_needed = max(0, 1 - current_user.bookings_count)
     
     if is_verified:
-        message = "Bạn đã là Verified Traveler! Có thể tạo bài viết trong forum."
+        message = "Bạn đã là Verified Traveler!  Có thể tạo bài viết trong forum."
     else:
         message = f"Cần hoàn thành {bookings_needed} booking để trở thành Verified Traveler."
     
     return {
         "is_verified": is_verified,
-        "bookings_count": current_user.bookings_count,
+        "bookings_count": current_user. bookings_count,
         "message": message
     }
 
@@ -101,18 +101,18 @@ async def create_post(
     if not current_user.is_verified_traveler:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Bạn cần có ít nhất 1 booking để tạo bài viết. Hiện tại: {current_user.bookings_count} booking."
+            detail=f"Bạn cần có ít nhất 1 booking để tạo bài viết.  Hiện tại: {current_user.bookings_count} booking."
         )
     
     new_post = Post(
-        user_id=current_user.id,
-        title=post_data.title,
-        content=post_data.content,
-        category=post_data.category
+        user_id=current_user. id,
+        title=post_data. title,
+        content=post_data. content,
+        location=post_data. location  # ĐÃ ĐỔI: category -> location
     )
     
-    db.add(new_post)
-    db.commit()
+    db. add(new_post)
+    db. commit()
     db.refresh(new_post)
     
     return new_post
@@ -121,29 +121,29 @@ async def create_post(
 async def get_posts(
     skip: int = Query(0, ge=0, description="Số posts bỏ qua"),
     limit: int = Query(20, ge=1, le=100, description="Số posts tối đa"),
-    category: Optional[str] = Query(None, description="Lọc theo category"),
+    location: Optional[str] = Query(None, description="Lọc theo địa điểm"),  # ĐÃ ĐỔI
     db: Session = Depends(get_db)
 ):
     """
     Lấy danh sách bài viết (có phân trang)
     - Sắp xếp theo thời gian tạo (mới → cũ)
-    - Có thể lọc theo category
+    - Có thể lọc theo location (địa điểm)
     """
-    query = db.query(Post).filter(Post.status == "active")
+    query = db.query(Post). filter(Post.status == "active")
     
-    if category:
-        query = query.filter(Post.category == category)
+    if location:
+        query = query.filter(Post.location == location)  # ĐÃ ĐỔI
     
-    posts = query.order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
+    posts = query.order_by(Post. created_at.desc()).offset(skip). limit(limit).all()
     return posts
 
-@router.get("/posts/{post_id}", response_model=PostResponse)
+@router. get("/posts/{post_id}", response_model=PostResponse)
 async def get_post(post_id: int, db: Session = Depends(get_db)):
     """
     Lấy chi tiết bài viết
     - Tự động tăng views_count (SIMPLE LOGIC: mỗi lần xem = +1)
     """
-    post = db.query(Post).filter(Post.id == post_id, Post.status == "active").first()
+    post = db.query(Post). filter(Post.id == post_id, Post.status == "active").first()
     
     if not post:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
@@ -151,7 +151,7 @@ async def get_post(post_id: int, db: Session = Depends(get_db)):
     # Tăng views count (SIMPLE LOGIC)
     post.views_count += 1
     db.commit()
-    db.refresh(post)
+    db. refresh(post)
     
     return post
 
@@ -179,8 +179,8 @@ async def update_post(
         post.title = post_data.title
     if post_data.content is not None:
         post.content = post_data.content
-    if post_data.category is not None:
-        post.category = post_data.category
+    if post_data. location is not None:  # ĐÃ ĐỔI: category -> location
+        post.location = post_data.location
     if post_data.status is not None:
         post.status = post_data.status
     
@@ -189,7 +189,7 @@ async def update_post(
     
     return post
 
-@router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/posts/{post_id}", status_code=status. HTTP_204_NO_CONTENT)
 async def delete_post(
     post_id: int,
     current_user: User = Depends(get_current_user),
@@ -199,7 +199,7 @@ async def delete_post(
     Xóa bài viết (soft delete)
     YÊU CẦU: Phải là author của post
     """
-    post = db.query(Post).filter(Post.id == post_id).first()
+    post = db.query(Post). filter(Post.id == post_id). first()
     
     if not post:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
@@ -226,9 +226,9 @@ async def get_replies(
     """
     replies = (
         db.query(Reply)
-        .filter(Reply.post_id == post_id, Reply.status == "active")
+        .filter(Reply. post_id == post_id, Reply. status == "active")
         .order_by(Reply.created_at.asc())
-        .offset(skip)
+        . offset(skip)
         .limit(limit)
         .all()
     )
@@ -263,7 +263,7 @@ async def create_reply(
     # Tăng replies_count
     post.replies_count += 1
     
-    db.commit()
+    db. commit()
     db.refresh(db_reply)
     
     return db_reply
@@ -279,19 +279,19 @@ async def update_reply(
     Cập nhật reply
     YÊU CẦU: Phải là author của reply
     """
-    reply = db.query(Reply).filter(Reply.id == reply_id).first()
+    reply = db. query(Reply).filter(Reply.id == reply_id).first()
     
     if not reply:
         raise HTTPException(status_code=404, detail="Không tìm thấy reply")
     
-    if reply.user_id != current_user.id:
+    if reply. user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa")
     
     # Update fields
     if reply_data.content is not None:
         reply.content = reply_data.content
-    if reply_data.status is not None:
-        reply.status = reply_data.status
+    if reply_data. status is not None:
+        reply.status = reply_data. status
     
     db.commit()
     db.refresh(reply)
@@ -309,7 +309,7 @@ async def delete_reply(
     YÊU CẦU: Phải là author của reply
     - Tự động giảm replies_count của post
     """
-    reply = db.query(Reply).filter(Reply.id == reply_id).first()
+    reply = db.query(Reply). filter(Reply.id == reply_id). first()
     
     if not reply:
         raise HTTPException(status_code=404, detail="Không tìm thấy reply")
@@ -318,7 +318,7 @@ async def delete_reply(
         raise HTTPException(status_code=403, detail="Không có quyền xóa")
     
     # Giảm replies_count của post
-    post = db.query(Post).filter(Post.id == reply.post_id).first()
+    post = db.query(Post).filter(Post. id == reply.post_id).first()
     if post and post.replies_count > 0:
         post.replies_count -= 1
     

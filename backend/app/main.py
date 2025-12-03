@@ -113,7 +113,7 @@ app.include_router(
 # Forum routes (system_forum) - TẠM THỜI COMMENT
 app.include_router(
     forum_router,
-    prefix="/forum",
+    prefix="",
     tags=["💬 Forum"]
 )
 
@@ -150,8 +150,6 @@ app.include_router(
     tags=["⭐ Reviews"]
 )
 
-# 5. Forum 
-app.include_router(forum_router, prefix="/forum", tags=["💬 Forum"])
 
 # =====================================================
 # Root endpoints
