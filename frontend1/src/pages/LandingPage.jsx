@@ -21,6 +21,7 @@ const API_URL = import.meta.env. VITE_API_URL || "http://127.0.0.1:8000";
 
 
 export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -32,6 +33,9 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
 
@@ -128,37 +132,44 @@ export default function LandingPage() {
   );
 
   // --- VIEW: LOADING STATE ---
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="sticky top-0 z-50 w-full"> 
-          <Navbar />
-        </div>
-        <Banner username={currentUserName} />
+// Replace your loading state section with this:
 
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20 relative z-10 -mt-8">
-          {/* Thanh tìm kiếm nổi lên trên */}
-          <div className="bg-white rounded-xl shadow-xl p-4 mb-12 max-w-4xl mx-auto">
-            <SearchingBar initialLocation={selectedDestination} />
-          </div>
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-              <p className="text-2xl md:text-3xl font-bold text-gray-800">
-                Đang tìm gợi ý tốt nhất cho bạn... 
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </div>
-          </div>
-        </main>
+if (isLoading) {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-50 w-full"> 
+        <Navbar />
       </div>
-    );
-  }
+      <Banner username={currentUserName} />
+
+      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
+        {/* ADD THE SAME ANIMATION WRAPPER HERE */}
+      <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out
+        ${mounted && scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+      >
+        <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
+          <SearchingBar initialLocation={selectedDestination} />
+        </div>
+      </div>
+
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+            <p className="text-2xl md:text-3xl font-bold text-gray-800">
+              Đang tìm gợi ý tốt nhất cho bạn... 
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
 
   // --- VIEW: MAIN CONTENT ---
   return (
@@ -171,14 +182,13 @@ export default function LandingPage() {
       {/* Wrapper chính có margin âm để đẩy content đè lên banner 1 chút tạo chiều sâu */}
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
         
-        <div
-          className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out
-            ${scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-        >
-          <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
-            <SearchingBar initialLocation={selectedDestination} />
-          </div>
+      <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out
+        ${mounted && scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+      >
+        <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
+          <SearchingBar initialLocation={selectedDestination} />
         </div>
+      </div>
 
         {/* --- PHẦN 1: GỢI Ý CHỖ Ở (AI RECOMMENDATIONS) --- */}
         <section className="max-w-7xl mx-auto mb-16">
