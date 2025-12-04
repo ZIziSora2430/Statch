@@ -144,7 +144,7 @@ if (isLoading) {
 
       <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
         {/* ADD THE SAME ANIMATION WRAPPER HERE */}
-      <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out
+      <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out relative z-50
         ${mounted && scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
       >
         <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
@@ -180,9 +180,9 @@ if (isLoading) {
       <Banner username={currentUserName}/>
 
       {/* Wrapper chính có margin âm để đẩy content đè lên banner 1 chút tạo chiều sâu */}
-      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative z-10 -mt-10 md:-mt-16">
+      <main className="grow container mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 relative -mt-10 md:-mt-16">
         
-      <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out
+      <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out relative z-50
         ${mounted && scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
       >
         <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
