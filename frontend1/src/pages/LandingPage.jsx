@@ -147,7 +147,7 @@ if (isLoading) {
       <div className={`max-w-5xl mx-auto mb-12 transition-all duration-300 ease-in-out relative z-50
         ${mounted && scrolled ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
       >
-        <div className="bg-white rounded-2xl shadow-lg p-2 md:p-4 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg p-3 md:p-3 border border-gray-100">
           <SearchingBar initialLocation={selectedDestination} />
         </div>
       </div>
