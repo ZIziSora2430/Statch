@@ -14,6 +14,11 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function RoomDetailPage() {
+    
+  const role = localStorage.getItem("user_role");
+  console.log("Vai trò người dùng hiện tại:", role);
+  const isOwner = role === "owner";
+
   const navigate = useNavigate();
   const { id } = useParams();
   const [room, setRoom] = useState(null);
@@ -657,12 +662,14 @@ useEffect(() => {
               </div>
 
               {/* Bên phải: Nút đặt phòng */}
-              <button 
-                  onClick={() => navigate("/formpage", { state: { ...room, pricePerNight: Number(room.price) } })}
-                  className="bg-[#AD0000] hover:bg-[#880000] text-white text-base md:text-lg font-bold py-3 px-8 md:px-12 rounded-full shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center gap-2"
-              >
-                  ĐẶT NGAY <ArrowRight size={20} className="hidden sm:block"/>
-              </button>
+              {!isOwner && (
+                    <button 
+                        onClick={() => navigate("/formpage", { state: { ...room, pricePerNight: Number(room.price) } })}
+                        className="bg-[#AD0000] hover:bg-[#880000] text-white text-base md:text-lg font-bold py-3 px-8 md:px-12 rounded-full shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center gap-2"
+                    >
+                        ĐẶT NGAY <ArrowRight size={20} className="hidden sm:block"/>
+                    </button>
+                )}
           </div>
       </div>
       <div className="mb-20"> 
@@ -671,7 +678,7 @@ useEffect(() => {
 
       {/* 🔥 MODAL XEM ẢNH FULL SCREEN (LIGHTBOX) */}
       {isGalleryOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 z-100 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
             
             {/* Nút Đóng (Góc phải trên) */}
             <button 

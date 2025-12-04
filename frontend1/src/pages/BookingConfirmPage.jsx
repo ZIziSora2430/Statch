@@ -46,6 +46,10 @@ export default function BookingConfirmPage() {
       const mappedData = {
     bookingId: data.booking_id,
     bookingCode: data.booking_code,
+    ownerBankName: data.owner?.bank_name,
+    ownerAccountNumber: data.owner?.account_number,
+    ownerAccountHolder: data.owner?.account_holder,
+
     status: data.status,
     roomName: data.accommodation_title,
     hotelLocation: data.accommodation_location,
@@ -141,9 +145,9 @@ export default function BookingConfirmPage() {
                     {/* Khu vực thông tin chuyển khoản (Demo) */}
                     <div className="bg-white p-4 border border-blue-200 rounded-lg">
                         <p className="font-bold text-gray-700">Thông tin chuyển khoản:</p>
-                        <p>Ngân hàng: <span className="font-mono">MB Bank</span></p>
-                        <p>Số tài khoản: <span className="font-mono font-bold text-lg">9999 8888 7777</span></p>
-                        <p>Chủ tài khoản: <span className="uppercase">NGUYEN VAN CHU NHA</span></p>
+                        <p>Ngân hàng: <span className="font-mono">{bookingData.ownerBankName}</span></p>
+                        <p>Số tài khoản: <span className="font-mono font-bold text-lg">{bookingData.ownerAccountNumber}</span></p>
+                        <p>Chủ tài khoản: <span className="uppercase">{bookingData.ownerAccountHolder}</span></p>
                         <p>Nội dung: <span className="font-bold text-red-600">{bookingData.bookingCode}</span></p>
                     </div>
 

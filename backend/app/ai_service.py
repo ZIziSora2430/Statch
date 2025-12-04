@@ -13,7 +13,7 @@ if not GOOGLE_API_KEY:
     print("⚠️ CẢNH BÁO: Chưa tìm thấy AI_KEY trong biến môi trường!")
 
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 async def generate_tags_from_desc(description: str, location: str) -> str:
     """

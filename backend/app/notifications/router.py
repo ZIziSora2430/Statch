@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from . import schemas
 from ..database import get_db
-from ..feature_login.security_helpers import get_current_user
+from ..auth.security_helpers import get_current_user
 from .service import get_notifications_for_user
 
 router = APIRouter(

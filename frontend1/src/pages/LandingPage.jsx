@@ -89,6 +89,7 @@ export default function LandingPage() {
 
         // 5. Parse JSON
         const data = await response.json();
+        console.log("Dữ liệu gợi ý chỗ ở:", data);
         setAccommodations(data);
 
       } catch (error) {
@@ -220,6 +221,11 @@ if (isLoading) {
                     <img 
                       src={item.picture_url ? item.picture_url.split(',')[0] : "https://via.placeholder.com/400"} 
                       alt={item.title}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {                      
+                        e.target.onerror = null; 
+                        e.target.src = "https://placehold.co/600x400?text=No+Image"; 
+                      }}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

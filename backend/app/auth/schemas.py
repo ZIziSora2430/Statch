@@ -1,6 +1,7 @@
 # ========================================
 # FILE: feature_login/schemas.py
 # ========================================
+from typing import Optional
 from pydantic import BaseModel, EmailStr, ConfigDict
 from enum import Enum
 from datetime import date  
@@ -70,3 +71,14 @@ class ResetPasswordRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
+
+
+class BankInfoUpdate(BaseModel):
+    bank_name: str
+    account_number: str
+    account_holder: str
+
+class BankInfoResponse(BaseModel):
+    bank_name: Optional[str] = None
+    account_number: Optional[str] = None
+    account_holder: Optional[str] = None

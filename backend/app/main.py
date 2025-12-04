@@ -8,21 +8,18 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from . import models
-from app.database import engine, test_connection
+from app.database import engine
 from app.models import Base
 from fastapi.staticfiles import StaticFiles
 
 
-from .feature_login.router import router as login_router
-from .accommodations.traveler_router import router as traveler_accommodation_router 
-from .accommodations.owner_router import router as owner_accommodation_router 
 from .booking.traveler_router import router as traveler_booking_router
 from .booking.owner_router import router as owner_booking_router
 from .reviews import router as reviews_router
 from .notifications.router import router as notifications_router
 
 # Feature Login (Authentication) 
-from app.feature_login.router import router as auth_router
+from app.auth.router import router as auth_router
 
 # System Forum (Posts & Replies)
 from app.system_forum.routes import router as forum_router

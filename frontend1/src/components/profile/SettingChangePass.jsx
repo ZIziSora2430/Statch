@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-export default function SecuritySection({ showNotify }) {
+export default function SecuritySection({ showNotify, role }) {
   // Password states
   const [oldPass, setOldPass] = useState("");
   const [newPass, setNewPass] = useState("");
@@ -283,9 +283,10 @@ export default function SecuritySection({ showNotify }) {
           </div>
         )}
       </div>
-
-      {/* Bank Info Section */}
-      <h1 
+      {role === "owener" && (
+        <>
+        {/* Bank Info Section */}
+        <h1 
       style={{
         fontSize: 20,
         marginBottom:10,
@@ -387,6 +388,10 @@ export default function SecuritySection({ showNotify }) {
           )}
         </div>
       </div>
+        </>
+      )}
+      
+      
     </div>
   );
 }

@@ -8,7 +8,7 @@ from .. import models, database  # Import từ thư mục app/
 from . import schemas, service 
 
 # Import dependency bảo mật (để kiểm tra owner)
-from ..feature_login.security_helpers import get_current_active_owner
+from ..auth.security_helpers import get_current_active_owner
 
 # --- ĐỊNH NGHĨA ROUTER ---
 # Đây là biến "router" mà app/main.py đang tìm kiếm
