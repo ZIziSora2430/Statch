@@ -274,7 +274,7 @@ export default function UserProfile() {
                         <img src={userAvatar} alt="Avatar" style={{ width: 117, height: 117, borderRadius: "50%", objectFit: "cover" }} />
                     </div>
                     <h1 style={{ position: "absolute", top: 162, fontSize: 25, fontWeight: "700", color: "white" }}>{userName}</h1>
-                    <div style={{ position: "absolute", height: '1px', backgroundColor: 'white', width: '100%', bottom: 319 }}/>
+                    <div style={{ position: "absolute", height: '1px', width:425, backgroundColor: 'white', bottom: 319 }}/>
 
                     <div style={{ position: 'absolute', top: 230, left: 0, width: '100%', paddingLeft: 25, display: 'flex', flexDirection: 'column', gap: '20px', fontSize: 90 }}>
                         <SidebarBtn label="Thông tin cá nhân" active={activeSection === "info"} onClick={() => setActiveSection("info")} />
