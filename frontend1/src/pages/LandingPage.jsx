@@ -48,7 +48,7 @@ export default function LandingPage() {
   const handleDestinationClick = (location) => {
     setSelectedDestination(location);
     // Cuộn mượt lên đầu trang (nơi có thanh tìm kiếm)
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 375, behavior: 'smooth' });
   };
 
   useEffect(() => {
