@@ -67,7 +67,8 @@ const BookingCard = ({ booking }) => {
         navigate("/confirm", { state: { bookingId: booking.booking_id } });
     };
     return (
-        <div className="relative flex w-full bg-white rounded-2xl shadow-md overflow-hidden mb-6 h-40 border border-gray-100 transition-transform hover:-translate-y-1 duration-300 group"
+        <div 
+        className="relative flex w-full bg-white rounded-2xl shadow-md overflow-hidden mb-6 h-40 border border-gray-100 transition-transform hover:-translate-y-1 duration-300 group"
              onClick={handleViewDetail}
         >
             {isInactive && (
@@ -213,7 +214,12 @@ export default function HotelBookingList() {
     );
 
     return (
-        <div className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
+        <div
+        style={{
+            maxHeight: 980,
+            overflow: 'auto' 
+        }} 
+        className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
             {/* Header Section */}
             <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
                 <div className="w-1.5 h-15 bg-[#AD0000] rounded-full"></div>

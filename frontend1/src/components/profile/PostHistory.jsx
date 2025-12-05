@@ -66,14 +66,19 @@ export default function PostHistory() {
   }
 
   return (
-    <div className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
+    <div 
+    style={{ 
+      maxHeight: 980,
+      overflow: 'auto'
+    }}
+    className="w-full px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
 
       {/* Title */}
       <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-4">
         <div className="w-1.5 h-8 bg-[#AD0000] rounded-full"></div>
         <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">Lịch sử đăng bài</h1>
       </div>
-      <div className="flex flex-col gap-4 max-h-[600px] overflow-y-auto pr-4"> 
+      <div className="flex flex-col gap-4 pr-4"> 
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300">
             <p className="text-gray-500 mb-4">Bạn chưa đăng bài viết nào trong diễn đàn.</p>
