@@ -35,78 +35,63 @@ function SignUpPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ❗ CHẶN username có dấu + ký tự đặc biệt
+    // Chỉ cho phép: a-z A-Z 0-9 . _
+    const usernameRegex = /^[a-zA-Z0-9._]+$/;
 
-    // ✅ ĐÃ BỎ: Các validation phức tạp để test dễ hơn
+    if (!usernameRegex.test(username.trim())) {
+      toast.error("Tên đăng nhập chỉ được dùng chữ không dấu, số, dấu chấm hoặc gạch dưới!", { autoClose: 900 });
+      return;
+    }
 
-    // ✅ THÊM: Validate mật khẩu khớp nhau
+    // ❗ Kiểm tra mật khẩu trùng khớp
     if (password !== confirmPassword) {
-      toast.error("Mật khẩu không khớp!", {autoClose: 900});
+      toast.error("Mật khẩu không khớp!", { autoClose: 900 });
       return;
     }
 
-    // ✅ THÊM: Validate đã chọn role
+    // ❗ Phải chọn vai trò
     if (!role) {
-      toast.error("Vui lòng chọn vai trò!", {autoClose: 900});
+      toast.error("Vui lòng chọn vai trò!", { autoClose: 900 });
       return;
     }
 
-    setLoading(true); // Bật loading
+    setLoading(true);
 
     try {
-      // ✅ DEBUG: Log để kiểm tra
       console.log('🚀 Sending signup request to:', `${API_URL}/signup`);
-      console.log('📦 Data:', { username, role });
 
-      // ✅ THÊM: Gọi API signup đến backend FastAPI
-      // ✅ MỚI CẬP NHẬT: Dùng API_URL từ environment thay vì hardcode
       const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: username.trim(), // ✅ MỚI THÊM: .trim() để xóa khoảng trắng thừa
+          username: username.trim(),
           email: email,
           password: password,
-          role: role, // ✅ THÊM: Gửi role (traveler/owner)
-          full_name: null // Có thể thêm field này sau
+          role: role,
+          full_name: null
         }),
       });
 
-      const data = await response.json(); // Parse JSON response
-
-      // ✅ DEBUG: Log response
-      console.log('✅ Response status:', response.status);
-      console.log('📥 Response data:', data);
+      const data = await response.json();
 
       if (response.ok) {
-        // ✅ THÊM: Nếu đăng ký thành công, thông báo và chuyển về trang login
-        toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {autoClose: 1000});
-        setTimeout(() => {
-          navigate("/"); // Quay về trang login
-        }, 1500);  
-
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.", { autoClose: 1000 });
+        setTimeout(() => navigate("/"), 1500);
       } else {
-        
-        // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
-        // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 400 (Bad Request)
-        if (response.status === 400) {
-          toast.error(data.detail || "Username đã tồn tại!", {autoClose: 900});
-        } else {
-          toast.error(data.detail || "Đăng ký thất bại!", {autoClose: 900});
-        }
+        toast.error(data.detail || "Đăng ký thất bại!", { autoClose: 900 });
       }
-    } catch (err) {
-      // ✅ THÊM: Xử lý lỗi khi không kết nối được server
-      // ✅ MỚI CẬP NHẬT: Thông báo cụ thể hơn về lỗi kết nối
+    } 
+    catch (err) {
       console.error('❌ Signup error:', err);
-      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!", {autoClose: 900});
-      console.error("Signup error:", err);
-      console.error("Signup error:", err);
-    } finally {
-      setLoading(false); // Tắt loading
+      toast.error("Không thể kết nối đến server. Vui lòng thử lại!", { autoClose: 900 });
+    } 
+    finally {
+      setLoading(false);
     }
-  };
+};
 
   return (
     <div className='page-wrapper'>
