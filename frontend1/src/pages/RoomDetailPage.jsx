@@ -7,11 +7,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import Footer from "../components/Footer";
 import { 
-<<<<<<< HEAD
   MapPin, Star, Share, Heart, Wifi, Car, Coffee, Grid,Utensils, Waves, Tv, Sun, Lock,
-=======
-  MapPin, Star, Share, Heart, Wifi, Car, Coffee, Grid, Tv,
->>>>>>> 0aedd9300fdbd49c1d7ebb1cea62c64e7e90013c
   Wind, CheckCircle, User, ArrowRight, ChevronDown, X, ChevronLeft, ChevronRight 
 } from "lucide-react";
 

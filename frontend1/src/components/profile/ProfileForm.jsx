@@ -118,12 +118,7 @@ export default function ProfileForm({
                     </div>
                 </div>
 
-                {/* Hàng 4: Thành phố */}
-                <div className="flex flex-col gap-2">
-                    <label className="text-gray-700 font-bold text-sm">Thành phố cư trú</label>
-                    <input type="text" value={city} disabled={!isEditingInfo} onChange={(e) => setCity(e.target.value)} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100'}`} />
-                </div>
-
+              
                 {/* Hàng 5: Sở thích */}
                 <div className="flex flex-col gap-2">
                     <label className="text-gray-700 font-bold text-sm">Sở thích cá nhân</label>
