@@ -26,6 +26,24 @@ function SignUpPage() {
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false); // ✅ THÊM: Loading state
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+
+const openTerms = () => {
+  setModalContent(`
+    <h2>Điều khoản & Điều kiện</h2>
+    <p>⚠ Nội dung điều khoản của bạn đặt ở đây...</p>
+  `);
+  setShowModal(true);
+};
+
+const openPrivacy = () => {
+  setModalContent(`
+    <h2>Chính sách bảo mật</h2>
+    <p>🔒 Nội dung chính sách bảo mật đặt ở đây...</p>
+  `);
+  setShowModal(true);
+};
 
   // ✅ ĐÃ BỎ: Các hàm validation để test dễ hơn
   // const validatePassword = (password) => { ... }
@@ -344,32 +362,87 @@ function SignUpPage() {
 
           {/* Cautions */}
           {/* ✅ MỚI CẬP NHẬT: Thêm color: '#666' và cursor pointer cho link */}
-          <p style={{
-    
-            fontSize: '11px',
-            textAlign: 'center',
-            marginTop: '19px',
-            color: '#666' // ✅ MỚI THÊM: Màu xám nhạt cho text phụ
-          }}>
-            Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với{" "}
-            <span style={{ 
-              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
-              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
-            }}>
-              Điều khoản & Điều kiện
-            </span>
-            {" "}và{" "}
-            <span style={{ 
-              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
-              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
-            }}>
-              Chính sách bảo mật{" "}
-            </span>
-            của chúng tôi.
-          </p>
-        </form>
-      </div>
-      <ToastContainer/>
+         <p
+  style={{
+    fontSize: '11px',
+    textAlign: 'center',
+    marginTop: '19px',
+    color: '#666'
+  }}
+>
+  Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với{" "}
+  
+<span 
+  onClick={openTerms}
+  style={{ color: '#4A90E2', cursor: 'pointer', textDecoration: 'underline' }}
+>
+  Điều khoản & Điều kiện
+</span>
+
+{" "}và{" "}
+
+<span 
+  onClick={openPrivacy}
+  style={{ color: '#4A90E2', cursor: 'pointer', textDecoration: 'underline' }}
+>
+  Chính sách bảo mật
+</span>
+
+  {" "}của chúng tôi.
+</p>
+
+       </form>
+</div>
+
+{/* 🔥 MODAL POPUP ĐIỀU KHOẢN / CHÍNH SÁCH */}
+{showModal && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999
+    }}
+    onClick={() => setShowModal(false)}
+  >
+    <div
+      style={{
+        background: "white",
+        padding: "25px",
+        borderRadius: "12px",
+        width: "90%",
+        maxWidth: "500px",
+        maxHeight: "80vh",
+        overflowY: "auto",
+        position: "relative"
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => setShowModal(false)}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "none",
+          border: "none",
+          fontSize: "20px",
+          cursor: "pointer"
+        }}
+      >
+        ×
+      </button>
+
+      <div dangerouslySetInnerHTML={{ __html: modalContent }} />
+    </div>
+  </div>
+)}
+
+<ToastContainer />
+
     </div>
   );
 }
