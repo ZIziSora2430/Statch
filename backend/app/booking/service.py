@@ -298,23 +298,47 @@ def create_booking(
     if not accommodation:
         raise HTTPException(status_code=404, detail="Accommodation không tồn tại")
 
-    #  Chặn trùng lịch đã xác nhận
+    # ❌ Chặn trùng lịch đã xác nhận (phòng đã có người khác đặt)
     conflict = db.scalar(
         select(models.Booking)
         .where(
             models.Booking.accommodation_id == booking_data.accommodation_id,
-            models.Booking.status == schemas.BookingStatusEnum.confirmed.value, 
+            models.Booking.status == schemas.BookingStatusEnum.confirmed.value,
             models.Booking.date_start <= booking_data.date_end,
             models.Booking.date_end >= booking_data.date_start
         )
     )
     if conflict:
-         # Sửa thông báo lỗi cho chính xác hơn
         raise HTTPException(
             status_code=400,
             detail="Rất tiếc, chỗ nghỉ này đã được xác nhận trong khoảng thời gian bạn chọn."
         )
-    
+
+    # 🔥🔥🔥 THÊM VÀO: CHẶN TRÙNG 1 NGƯỜI + 1 PHÒNG + TRÙNG NGÀY
+    user_conflict = db.scalar(
+        select(models.Booking)
+        .where(
+            models.Booking.user_id == user_id,
+            models.Booking.accommodation_id == booking_data.accommodation_id,
+            models.Booking.status.in_([
+                schemas.BookingStatusEnum.pending_approval.value,
+                schemas.BookingStatusEnum.pending_payment.value,
+                schemas.BookingStatusEnum.pending_confirmation.value,
+                schemas.BookingStatusEnum.confirmed.value
+            ]),
+            models.Booking.date_start <= booking_data.date_end,
+            models.Booking.date_end >= booking_data.date_start
+        )
+    )
+
+    if user_conflict:
+        raise HTTPException(
+            status_code=400,
+            detail="Bạn đã đặt phòng này trong khoảng thời gian này rồi."
+        )
+    # 🔥🔥🔥 KẾT THÚC PHẦN THÊM
+
+
     status = schemas.BookingStatusEnum.pending_approval.value
 
     nights = calculate_nights(booking_data.date_start, booking_data.date_end)
@@ -339,7 +363,6 @@ def create_booking(
     db.commit()
     db.refresh(new_booking)
 
-    # Gửi thông báo cho chủ nhà
     create_notification(
         db,
         user_id=accommodation.owner_id,
@@ -347,6 +370,7 @@ def create_booking(
     )
 
     return new_booking
+
 
 
 # Chủ nhà duyệt yêu cầu (Approve) chuyển sang chờ thanh toán
