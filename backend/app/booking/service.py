@@ -439,17 +439,17 @@ def owner_report_issue(db: Session, booking_id: int, owner_id: int):
 def auto_expire_bookings(db: Session):
     now = datetime.utcnow()
 
-    # 1. pending_approval > 2h → reject
+    # 1. pending_approval > 12h → reject
     expired_approval = db.scalars(
         select(models.Booking).where(
             models.Booking.status == "pending_approval",
-            models.Booking.created_at < now - timedelta(hours=2)
+            models.Booking.created_at < now - timedelta(hours=12)
         )
     ).all()
     for b in expired_approval:
         b.status = "rejected"
 
-    # 2. pending_payment > 15m → cancel
+    # 2. pending_payment > 15m → cancel (giữ nguyên)
     expired_payment = db.scalars(
         select(models.Booking).where(
             models.Booking.status == "pending_payment",
@@ -459,7 +459,7 @@ def auto_expire_bookings(db: Session):
     for b in expired_payment:
         b.status = "cancelled"
 
-    # 3. pending_confirmation > 1h → cancel
+    # 3. pending_confirmation > 1h → reported (ĐÃ SỬA)
     expired_confirm = db.scalars(
         select(models.Booking).where(
             models.Booking.status == "pending_confirmation",
@@ -467,7 +467,6 @@ def auto_expire_bookings(db: Session):
         )
     ).all()
     for b in expired_confirm:
-        b.status = "cancelled"
+        b.status = "reported"
 
     db.commit()
-
