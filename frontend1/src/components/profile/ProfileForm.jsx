@@ -55,6 +55,12 @@ export default function ProfileForm({
     isEditingPhone, setIsEditingPhone,
     handleSave, handleCancel
 }) {
+    function getDaysInMonth(month, year) {
+        return new Date(year, month, 0).getDate();
+    }
+
+    const daysInMonth = getDaysInMonth(dob.month, dob.year);
+
     return (
         <div className="w-full h-auto px-6 md:px-10 pb-10 pt-2 relative -mt-[55px]">
             
@@ -105,15 +111,79 @@ export default function ProfileForm({
                     <div className="md:col-span-6 flex flex-col gap-2">
                         <label className="text-gray-700 font-bold text-sm">Ngày sinh</label>
                         <div className="flex gap-2">
-                             <select value={dob.day} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, day: e.target.value})} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
-                                {[...Array(31)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+
+                            {/* Day */}
+                            <select
+                                value={dob.day}
+                                disabled={!isEditingInfo}
+                                onChange={(e) => setDob({ ...dob, day: Number(e.target.value) })}
+                                className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${
+                                    isEditingInfo
+                                        ? "bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm"
+                                        : "bg-gray-100 border-transparent"
+                                }`}
+                            >
+                                {[...Array(daysInMonth)].map((_, i) => (
+                                    <option key={i + 1} value={i + 1}>
+                                        {i + 1}
+                                    </option>
+                                ))}
                             </select>
-                            <select value={dob.month} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, month: e.target.value})} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
-                                {[...Array(12)].map((_, i) => <option key={i+1} value={i+1}>Tháng {i+1}</option>)}
+
+                            {/* Month */}
+                            <select
+                                value={dob.month}
+                                disabled={!isEditingInfo}
+                                onChange={(e) => {
+                                    const newMonth = Number(e.target.value);
+                                    const newDays = getDaysInMonth(newMonth, dob.year);
+
+                                    setDob({
+                                        ...dob,
+                                        month: newMonth,
+                                        day: Math.min(dob.day, newDays), // auto adjust day if needed
+                                    });
+                                }}
+                                className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${
+                                    isEditingInfo
+                                        ? "bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm"
+                                        : "bg-gray-100 border-transparent"
+                                }`}
+                            >
+                                {[...Array(12)].map((_, i) => (
+                                    <option key={i + 1} value={i + 1}>
+                                        Tháng {i + 1}
+                                    </option>
+                                ))}
                             </select>
-                            <select value={dob.year} disabled={!isEditingInfo} onChange={(e) => setDob({...dob, year: e.target.value})} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100 border-transparent'}`}>
-                                {[...Array(100)].map((_, i) => <option key={i} value={2025-i}>{2025-i}</option>)}
+
+                            {/* Year */}
+                            <select
+                                value={dob.year}
+                                disabled={!isEditingInfo}
+                                onChange={(e) => {
+                                    const newYear = Number(e.target.value);
+                                    const newDays = getDaysInMonth(dob.month, newYear);
+
+                                    setDob({
+                                        ...dob,
+                                        year: newYear,
+                                        day: Math.min(dob.day, newDays),
+                                    });
+                                }}
+                                className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none transition-all ${
+                                    isEditingInfo
+                                        ? "bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm"
+                                        : "bg-gray-100 border-transparent"
+                                }`}
+                            >
+                                {[...Array(100)].map((_, i) => (
+                                    <option key={i} value={2025 - i}>
+                                        {2025 - i}
+                                    </option>
+                                ))}
                             </select>
+
                         </div>
                     </div>
                 </div>

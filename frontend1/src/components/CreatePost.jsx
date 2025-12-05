@@ -142,11 +142,7 @@ export default function CreatePost({ onClose, onPostSuccess }) {
         />
 
         {/* Các nút */}
-        <div className="flex justify-between items-center mt-4 border-t pt-3">
-          <button className="text-sm border px-3 py-1 rounded-full hover:bg-gray-100 text-gray-600">
-            Thêm ảnh
-          </button>
-          
+        <div className="flex justify-between items-center mt-4 border-t pt-3">          
           <button 
             onClick={handlePost}
             disabled={!title || !content || isSubmitting}
