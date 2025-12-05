@@ -2,6 +2,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import timedelta, datetime
+from datetime import date
 from fastapi import HTTPException
 from .. import models
 from . import schemas
@@ -120,6 +121,14 @@ def get_bookings_for_owner(db: Session, owner_id: int):
     return results
 
 def build_booking_read(db: Session, booking):
+
+    # 🔥 AUTO SET COMPLETED IF PAST CHECKOUT
+    today = date.today()
+    if booking.status == "confirmed" and booking.date_end < today:
+        booking.status = "completed"
+        db.commit()
+        db.refresh(booking)
+
     # Lấy thông tin chỗ ở
     accom = db.scalar(
         select(models.Accommodation).where(
@@ -132,14 +141,12 @@ def build_booking_read(db: Session, booking):
         select(models.User).where(models.User.id == accom.owner_id)
     )
 
-    # Chuyển sang Pydantic OwnerInfo
     owner_info = None
     if owner:
         owner_info = schemas.OwnerBookingInfo(
             full_name=owner.full_name,
             email=owner.email,
             phone=owner.phone,
-            # Map thêm thông tin ngân hàng:
             bank_name=owner.bank_name,
             account_number=owner.account_number,
             account_holder=owner.account_holder
