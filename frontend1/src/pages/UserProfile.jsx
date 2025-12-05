@@ -327,7 +327,7 @@ export default function UserProfile() {
                         {activeSection === "statusPost" && role === "traveler" && <PostHistory />}
                         {activeSection === "accoList" && role === "owner" && <OwnerDashBoard />}
                         {activeSection === "bookCalen" && role === "owner" && <BookingList />}
-                        {activeSection === "setting" && <ChangePass showNotify={showNotify}/>}
+                        {activeSection === "setting" && <ChangePass showNotify={showNotify} role = {localStorage.getItem("user_role")}/>}
                         </div>
                     </div>
                 </div>
