@@ -2,6 +2,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import timedelta, datetime
+from datetime import date
 from fastapi import HTTPException
 from .. import models
 from . import schemas
@@ -15,45 +16,6 @@ import os
 import shutil
 from fastapi import UploadFile
 
-# Cấu hình thời gian timeout (Ví dụ: 24 giờ)
-TIMEOUT_HOURS = 24 
-
-def scan_and_expire_bookings(db: Session):
-    """
-    Hàm này sẽ chạy định kỳ để hủy các đơn quá hạn.
-    """
-    now = datetime.now()
-    cutoff_time = now - timedelta(hours=TIMEOUT_HOURS)
-
-    # 1. Tìm các đơn "Chờ duyệt" quá lâu (Dựa trên created_at)
-    expired_approvals = db.scalars(
-        select(models.Booking).where(
-            models.Booking.status == 'pending_approval',
-            models.Booking.created_at < cutoff_time
-        )
-    ).all()
-
-    # 2. Tìm các đơn "Chờ thanh toán" quá lâu (Dựa trên updated_at - thời điểm cuối cùng đổi trạng thái)
-    expired_payments = db.scalars(
-        select(models.Booking).where(
-            models.Booking.status == 'pending_payment',
-            models.Booking.updated_at < cutoff_time
-        )
-    ).all()
-
-    count = 0
-    # Xử lý hủy
-    all_expired = expired_approvals + expired_payments
-    
-    for booking in all_expired:
-        booking.status = 'cancelled'
-        # (Optional) Gửi thông báo cho User: "Đơn của bạn đã bị hủy do quá hạn."
-        # create_notification(db, booking.user_id, f"Booking {booking.booking_code} đã hết hạn.")
-        count += 1
-    
-    if count > 0:
-        db.commit()
-        print(f"🧹 [Auto-Clean] Đã hủy {count} đơn quá hạn.")
 
 
 def generate_booking_code():
@@ -159,6 +121,14 @@ def get_bookings_for_owner(db: Session, owner_id: int):
     return results
 
 def build_booking_read(db: Session, booking):
+
+    # 🔥 AUTO SET COMPLETED IF PAST CHECKOUT
+    today = date.today()
+    if booking.status == "confirmed" and booking.date_end < today:
+        booking.status = "completed"
+        db.commit()
+        db.refresh(booking)
+
     # Lấy thông tin chỗ ở
     accom = db.scalar(
         select(models.Accommodation).where(
@@ -171,13 +141,15 @@ def build_booking_read(db: Session, booking):
         select(models.User).where(models.User.id == accom.owner_id)
     )
 
-    # Chuyển sang Pydantic OwnerInfo
     owner_info = None
     if owner:
-        owner_info = schemas.OwnerInfo(
+        owner_info = schemas.OwnerBookingInfo(
             full_name=owner.full_name,
             email=owner.email,
-            phone=owner.phone
+            phone=owner.phone,
+            bank_name=owner.bank_name,
+            account_number=owner.account_number,
+            account_holder=owner.account_holder
         )
 
     nights = (booking.date_end - booking.date_start).days
@@ -185,10 +157,7 @@ def build_booking_read(db: Session, booking):
     return schemas.BookingRead(
         booking_id=booking.booking_id,
         booking_code=booking.booking_code,
-
-        # 🟢 TRẢ VỀ OWNER Ở ĐÂY
         owner=owner_info,
-
         user_id=booking.user_id,
         accommodation_id=booking.accommodation_id,
         date_start=booking.date_start,
@@ -208,7 +177,11 @@ def build_booking_read(db: Session, booking):
     )
 
 def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
-    booking = get_booking_by_id(db, booking_id)
+    booking = db.execute(
+    select(models.Booking)
+    .where(models.Booking.booking_id == booking_id)
+    .with_for_update()
+    ).scalar_one_or_none()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking không tồn tại")
 
@@ -220,15 +193,17 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
     
     # 3. Check xem trong lúc chờ pending, đã có ai nhanh tay confirm trước chưa (Safety check)
     # (Trường hợp 2 owner cùng quản lý 1 acc hoặc lag mạng)
-    double_check_conflict = db.scalar(
-        select(models.Booking).where(
-            models.Booking.accommodation_id == booking.accommodation_id,
-            models.Booking.status == 'confirmed',
-            models.Booking.booking_id != booking_id, # Không check chính nó
-            models.Booking.date_start < booking.date_end,
-            models.Booking.date_end > booking.date_start
-        )
+    double_check_conflict = db.execute(
+    select(models.Booking)
+    .where(
+        models.Booking.accommodation_id == booking.accommodation_id,
+        models.Booking.status == 'confirmed',
+        models.Booking.booking_id != booking_id,
+        models.Booking.date_start < booking.date_end,
+        models.Booking.date_end > booking.date_start
     )
+        .with_for_update()
+    ).scalar_one_or_none()
     if double_check_conflict:
         raise HTTPException(
             status_code=400,
@@ -239,15 +214,18 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
 
     # 5. --- LOGIC TỰ ĐỘNG HỦY CÁC KÈO TRÙNG ---
     # Tìm tất cả các booking đang 'pending' mà bị trùng ngày với booking vừa confirm này
-    overlapping_pendings = db.scalars(
-        select(models.Booking).where(
-            models.Booking.accommodation_id == booking.accommodation_id,
-            models.Booking.status == 'pending_confirmation',
-            models.Booking.booking_id != booking_id, # Trừ chính thằng đang confirm ra
-            models.Booking.date_start < booking.date_end, # Logic trùng ngày
-            models.Booking.date_end > booking.date_start
-        )
-    ).all()
+    overlapping_pendings = db.execute(
+    select(models.Booking)
+    .where(
+        models.Booking.accommodation_id == booking.accommodation_id,
+        models.Booking.status == "pending_confirmation",
+        models.Booking.booking_id != booking_id,
+        models.Booking.date_start < booking.date_end,
+        models.Booking.date_end > booking.date_start
+    )
+        .with_for_update()
+    ).scalars().all()
+
 
     # Duyệt qua danh sách và Reject tự động
     for conflict_booking in overlapping_pendings:
@@ -433,4 +411,39 @@ def owner_report_issue(db: Session, booking_id: int, owner_id: int):
     
     # (Optional) Gửi thông báo cho khách: "Đơn của bạn đang được xem xét lại"
     return build_booking_read(db, booking)
+
+def auto_expire_bookings(db: Session):
+    now = datetime.utcnow()
+
+    # 1. pending_approval > 2h → reject
+    expired_approval = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == "pending_approval",
+            models.Booking.created_at < now - timedelta(hours=2)
+        )
+    ).all()
+    for b in expired_approval:
+        b.status = "rejected"
+
+    # 2. pending_payment > 15m → cancel
+    expired_payment = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == "pending_payment",
+            models.Booking.updated_at < now - timedelta(minutes=15)
+        )
+    ).all()
+    for b in expired_payment:
+        b.status = "cancelled"
+
+    # 3. pending_confirmation > 1h → cancel
+    expired_confirm = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == "pending_confirmation",
+            models.Booking.updated_at < now - timedelta(hours=1)
+        )
+    ).all()
+    for b in expired_confirm:
+        b.status = "cancelled"
+
+    db.commit()
 

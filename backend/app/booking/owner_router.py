@@ -4,7 +4,7 @@ from sqlalchemy import select
 from typing import List
 
 from .. import models, database
-from ..feature_login.security_helpers import get_current_active_owner
+from ..auth.security_helpers import get_current_active_owner
 from . import schemas, service
 
 router = APIRouter(
@@ -86,3 +86,9 @@ def owner_report_booking_endpoint(
         return service.owner_report_issue(db, booking_id, current_owner.id)
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+# Cron job to auto-expire bookings 
+@router.post("/system/cron/cleanup")
+def cron_cleanup(db: Session = Depends(database.get_db)):
+    service.auto_expire_bookings(db)
+    return {"status": "OK"}

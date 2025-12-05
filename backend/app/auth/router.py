@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db # Import get_db trung tâm
-from .. import models
+from .. import models, database
 
 from . import schemas, service
 from .security_helpers import get_current_user 
@@ -9,6 +9,26 @@ from .security_helpers import get_current_user
 router = APIRouter()
 
 
+# API cập nhật thông tin ngân hàng 
+@router.put("/users/bank-info")
+def update_bank_info(
+    payload: schemas.BankInfoUpdate,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    current_user.bank_name = payload.bank_name
+    current_user.account_number = payload.account_number
+    current_user.account_holder = payload.account_holder
+    
+    db.commit()
+    return {"message": "Cập nhật thành công"}
+
+# API lấy thông tin ngân hàng
+@router.get("/users/bank-info", response_model=schemas.BankInfoResponse)
+def get_bank_info(
+    current_user: models.User = Depends(get_current_user)
+):
+    return current_user
 
 # ======= Forgot password =======
 @router.post("/forgot-password")

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from datetime import date
 from .. import models, database
-from ..feature_login.security_helpers import get_current_user
+from ..auth.security_helpers import get_current_user
 from . import schemas, service
 
 router = APIRouter(
@@ -19,7 +19,12 @@ def create_booking_endpoint(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-
+    if current_user.role != models.UserRole.traveler:
+        raise HTTPException(
+            status_code=403,
+            detail="Chủ cho thuê không thể đặt phòng."
+        )
+    
     try:
         booking = service.create_booking(
             db=db,

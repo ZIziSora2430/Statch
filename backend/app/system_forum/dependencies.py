@@ -11,7 +11,7 @@ from app.models import User, Post
 # Nếu folder tên khác (vd: routers, auth...), bạn sửa lại đường dẫn import nhé.
 # ==================================================================
 try:
-    from app.feature_login.security_helpers import get_current_user
+    from app.auth.security_helpers import get_current_user
 except ImportError:
     # Fallback nếu bạn đặt tên folder khác, hãy sửa dòng import trên
     raise ImportError("Không tìm thấy module 'app.feature_login'. Hãy kiểm tra lại tên folder chứa file security_helpers.py")

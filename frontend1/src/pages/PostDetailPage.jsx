@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { ArrowLeft, Clock, Eye, MessageCircle, ArrowBigRight, Loader2, Trash2 } from "lucide-react";
-import Avatar from '../images/Avatar.png';
 import DefaultAvatar from "../images/avatar-default.svg";
 
 // Cấu hình URL API
@@ -222,14 +221,11 @@ function PostDetailPage() {
             <ArrowLeft size={18} /> Quay lại
           </Link>
         </div>
-
         {/* --- PHẦN BÀI VIẾT (POST CARD) --- */}
         {post && (
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold overflow-hidden">
-                <img src={DefaultAvatar} alt="user" className="w-full h-full object-cover opacity-80" />
-              </div>
+              <img src={DefaultAvatar} alt="user" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-800">
@@ -287,7 +283,7 @@ function PostDetailPage() {
                   <img 
                     src={DefaultAvatar}
                     alt="avatar" 
-                    className="w-10 h-10 rounded-full"
+                    className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"
                   />
                   
                   <div className="bg-gray-100 rounded-lg p-3 flex-1 relative">
@@ -327,7 +323,7 @@ function PostDetailPage() {
           {/* Form nhập bình luận */}
           {isVerified ? (
             <div className="mt-6 flex gap-3 items-center">
-              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full"/>
+              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
               <input 
                 type="text" 
                 placeholder="Viết bình luận..." 

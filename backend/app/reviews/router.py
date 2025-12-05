@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from .. import database, models
-from ..feature_login.security_helpers import get_current_user
+from ..auth.security_helpers import get_current_user
 from . import schemas, service
 
 # Prefix rỗng ở đây, ta sẽ set prefix "/api" ở main.py hoặc gộp vào accommodation path

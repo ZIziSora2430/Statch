@@ -13,7 +13,7 @@ from .. import models, database
 from . import schemas, service 
 
 # Import dependency (bảo mật)
-from ..feature_login.security_helpers import get_current_user
+from ..auth.security_helpers import get_current_user
 
 router = APIRouter(
     prefix="/accommodations",

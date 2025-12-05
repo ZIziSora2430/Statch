@@ -85,6 +85,11 @@ class User(Base):
     preference = Column(TEXT, nullable=True)
     reset_code = Column(String(10), nullable=True)
     reset_code_expires = Column(DateTime, nullable=True)
+
+    #Bank account info
+    bank_name = Column(String(100), nullable=True)      # Tên ngân hàng (VD: MB Bank)
+    account_number = Column(String(50), nullable=True)  # Số tài khoản
+    account_holder = Column(String(100), nullable=True) # Tên chủ tài khoản
     
     # Forum features
     bookings_count = Column(Integer, default=0, comment="Số lần đặt chỗ thành công")

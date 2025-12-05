@@ -89,6 +89,7 @@ export default function LandingPage() {
 
         // 5. Parse JSON
         const data = await response.json();
+        console.log("Dữ liệu gợi ý chỗ ở:", data);
         setAccommodations(data);
 
       } catch (error) {
@@ -166,6 +167,59 @@ if (isLoading) {
             <SkeletonCard />
           </div>
         </div>
+
+        <section className="max-w-7xl mx-auto mb-16">
+          <h2 className="mb-8 text-3xl md:text-4xl font-bold text-gray-900 text-left">
+            Điểm đến thịnh hành
+          </h2>
+
+          {/* Grid Layout thay thế cho Flexbox cứng nhắc */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+             {/* Hàng trên: 2 ảnh lớn */}
+             <DestinationCard 
+             img={GV} 
+             title="Gò Vấp" 
+             className="h-64 md:h-80" 
+             onClick={() => handleDestinationClick("Gò Vấp")}
+             />
+             <DestinationCard 
+             img={Q1} 
+             title="Quận 1" 
+             className="h-64 md:h-80" 
+             onClick={() => handleDestinationClick("quận 1")}
+             />
+          </div>      
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+             {/* Hàng dưới: 3 ảnh nhỏ */}
+             <DestinationCard 
+             img={Q5} s
+             title="Quận 5" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("quận 5")}
+             />
+             <DestinationCard 
+             img={TĐ} 
+             title="Thủ Đức" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("Thủ Đức")}
+             />
+             <DestinationCard 
+             img={Q7} 
+             title="Quận 7" 
+             className="h-56 md:h-64"
+             onClick={() => handleDestinationClick("quận 7")} 
+             />
+          </div>
+        </section>
+
+        {/* --- PHẦN 3: ƯU ĐÃI (PROMO) --- */}
+        <section className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-sm p-2 border border-gray-100">
+            <Promo />
+          </div>
+        </section>
+        <Community />
       </main>
     </div>
   );
@@ -220,6 +274,11 @@ if (isLoading) {
                     <img 
                       src={item.picture_url ? item.picture_url.split(',')[0] : "https://via.placeholder.com/400"} 
                       alt={item.title}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {                      
+                        e.target.onerror = null; 
+                        e.target.src = "https://placehold.co/600x400?text=No+Image"; 
+                      }}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

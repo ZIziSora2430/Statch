@@ -2,7 +2,6 @@ from datetime import date
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, field_validator
 from typing import Optional
-from app.accommodations.schemas import OwnerInfo
 import re
 
 class BookingStatusEnum(str, Enum):
@@ -43,13 +42,20 @@ class BookingCreate(BaseModel):
         if not v.endswith('@gmail.com'):
             raise ValueError('Hệ thống chỉ chấp nhận địa chỉ Gmail (@gmail.com)')
         return v
+    
+class OwnerBookingInfo(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    # Thêm 3 dòng này:
+    bank_name: Optional[str] = None
+    account_number: Optional[str] = None
+    account_holder: Optional[str] = None
 
 class BookingRead(BaseModel):
     booking_id: int
     booking_code: str
     
-    owner: Optional[OwnerInfo] = None  # Thông tin chủ nhà
-
     user_id: int
     accommodation_id: int
 
@@ -72,9 +78,12 @@ class BookingRead(BaseModel):
     accommodation_image: str
 
     status: BookingStatusEnum
+    owner: Optional[OwnerBookingInfo] = None
     payment_proof: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 class BookingUpdateStatus(BaseModel):
     status: BookingStatusEnum
+
+

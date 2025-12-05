@@ -244,104 +244,99 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Notification Dropdown */}
-          {openNoti && (
-            <div
-              style={{
-                position: "absolute",
-                top: 55,
-                right: 100,
-                width: "300px",
-                overflowY: "visible",
-                background: "white",
-                borderRadius: "8px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                zIndex: -1,
-              }}
-            >
-              {/* Header */}
-              <div
-                style={{
-                  padding: "10px 15px",
-                  borderBottom: "1px solid #eee",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  backgroundColor: "#BF1D2D",
-                  color: "white",
-                  borderTopLeftRadius: "8px",
-                  borderTopRightRadius: "8px",
-                }}
-              >
-                Thông báo mới ({unreadCount})
-              </div>
-
-              {/* --- 2. Render List Thông báo từ API --- */}
-              {notifications.length === 0 ? (
-                <div style={{ padding: "20px", textAlign: "center", color: "#666", fontSize: "13px" }}>
-                  Chưa có thông báo nào
-                </div>
-              ) : (
-                notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    style={{
-                      padding: "10px 15px",
-                      cursor: "pointer",
-                      borderBottom: "1px solid #f0f0f0",
-                      transition: "0.2s",
-                      fontSize: "13px",
-                      position: "relative"
-                    }}
-                  >
-                    {/* Click thông báo */}
-                    <div onClick={() => handleNotificationRead(n)}>
-                      <div style={{fontWeight: n.is_read ? 'normal' : 'bold'}}>
-                        {n.message}
-                      </div>
-                      <div style={{fontSize: "11px", color: "#999", marginTop: "4px"}}>
-                        {new Date(n.created_at).toLocaleString('vi-VN')}
-                      </div>
-                    </div>
-
-                    {/* Nút xoá */}
-                    <span
-                      style={{
-                        position: "absolute",
-                        right: 12,
-                        top: 8,
-                        color: "#BF1D2D",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        fontSize: "20px",      // ⬅ TO HƠN!
-                        lineHeight: "20px",
-                        padding: "2px 5px",    // dễ bấm hơn
-                        borderRadius: "4px",
-                      }}
-                      onClick={() => handleDeleteNotification(n.id)}
-                    >
-                      ×
-                    </span>
-                  </div>
-                ))
-              )}
-
-              {/* SEE MORE BUTTON */}
-             {notifications.length > 0 && (
+        {/* Notification Dropdown */}
+{openNoti && (
   <div
     style={{
-      padding: "10px",
-      textAlign: "center",
-      color: "#BF1D2D",
-      fontWeight: "bold",
-      fontSize: "13px",
-      cursor: "pointer",
-      borderTop: "1px solid #eee",
+      position: "absolute",
+      top: 55,
+      right: 100,
+      width: "300px",
+      overflowY: "visible",
+      background: "white",
+      borderRadius: "8px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      zIndex: 1000,   // FIX z-index
     }}
-    onClick={() => setShowAllNotifications(!showAllNotifications)}
   >
-    {showAllNotifications ? "Thu gọn ▲" : "Xem tất cả ▼"}
-  </div>
-)}
+    {/* Header */}
+    <div
+      style={{
+        padding: "10px 15px",
+        borderBottom: "1px solid #eee",
+        fontWeight: "bold",
+        fontSize: "14px",
+        backgroundColor: "#BF1D2D",
+        color: "white",
+        borderTopLeftRadius: "8px",
+        borderTopRightRadius: "8px",
+      }}
+    >
+      Thông báo mới ({unreadCount})
+    </div>
+
+    {/* Render notifications, with expand/collapse */}
+    {(showAllNotifications ? notifications : notifications.slice(0, 3)).map((n) => (
+      <div
+        key={n.id}
+        style={{
+          padding: "10px 15px",
+          cursor: "pointer",
+          borderBottom: "1px solid #f0f0f0",
+          transition: "0.2s",
+          fontSize: "13px",
+          position: "relative"
+        }}
+      >
+        <div onClick={() => handleNotificationRead(n)}>
+          <div style={{ fontWeight: n.is_read ? "normal" : "bold" }}>
+            {n.message}
+          </div>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              marginTop: "4px",
+            }}
+          >
+            {new Date(n.created_at).toLocaleString("vi-VN")}
+          </div>
+        </div>
+
+        <span
+          style={{
+            position: "absolute",
+            right: 12,
+            top: 8,
+            color: "#BF1D2D",
+            fontWeight: "bold",
+            cursor: "pointer",
+            fontSize: "20px",
+          }}
+          onClick={() => handleDeleteNotification(n.id)}
+        >
+          ×
+        </span>
+      </div>
+    ))}
+
+    {/* Xem thêm / Thu gọn button */}
+    {notifications.length > 3 && (
+      <div
+        style={{
+          padding: "10px",
+          textAlign: "center",
+          color: "#BF1D2D",
+          fontWeight: "bold",
+          fontSize: "13px",
+          cursor: "pointer",
+          borderTop: "1px solid #eee",
+        }}
+        onClick={() => setShowAllNotifications(!showAllNotifications)}
+      >
+        {showAllNotifications ? "Thu gọn ▲" : "Xem tất cả ▼"}
+      </div>
+    )}
 
             </div>
           )}

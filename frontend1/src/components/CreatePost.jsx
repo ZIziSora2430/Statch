@@ -1,4 +1,4 @@
-import Avatar from '../images/Avatar.png';
+import DefaultAvatar from "../images/avatar-default.svg";
 import React, { useState } from 'react';
 
 const API_BASE_URL = "http://localhost:8000";
@@ -70,7 +70,7 @@ export default function CreatePost({ onClose, onPostSuccess }) {
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <img src={Avatar} alt="avatar" className="w-10 h-10 rounded-full"/>
+          <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
           <div className="flex flex-col">
              <p className="font-semibold text-sm">Tạo bài viết mới</p>
              
@@ -142,11 +142,7 @@ export default function CreatePost({ onClose, onPostSuccess }) {
         />
 
         {/* Các nút */}
-        <div className="flex justify-between items-center mt-4 border-t pt-3">
-          <button className="text-sm border px-3 py-1 rounded-full hover:bg-gray-100 text-gray-600">
-            Thêm ảnh
-          </button>
-          
+        <div className="flex justify-between items-center mt-4 border-t pt-3">          
           <button 
             onClick={handlePost}
             disabled={!title || !content || isSubmitting}
