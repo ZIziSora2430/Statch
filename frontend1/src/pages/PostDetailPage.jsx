@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { ArrowLeft, Clock, Eye, MessageCircle, ArrowBigRight, Loader2, Trash2 } from "lucide-react";
 import Avatar from '../images/Avatar.png';
+import DefaultAvatar from "../images/avatar-default.svg";
 
 // Cấu hình URL API
 const API_BASE_URL = "http://localhost:8000";
@@ -227,7 +228,7 @@ function PostDetailPage() {
           <div className="bg-white rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold overflow-hidden">
-                <img src={Avatar} alt="user" className="w-full h-full object-cover opacity-80" />
+                <img src={DefaultAvatar} alt="user" className="w-full h-full object-cover opacity-80" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
@@ -284,7 +285,7 @@ function PostDetailPage() {
               commentsToShow.map(reply => (
                 <div key={reply.id} className="flex gap-3 group">
                   <img 
-                    src={Avatar}
+                    src={DefaultAvatar}
                     alt="avatar" 
                     className="w-10 h-10 rounded-full"
                   />
@@ -326,7 +327,7 @@ function PostDetailPage() {
           {/* Form nhập bình luận */}
           {isVerified ? (
             <div className="mt-6 flex gap-3 items-center">
-              <img src={Avatar} alt="avatar" className="w-10 h-10 rounded-full"/>
+              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full"/>
               <input 
                 type="text" 
                 placeholder="Viết bình luận..." 
