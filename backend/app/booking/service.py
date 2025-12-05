@@ -177,7 +177,11 @@ def build_booking_read(db: Session, booking):
     )
 
 def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
-    booking = get_booking_by_id(db, booking_id)
+    booking = db.execute(
+    select(models.Booking)
+    .where(models.Booking.booking_id == booking_id)
+    .with_for_update()
+    ).scalar_one_or_none()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking không tồn tại")
 
@@ -189,15 +193,17 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
     
     # 3. Check xem trong lúc chờ pending, đã có ai nhanh tay confirm trước chưa (Safety check)
     # (Trường hợp 2 owner cùng quản lý 1 acc hoặc lag mạng)
-    double_check_conflict = db.scalar(
-        select(models.Booking).where(
-            models.Booking.accommodation_id == booking.accommodation_id,
-            models.Booking.status == 'confirmed',
-            models.Booking.booking_id != booking_id, # Không check chính nó
-            models.Booking.date_start < booking.date_end,
-            models.Booking.date_end > booking.date_start
-        )
+    double_check_conflict = db.execute(
+    select(models.Booking)
+    .where(
+        models.Booking.accommodation_id == booking.accommodation_id,
+        models.Booking.status == 'confirmed',
+        models.Booking.booking_id != booking_id,
+        models.Booking.date_start < booking.date_end,
+        models.Booking.date_end > booking.date_start
     )
+        .with_for_update()
+    ).scalar_one_or_none()
     if double_check_conflict:
         raise HTTPException(
             status_code=400,
@@ -208,15 +214,18 @@ def owner_confirm_booking(db: Session, booking_id: int, owner_id: int):
 
     # 5. --- LOGIC TỰ ĐỘNG HỦY CÁC KÈO TRÙNG ---
     # Tìm tất cả các booking đang 'pending' mà bị trùng ngày với booking vừa confirm này
-    overlapping_pendings = db.scalars(
-        select(models.Booking).where(
-            models.Booking.accommodation_id == booking.accommodation_id,
-            models.Booking.status == 'pending_confirmation',
-            models.Booking.booking_id != booking_id, # Trừ chính thằng đang confirm ra
-            models.Booking.date_start < booking.date_end, # Logic trùng ngày
-            models.Booking.date_end > booking.date_start
-        )
-    ).all()
+    overlapping_pendings = db.execute(
+    select(models.Booking)
+    .where(
+        models.Booking.accommodation_id == booking.accommodation_id,
+        models.Booking.status == "pending_confirmation",
+        models.Booking.booking_id != booking_id,
+        models.Booking.date_start < booking.date_end,
+        models.Booking.date_end > booking.date_start
+    )
+        .with_for_update()
+    ).scalars().all()
+
 
     # Duyệt qua danh sách và Reject tự động
     for conflict_booking in overlapping_pendings:
@@ -402,4 +411,39 @@ def owner_report_issue(db: Session, booking_id: int, owner_id: int):
     
     # (Optional) Gửi thông báo cho khách: "Đơn của bạn đang được xem xét lại"
     return build_booking_read(db, booking)
+
+def auto_expire_bookings(db: Session):
+    now = datetime.utcnow()
+
+    # 1. pending_approval > 2h → reject
+    expired_approval = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == "pending_approval",
+            models.Booking.created_at < now - timedelta(hours=2)
+        )
+    ).all()
+    for b in expired_approval:
+        b.status = "rejected"
+
+    # 2. pending_payment > 15m → cancel
+    expired_payment = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == "pending_payment",
+            models.Booking.updated_at < now - timedelta(minutes=15)
+        )
+    ).all()
+    for b in expired_payment:
+        b.status = "cancelled"
+
+    # 3. pending_confirmation > 1h → cancel
+    expired_confirm = db.scalars(
+        select(models.Booking).where(
+            models.Booking.status == "pending_confirmation",
+            models.Booking.updated_at < now - timedelta(hours=1)
+        )
+    ).all()
+    for b in expired_confirm:
+        b.status = "cancelled"
+
+    db.commit()
 
