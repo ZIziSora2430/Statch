@@ -2,7 +2,7 @@ import React from 'react';
 
 const Banner = ({ username }) => {
     return (
-        <div className="relative w-full h-[750px] overflow-hidden">
+        <div className="relative w-full h-[775px] overflow-hidden">
             {/* 1. ẢNH NỀN (Background Image) */}
             {/* Bạn có thể thay link ảnh này bằng ảnh local trong máy */}
 
