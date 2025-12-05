@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import Footer from "../components/Footer";
 import { 
-  MapPin, Star, Share, Heart, Wifi, Car, Coffee, Grid,
+  MapPin, Star, Share, Heart, Wifi, Car, Coffee, Grid, Tv,
   Wind, CheckCircle, User, ArrowRight, ChevronDown, X, ChevronLeft, ChevronRight 
 } from "lucide-react";
 
@@ -40,6 +40,7 @@ export default function RoomDetailPage() {
   // THÊM STATE CHO GALLERY MODAL
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   // Xử lí nút xem thêm ảnh
   const openGallery = (index = 0) => {
@@ -481,51 +482,59 @@ useEffect(() => {
 
         {/* 5. REVIEWS SECTION (RED BACKGROUND) - Thiết kế gốc */}
         <section className="bg-white rounded-2xl p-6 md:p-8 mb-10 shadow-lg text-[#AD0000]">
-            <div className="flex justify-between items-center mb-6 border-b border-white/20 pb-4">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                    Đánh giá <span className="text-sm font-normal opacity-80">({reviews.length} lượt nhận xét)</span>
-                </h2>
-                <button className="text-sm font-bold hover:underline flex items-center gap-1">Xem tất cả <ArrowRight size={16}/></button>
-            </div>
+            <section className="bg-white rounded-2xl p-6 md:p-8 mb-10 shadow-lg text-[#AD0000]">
+    <div className="flex justify-between items-center mb-6 border-b border-white/20 pb-4">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+            Đánh giá <span className="text-sm font-normal opacity-80">({reviews.length} lượt nhận xét)</span>
+        </h2>
 
-            {/* Grid Review Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {reviews.length > 0 ? reviews.slice(0, 3).map((cmt, idx) => (
-                    <div key={idx} className="bg-white text-gray-800 p-5 rounded-xl shadow-md flex flex-col h-full transition hover:-translate-y-1 duration-300">
-                        <div className="flex items-center gap-3 mb-3">
-                            {/* Avatar */}
-                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-gray-100 to-gray-300 flex items-center justify-center font-bold text-gray-600 shrink-0 border border-gray-200">
-                                {cmt.user?.full_name?.charAt(0).toUpperCase() || "U"}
-                            </div>
-                            {/* Name & Stars */}
-                            <div className="overflow-hidden">
-                                <div className="font-bold text-sm truncate">{cmt.user?.full_name || "Ẩn danh"}</div>
-                                <div className="flex text-yellow-400 text-xs mt-0.5">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} size={10} fill={i < (cmt.rating || 5) ? "currentColor" : "none"} stroke="currentColor" />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {/* Content */}
-                        <div className="grow">
-                             <p className="text-sm text-gray-600 italic leading-relaxed">
-                                "{cmt.content}"
-                            </p>
+        {/* Nút xem tất cả / thu gọn */}
+        <button 
+            className="text-sm font-bold hover:underline flex items-center gap-1"
+            onClick={() => setShowAllReviews(!showAllReviews)}
+        >
+            {showAllReviews ? "Thu gọn" : "Xem tất cả"} 
+            <ArrowRight size={16}/>
+        </button>
+    </div>
+
+    {/* Grid Review Cards */}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {(showAllReviews ? reviews : reviews.slice(0, 3)).length > 0 ? (
+            (showAllReviews ? reviews : reviews.slice(0, 3)).map((cmt, idx) => (
+                <div key={idx} className="bg-white text-gray-800 p-5 rounded-xl shadow-md flex flex-col h-full transition hover:-translate-y-1 duration-300">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-gray-100 to-gray-300 flex items-center justify-center font-bold text-gray-600 shrink-0 border border-gray-200">
+                            {cmt.user?.full_name?.charAt(0).toUpperCase() || "U"}
                         </div>
 
-                        {/* Date */}
-                        <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] font-medium text-gray-400 text-right uppercase tracking-wide">
-                            {formatDate(cmt.created_at)}
+                        <div className="overflow-hidden">
+                            <div className="font-bold text-sm truncate">{cmt.user?.full_name || "Ẩn danh"}</div>
+                            <div className="flex text-yellow-400 text-xs mt-0.5">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} size={10} fill={i < (cmt.rating || 5) ? "currentColor" : "none"} />
+                                ))}
+                            </div>
                         </div>
                     </div>
-                )) : (
-                    <div className="col-span-3 text-center py-8 text-black/80 italic border border-white/20 rounded-xl border-dashed">
-                        Chưa có đánh giá nào. Hãy là người đầu tiên trải nghiệm!
+
+                    <div className="grow">
+                        <p className="text-sm text-gray-600 italic leading-relaxed">"{cmt.content}"</p>
                     </div>
-                )}
+
+                    <div className="mt-4 pt-3 border-t border-gray-100 text-[11px] font-medium text-gray-400 text-right uppercase tracking-wide">
+                        {formatDate(cmt.created_at)}
+                    </div>
+                </div>
+            ))
+        ) : (
+            <div className="col-span-3 text-center py-8 text-black/80 italic border border-white/20 rounded-xl border-dashed">
+                Chưa có đánh giá nào. Hãy là người đầu tiên trải nghiệm!
             </div>
+        )}
+    </div>
+</section>
+
 
             {/* Form viết đánh giá */}
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 mt-4">
