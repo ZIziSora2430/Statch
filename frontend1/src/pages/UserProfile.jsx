@@ -31,6 +31,7 @@ export default function UserProfile() {
     // --- STATE QUẢN LÝ DỮ LIỆU USER ---
     const [loading, setLoading] = useState(true);
     const [role, setRole] = useState(localStorage.getItem("user_role") || "traveler"); 
+    console.log("User role:", role);
     
     // Dữ liệu form
     const [ID, setID] = useState("");
@@ -327,7 +328,7 @@ export default function UserProfile() {
                         {activeSection === "statusPost" && role === "traveler" && <PostHistory />}
                         {activeSection === "accoList" && role === "owner" && <OwnerDashBoard />}
                         {activeSection === "bookCalen" && role === "owner" && <BookingList />}
-                        {activeSection === "setting" && <ChangePass showNotify={showNotify} role = {localStorage.getItem("user_role")}/>}
+                        {activeSection === "setting" && <ChangePass showNotify={showNotify} role={localStorage.getItem("user_role")}/>}
                         </div>
                     </div>
                 </div>

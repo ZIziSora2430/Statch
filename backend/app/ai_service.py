@@ -16,12 +16,10 @@ genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-2.0-flash')
 
 async def generate_tags_from_desc(description: str, location: str) -> str:
-    """
-    Dùng AI để trích xuất 3-5 từ khóa (tags) quan trọng nhất.
-    Phiên bản Async + Prompt tối ưu + Xử lý chuỗi kỹ hơn.
-    """
+    
+    std_keywords = "Wifi, Hồ bơi, Máy lạnh, Ban công, Bếp riêng, Cho thú cưng, BBQ, Yên tĩnh, Trung tâm, Gần biển, View núi, Sân vườn, Đậu xe, Thang máy, Gym"
+
     try:
-        # 1. Prompt được cải tiến (Few-Shot Prompting - Cung cấp ví dụ mẫu)
         prompt = f"""
         Bạn là chuyên gia SEO du lịch. Nhiệm vụ: Trích xuất đúng 3 đến 5 từ khóa (tags) ngắn gọn nhất (2-4 từ/tag) mô tả tiện ích nổi bật và không khí của chỗ ở này.
 
@@ -29,15 +27,13 @@ async def generate_tags_from_desc(description: str, location: str) -> str:
         - Mô tả: "{description}"
         - Vị trí: "{location}"
 
-        Ví dụ mẫu (Hãy học theo định dạng này):
-        Input: Mô tả "Nhà có hồ bơi vô cực, view nhìn thẳng ra biển, rất hợp để nướng BBQ tối. Wifi mạnh." - Vị trí "Vũng Tàu"
-        Output: Hồ bơi vô cực, View biển, BBQ sân vườn, Wifi mạnh, Gần biển
+        Quy tắc quan trọng:
+        1. Ưu tiên sử dụng chính xác các từ sau nếu phù hợp: {std_keywords}.
+        2. Nếu không có trong danh sách trên, hãy dùng từ ngắn gọn, phổ biến (Ví dụ: dùng "Máy lạnh" thay vì "Điều hòa nhiệt độ").
+        3. Viết hoa chữ cái đầu, cách nhau bằng dấu phẩy.
 
-        Yêu cầu bắt buộc:
-        1. Chỉ trả về danh sách từ khóa ngăn cách bởi dấu phẩy.
-        2. KHÔNG xuống dòng, KHÔNG gạch đầu dòng, KHÔNG số thứ tự.
-        3. Ưu tiên các từ khóa thu hút khách du lịch (Vd: Gần trung tâm, Có bồn tắm, Chill, Yên tĩnh).
-        4. Tiếng Việt chuẩn.
+        Input: "Nhà có bể bơi lớn, nhìn ra biển, có chỗ nướng thịt."
+        Output: Hồ bơi, View biển, BBQ, Thoáng mát
         """
 
         # 2. Cấu hình an toàn (Tránh bị chặn vì từ khóa nhạy cảm trong mô tả)
