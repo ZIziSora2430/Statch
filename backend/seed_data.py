@@ -155,6 +155,10 @@ def seed_data():
     db.expire_on_commit = False 
 
     try:
+        from app.database import engine, Base
+        Base.metadata.create_all(bind=engine)
+
+        
         clean_database(db)
         print("\n🌱 BẮT ĐẦU TẠO DỮ LIỆU MỚI (NO NOTIFICATIONS)...")
 

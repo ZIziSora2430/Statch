@@ -217,7 +217,6 @@ const openPrivacy = () => {
               onClick={() => setShowPassword(!showPassword)}
               style={{
                 position: "absolute",
-                right: "10px",
                 top: 310,
                 right:50,
                 transform: "translateY(-50%)",
@@ -261,7 +260,6 @@ const openPrivacy = () => {
               onClick={() => setShowPassword2(!showPassword2)}
               style={{
                 position: "absolute",
-                right: "10px",
                 top: 387,
                 right:50,
                 transform: "translateY(-50%)",

@@ -58,7 +58,7 @@ const LOCATION_LABELS = {
 };
 
 function PostDetailPage() {
-  // --- 1.  LOGIC LẤY DATA ---
+  // --- 1. LOGIC LẤY DATA ---
   const params = useParams();
   const postId = params.id || params.postId;
   
@@ -72,6 +72,9 @@ function PostDetailPage() {
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
+  
+  // ✅ THÊM: State cho view
+  const [hasViewed, setHasViewed] = useState(false);
 
   // Fetch Data
   const fetchPost = async () => {
@@ -92,7 +95,7 @@ function PostDetailPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/posts/${postId}/replies`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response. json();
         setReplies(data);
       }
     } catch (err) {
@@ -113,12 +116,60 @@ function PostDetailPage() {
         }
       });
 
-      if (response.ok) {
-        const data = await response. json();
+      if (response. ok) {
+        const data = await response.json();
         setIsVerified(data.is_verified);
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // ✅ THÊM: Fetch trạng thái view của user
+  const fetchViewStatus = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}/view-status`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response. json();
+        setHasViewed(data.has_viewed);
+      }
+    } catch (error) {
+      console.error('Lỗi fetch view status:', error);
+    }
+  };
+
+  // ✅ SỬA: Hàm toggle view khi click icon con mắt
+  const handleViewClick = async () => {
+    const token = localStorage.getItem("access_token");
+    
+    if (!token) {
+      alert("Bạn cần đăng nhập để thực hiện thao tác này.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}/view`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPost(prev => ({ ...prev, views_count: data.views_count }));
+        setHasViewed(data.has_viewed);
+      }
+    } catch (error) {
+      console.error('Lỗi toggle view:', error);
     }
   };
 
@@ -154,7 +205,7 @@ function PostDetailPage() {
         alert("Lỗi khi gửi bình luận.");
       }
     } catch (err) {
-      console. error(err);
+      console.error(err);
     } finally {
       setIsSubmittingReply(false);
     }
@@ -174,10 +225,11 @@ function PostDetailPage() {
     }
   };
 
+  // ✅ SỬA: Thêm fetchViewStatus vào useEffect
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchPost(), fetchReplies(), fetchVerifiedStatus()]);
+      await Promise.all([fetchPost(), fetchReplies(), fetchVerifiedStatus(), fetchViewStatus()]);
       setIsLoading(false);
     };
     loadData();
@@ -235,7 +287,7 @@ function PostDetailPage() {
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <Clock size={12} />
                   <span>{formatTimeAgo(post.created_at)}</span>
-                  {/* ĐÃ ĐỔI: post.category -> post.location */}
+                  {/* ĐÃ ĐỔI: post. category -> post.location */}
                   {post.location && (
                     <>
                       <span>•</span>
@@ -257,7 +309,14 @@ function PostDetailPage() {
             </p>
 
             <div className="flex items-center gap-4 text-sm text-gray-500 pt-3 border-t">
-              <div className="flex items-center gap-1">
+              {/* ✅ SỬA: Icon con mắt với trạng thái đã view */}
+              <div 
+                className={`flex items-center gap-1 cursor-pointer transition ${
+                  hasViewed ? 'text-blue-600' : 'hover:text-blue-600'
+                }`}
+                onClick={handleViewClick}
+                title={hasViewed ? "Bỏ xem" : "Đánh dấu đã xem"}
+              >
                 <Eye size={16} />
                 <span>{post.views_count || 0}</span>
               </div>
@@ -300,7 +359,7 @@ function PostDetailPage() {
                     </div>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap mt-1">{reply.content}</p>
                     <span className="text-xs text-gray-400 mt-2 block">
-                      {formatTimeAgo(reply. created_at)}
+                      {formatTimeAgo(reply.created_at)}
                     </span>
                   </div>
                 </div>
@@ -311,7 +370,7 @@ function PostDetailPage() {
           </div>
           
           {/* Nút "Hiện thêm bình luận" */}
-          {replies.length > 3 && !showAllComments && (
+          {replies.length > 3 && ! showAllComments && (
             <button
               onClick={() => setShowAllComments(true)}
               className="text-gray-500 hover:underline mt-4 text-sm font-medium cursor-pointer"
@@ -323,7 +382,7 @@ function PostDetailPage() {
           {/* Form nhập bình luận */}
           {isVerified ? (
             <div className="mt-6 flex gap-3 items-center">
-              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
+              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0. 5"/>
               <input 
                 type="text" 
                 placeholder="Viết bình luận..." 
@@ -335,10 +394,10 @@ function PostDetailPage() {
               
               <button 
                 onClick={handleSubmitReply}
-                disabled={isSubmittingReply || ! replyContent}
+                disabled={isSubmittingReply || !replyContent}
                 className={`transition ${replyContent ?  'text-black hover:scale-110' : 'text-gray-300'}`}
               >
-                {isSubmittingReply ?  <Loader2 className="animate-spin" size={24}/> : <ArrowBigRight size={28} />}
+                {isSubmittingReply ? <Loader2 className="animate-spin" size={24}/> : <ArrowBigRight size={28} />}
               </button>
             </div>
           ) : (
