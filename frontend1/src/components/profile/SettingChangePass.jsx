@@ -283,7 +283,7 @@ export default function SecuritySection({ showNotify, role }) {
           </div>
         )}
       </div>
-      {role === "owener" && (
+      {role === "owner" && (
         <>
         {/* Bank Info Section */}
         <h1 

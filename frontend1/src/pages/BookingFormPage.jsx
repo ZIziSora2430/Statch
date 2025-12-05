@@ -107,7 +107,7 @@ export default function BookingFormPage() {
         navigate("/"); // Quay về trang chủ nếu không có ID
         return;
     }
-
+    
     const fetchRoomDetails = async () => {
       try {
         const response = await fetch(`${API_URL}/api/accommodations/${roomId}`, {

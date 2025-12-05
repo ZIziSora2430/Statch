@@ -5,7 +5,7 @@ import { Search, Pencil } from "lucide-react";
 import CityButton from "../components/CityButton";
 import SearchButton from "../components/SearchButton.jsx";
 import PostCard from "../components/Postcard";
-import Avatar from '../images/Avatar.png';
+import DefaultAvatar from "../images/avatar-default.svg";
 import CreatePost from "../components/CreatePost.jsx";
 import { Link } from "react-router-dom";
 import SelectDistrict from "../components/SelectDistrict.jsx";
@@ -159,7 +159,7 @@ function CommunityPage() {
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-3 mb-6 bg-red-700 rounded-2xl p-3 shadow-md cursor-pointer"
             >
-              <img src={Avatar} alt="avatar" className="w-12 h-12 rounded-full" />
+              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
 
               <div className="relative flex-1">
                 <input

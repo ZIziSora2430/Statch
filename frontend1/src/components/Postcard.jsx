@@ -1,6 +1,8 @@
 // ==================== PostCard.jsx ====================
 import React from "react";
 import { MessageCircle, Eye, Clock } from "lucide-react";
+import DefaultAvatar from "../images/avatar-default.svg";
+
 
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
@@ -55,9 +57,7 @@ function PostCard({ post }) {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold">
-          {post. author?.username?.charAt(0).toUpperCase() || "U"}
-        </div>
+        <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-800">
