@@ -260,7 +260,6 @@ function SignUpPage() {
                 position: "absolute",
                 right: "10px",
                 top: 387,
-                right:50,
                 transform: "translateY(-50%)",
                 background: "none",
                 border: "none",
