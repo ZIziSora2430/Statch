@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { ArrowLeft, Clock, Eye, MessageCircle, ArrowBigRight, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Heart, MessageCircle, ArrowBigRight, Loader2, Trash2 } from "lucide-react";
 import DefaultAvatar from "../images/avatar-default.svg";
 
 // Cấu hình URL API
@@ -312,12 +312,16 @@ function PostDetailPage() {
               {/* ✅ SỬA: Icon con mắt với trạng thái đã view */}
               <div 
                 className={`flex items-center gap-1 cursor-pointer transition ${
-                  hasViewed ? 'text-blue-600' : 'hover:text-blue-600'
+                  hasViewed ? 'text-red-600' : 'hover:text-red-600'
                 }`}
                 onClick={handleViewClick}
                 title={hasViewed ? "Bỏ xem" : "Đánh dấu đã xem"}
               >
-                <Eye size={16} />
+                {hasViewed ? (
+                  <Heart size={16} fill="currentColor" />   // ❤️ TIM ĐỎ ĐẶC
+                ) : (
+                  <Heart size={16} />                        // 🤍 TIM RỖNG
+                )}
                 <span>{post.views_count || 0}</span>
               </div>
               <div className="flex items-center gap-1">

@@ -1,4 +1,4 @@
-// CommunityPage.jsx
+// ==================== CommunityPage.jsx ====================
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Search, Pencil } from "lucide-react";
@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import SelectDistrict from "../components/SelectDistrict.jsx";
 
 // Cấu hình URL API
-const API_BASE_URL = "http://localhost:8000"; 
+const API_BASE_URL = "http://localhost:8000";
 
 // Map value -> label để hiển thị trên CityButton
 const LOCATION_LABELS = {
@@ -43,38 +43,75 @@ const LOCATION_LABELS = {
 };
 
 function CommunityPage() {
-  const [posts, setPosts] = useState([]); 
+  const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(""); // ĐÃ ĐỔI TÊN
+  const [selectedLocation, setSelectedLocation] = useState("");
 
   // State cho trạng thái verify
   const [isVerified, setIsVerified] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState("");
 
+  // --- HÀM XỬ LÝ LIKE POST
+  const handleViewClick = async (postId) => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      alert("Bạn cần đăng nhập để thực hiện thao tác này.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}/view`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  views_count: data.views_count,
+                  has_viewed: data.has_viewed,
+                }
+              : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Lỗi toggle view:", error);
+    }
+  };
+
   // --- CALL API 1: Lấy trạng thái Verified Traveler ---
   const fetchVerifiedStatus = async () => {
     try {
-      const token = localStorage.getItem("access_token"); 
-      if (!token) return; 
+      const token = localStorage.getItem("access_token");
+      if (!token) return;
 
       const response = await fetch(`${API_BASE_URL}/verified-status`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setIsVerified(data.is_verified);
         setVerifyMessage(data.message);
       }
     } catch (error) {
-      console. error("Lỗi khi check verify:", error);
+      console.error("Lỗi khi check verify:", error);
     }
   };
 
@@ -82,21 +119,23 @@ function CommunityPage() {
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
-      
-      // ĐÃ SỬA: Thêm param location nếu có
+
+      const token = localStorage.getItem("access_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
       let url = `${API_BASE_URL}/posts?skip=0&limit=50`;
       if (selectedLocation) {
         url += `&location=${selectedLocation}`;
       }
 
-      const response = await fetch(url, { method: "GET" });
+      const response = await fetch(url, { method: "GET", headers: headers });
 
-      if (response. ok) {
+      if (response.ok) {
         const data = await response.json();
         setPosts(data);
       }
     } catch (error) {
-      console. error("Lỗi khi lấy bài viết:", error);
+      console.error("Lỗi khi lấy bài viết:", error);
     } finally {
       setIsLoading(false);
     }
@@ -107,15 +146,16 @@ function CommunityPage() {
     fetchVerifiedStatus();
   }, []);
 
-  // ĐÃ THÊM: Gọi lại API khi đổi location
+  // Gọi lại API khi đổi location
   useEffect(() => {
     fetchPosts();
   }, [selectedLocation]);
 
   // Lọc theo search (client-side)
-  const filteredPosts = posts.filter((p) =>
-    p.content?. toLowerCase().includes(search.toLowerCase()) ||
-    p. title?.toLowerCase().includes(search.toLowerCase())
+  const filteredPosts = posts.filter(
+    (p) =>
+      p.content?.toLowerCase().includes(search.toLowerCase()) ||
+      p.title?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -125,9 +165,8 @@ function CommunityPage() {
       <div className="flex">
         {/* Sidebar trái */}
         <aside className="w-1/5 px-4 pb-4 pt-18 flex flex-col gap-4 top-1 h-fit">
-          {/* ĐÃ SỬA: Truyền label để hiển thị */}
-          <CityButton 
-            onClick={() => setIsCityModalOpen(true)} 
+          <CityButton
+            onClick={() => setIsCityModalOpen(true)}
             label={LOCATION_LABELS[selectedLocation] || "Chọn địa điểm"}
           />
           <SearchButton value={search} onChange={setSearch} />
@@ -145,21 +184,25 @@ function CommunityPage() {
 
         {/* Nội dung chính */}
         <main className="flex-1 px-6 pt-18 pb-6">
-
           {/* BANNER cảnh báo khi chưa verify */}
-          {! isVerified && (
+          {!isVerified && (
             <div className="w-full bg-red-700 text-white text-center py-3 rounded-xl font-medium mb-6 shadow-md">
-              {verifyMessage || "Bạn chỉ có thể đăng bài hoặc bình luận khi đã đặt phòng"}
+              {verifyMessage ||
+                "Bạn chỉ có thể đăng bài hoặc bình luận khi đã đặt phòng"}
             </div>
           )}
 
           {/* Ô "Bạn đang nghĩ gì" – CHỈ HIỆN KHI ĐÃ VERIFY */}
           {isVerified && (
-            <div 
+            <div
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-3 mb-6 bg-red-700 rounded-2xl p-3 shadow-md cursor-pointer"
             >
-              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
+              <img
+                src={DefaultAvatar}
+                alt="avatar"
+                className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"
+              />
 
               <div className="relative flex-1">
                 <input
@@ -168,7 +211,10 @@ function CommunityPage() {
                   className="w-full rounded-full bg-white text-gray-800 px-5 py-3 pr-10 shadow-sm focus:outline-none placeholder-gray-500 pointer-events-none"
                   readOnly
                 />
-                <Pencil className="absolute right-7 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                <Pencil
+                  className="absolute right-7 top-1/2 -translate-y-1/2 text-gray-500"
+                  size={18}
+                />
               </div>
             </div>
           )}
@@ -176,24 +222,30 @@ function CommunityPage() {
           {/* Danh sách bài viết */}
           <div className="flex flex-col gap-4">
             {isLoading ? (
-              <p className="text-center text-gray-500">Đang tải bài viết...</p>
+              <p className="text-center text-gray-500">
+                Đang tải bài viết...
+              </p>
             ) : filteredPosts.length > 0 ? (
               filteredPosts.map((post) => (
-                <Link 
+                <Link
                   to={`/post/${post.id}`}
                   key={post.id}
                   className="no-underline text-black"
                 >
-                  <PostCard post={post} />
+                  <PostCard
+                    post={post}
+                    onViewToggle={handleViewClick}
+                  />
                 </Link>
               ))
             ) : (
               <p className="text-center text-gray-500 py-10">
-                Không có bài viết nào {selectedLocation && `tại ${LOCATION_LABELS[selectedLocation]}`}
+                Không có bài viết nào{" "}
+                {selectedLocation &&
+                  `tại ${LOCATION_LABELS[selectedLocation]}`}
               </p>
             )}
           </div>
-
         </main>
       </div>
 
@@ -211,12 +263,8 @@ function CommunityPage() {
 
       {/* Modal tạo bài viết */}
       {isVerified && isModalOpen && (
-        <CreatePost 
-          onClose={() => setIsModalOpen(false)} 
-          onPostSuccess={fetchPosts} 
-        />
+        <CreatePost onClose={() => setIsModalOpen(false)} onPostSuccess={fetchPosts} />
       )}
-
     </div>
   );
 }

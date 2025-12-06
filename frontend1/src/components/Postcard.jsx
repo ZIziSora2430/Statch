@@ -1,8 +1,7 @@
 // ==================== PostCard.jsx ====================
 import React from "react";
-import { MessageCircle, Eye, Clock } from "lucide-react";
+import { MessageCircle, Heart, Clock } from "lucide-react";
 import DefaultAvatar from "../images/avatar-default.svg";
-
 
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
@@ -17,9 +16,8 @@ const formatTimeAgo = (dateString) => {
   return date.toLocaleDateString('vi-VN');
 };
 
-// ĐÃ SỬA: Key khớp với Backend (snake_case, lowercase)
+// Key khớp với Backend (snake_case, lowercase)
 const LOCATION_LABELS = {
-  // Quận 1-12
   district1: "Quận 1",
   district2: "Quận 2",
   district3: "Quận 3",
@@ -32,19 +30,13 @@ const LOCATION_LABELS = {
   district10: "Quận 10",
   district11: "Quận 11",
   district12: "Quận 12",
-
-  // Các quận khác
   binh_thanh: "Quận Bình Thạnh",
   binh_tan: "Quận Bình Tân",
   phu_nhuan: "Quận Phú Nhuận",
   tan_binh: "Quận Tân Bình",
   tan_phu: "Quận Tân Phú",
   go_vap: "Quận Gò Vấp",
-
-  // TP Thủ Đức
   thu_duc: "TP Thủ Đức",
-
-  // Huyện
   hoc_mon: "Huyện Hóc Môn",
   binh_chanh: "Huyện Bình Chánh",
   nha_be: "Huyện Nhà Bè",
@@ -52,8 +44,15 @@ const LOCATION_LABELS = {
   cu_chi: "Huyện Củ Chi",
 };
 
+function PostCard({ post, onViewToggle }) { 
+  
+  const handleHeartClick = (e) => {
+    // Ngăn chặn sự kiện click lan truyền lên Link bao ngoài
+    e.preventDefault(); 
+    e.stopPropagation(); 
+    onViewToggle(post.id); 
+  };
 
-function PostCard({ post }) {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer">
       <div className="flex items-center gap-3 mb-3">
@@ -61,13 +60,12 @@ function PostCard({ post }) {
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-800">
-              {post. author?.username || "Ẩn danh"}
+              {post.author?.username || "Ẩn danh"}
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500">
             <Clock size={12} />
             <span>{formatTimeAgo(post.created_at)}</span>
-            {/* ĐÃ SỬA: Đổi từ post.category sang post.location */}
             {post.location && (
               <>
                 <span>•</span>
@@ -89,8 +87,16 @@ function PostCard({ post }) {
       </p>
 
       <div className="flex items-center gap-4 text-sm text-gray-500 pt-3 border-t">
-        <div className="flex items-center gap-1">
-          <Eye size={16} />
+        <div 
+          className={`flex items-center gap-1 cursor-pointer transition ${
+            post.has_viewed ? 'text-red-600' : 'hover:text-red-600' 
+          }`}
+          onClick={handleHeartClick}
+        >
+          <Heart 
+            size={16} 
+            fill={post.has_viewed ? 'currentColor' : 'none'} 
+          />
           <span>{post.views_count || 0}</span>
         </div>
         <div className="flex items-center gap-1">
