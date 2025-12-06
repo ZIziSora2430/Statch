@@ -321,6 +321,24 @@ class Notification(Base):
 
 
 # =====================================================
+# Bảng 8: PostView (Lưu user đã view bài viết nào)
+# =====================================================
+
+class PostView(Base):
+    __tablename__ = "post_views"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func. now())
+
+    # Đảm bảo mỗi user chỉ view 1 lần cho mỗi post
+    __table_args__ = (
+        {'mysql_charset': 'utf8mb4'}
+    )
+
+
+# =====================================================
 # Export tất cả models
 # =====================================================
 __all__ = [
@@ -334,5 +352,6 @@ __all__ = [
     "Reply",
     "PostLocation",
     "PostStatus",
-    "Notification"
+    "Notification",
+    "PostView"
 ]

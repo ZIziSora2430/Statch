@@ -26,6 +26,24 @@ function SignUpPage() {
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false); // ✅ THÊM: Loading state
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+
+const openTerms = () => {
+  setModalContent(`
+    <h2>Điều khoản & Điều kiện</h2>
+    <p>⚠ Nội dung điều khoản của bạn đặt ở đây...</p>
+  `);
+  setShowModal(true);
+};
+
+const openPrivacy = () => {
+  setModalContent(`
+    <h2>Chính sách bảo mật</h2>
+    <p>🔒 Nội dung chính sách bảo mật đặt ở đây...</p>
+  `);
+  setShowModal(true);
+};
 
   // ✅ ĐÃ BỎ: Các hàm validation để test dễ hơn
   // const validatePassword = (password) => { ... }
@@ -35,78 +53,63 @@ function SignUpPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ❗ CHẶN username có dấu + ký tự đặc biệt
+    // Chỉ cho phép: a-z A-Z 0-9 . _
+    const usernameRegex = /^[a-zA-Z0-9._]+$/;
 
-    // ✅ ĐÃ BỎ: Các validation phức tạp để test dễ hơn
+    if (!usernameRegex.test(username.trim())) {
+      toast.error("Tên đăng nhập chỉ được dùng chữ không dấu, số, dấu chấm hoặc gạch dưới!", { autoClose: 900 });
+      return;
+    }
 
-    // ✅ THÊM: Validate mật khẩu khớp nhau
+    // ❗ Kiểm tra mật khẩu trùng khớp
     if (password !== confirmPassword) {
-      toast.error("Mật khẩu không khớp!", {autoClose: 900});
+      toast.error("Mật khẩu không khớp!", { autoClose: 900 });
       return;
     }
 
-    // ✅ THÊM: Validate đã chọn role
+    // ❗ Phải chọn vai trò
     if (!role) {
-      toast.error("Vui lòng chọn vai trò!", {autoClose: 900});
+      toast.error("Vui lòng chọn vai trò!", { autoClose: 900 });
       return;
     }
 
-    setLoading(true); // Bật loading
+    setLoading(true);
 
     try {
-      // ✅ DEBUG: Log để kiểm tra
       console.log('🚀 Sending signup request to:', `${API_URL}/signup`);
-      console.log('📦 Data:', { username, role });
 
-      // ✅ THÊM: Gọi API signup đến backend FastAPI
-      // ✅ MỚI CẬP NHẬT: Dùng API_URL từ environment thay vì hardcode
       const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: username.trim(), // ✅ MỚI THÊM: .trim() để xóa khoảng trắng thừa
+          username: username.trim(),
           email: email,
           password: password,
-          role: role, // ✅ THÊM: Gửi role (traveler/owner)
-          full_name: null // Có thể thêm field này sau
+          role: role,
+          full_name: null
         }),
       });
 
-      const data = await response.json(); // Parse JSON response
-
-      // ✅ DEBUG: Log response
-      console.log('✅ Response status:', response.status);
-      console.log('📥 Response data:', data);
+      const data = await response.json();
 
       if (response.ok) {
-        // ✅ THÊM: Nếu đăng ký thành công, thông báo và chuyển về trang login
-        toast.success("Đăng ký thành công! Vui lòng đăng nhập.", {autoClose: 1000});
-        setTimeout(() => {
-          navigate("/"); // Quay về trang login
-        }, 1500);  
-
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.", { autoClose: 1000 });
+        setTimeout(() => navigate("/"), 1500);
       } else {
-        
-        // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
-        // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 400 (Bad Request)
-        if (response.status === 400) {
-          toast.error(data.detail || "Username đã tồn tại!", {autoClose: 900});
-        } else {
-          toast.error(data.detail || "Đăng ký thất bại!", {autoClose: 900});
-        }
+        toast.error(data.detail || "Đăng ký thất bại!", { autoClose: 900 });
       }
-    } catch (err) {
-      // ✅ THÊM: Xử lý lỗi khi không kết nối được server
-      // ✅ MỚI CẬP NHẬT: Thông báo cụ thể hơn về lỗi kết nối
+    } 
+    catch (err) {
       console.error('❌ Signup error:', err);
-      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!", {autoClose: 900});
-      console.error("Signup error:", err);
-      console.error("Signup error:", err);
-    } finally {
-      setLoading(false); // Tắt loading
+      toast.error("Không thể kết nối đến server. Vui lòng thử lại!", { autoClose: 900 });
+    } 
+    finally {
+      setLoading(false);
     }
-  };
+};
 
   return (
     <div className='page-wrapper'>
@@ -214,7 +217,6 @@ function SignUpPage() {
               onClick={() => setShowPassword(!showPassword)}
               style={{
                 position: "absolute",
-                right: "10px",
                 top: 310,
                 right:50,
                 transform: "translateY(-50%)",
@@ -258,7 +260,6 @@ function SignUpPage() {
               onClick={() => setShowPassword2(!showPassword2)}
               style={{
                 position: "absolute",
-                right: "10px",
                 top: 387,
                 transform: "translateY(-50%)",
                 background: "none",
@@ -358,32 +359,87 @@ function SignUpPage() {
 
           {/* Cautions */}
           {/* ✅ MỚI CẬP NHẬT: Thêm color: '#666' và cursor pointer cho link */}
-          <p style={{
-    
-            fontSize: '11px',
-            textAlign: 'center',
-            marginTop: '19px',
-            color: '#666' // ✅ MỚI THÊM: Màu xám nhạt cho text phụ
-          }}>
-            Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với{" "}
-            <span style={{ 
-              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
-              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
-            }}>
-              Điều khoản & Điều kiện
-            </span>
-            {" "}và{" "}
-            <span style={{ 
-              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
-              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
-            }}>
-              Chính sách bảo mật{" "}
-            </span>
-            của chúng tôi.
-          </p>
-        </form>
-      </div>
-      <ToastContainer/>
+         <p
+  style={{
+    fontSize: '11px',
+    textAlign: 'center',
+    marginTop: '19px',
+    color: '#666'
+  }}
+>
+  Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với{" "}
+  
+<span 
+  onClick={openTerms}
+  style={{ color: '#4A90E2', cursor: 'pointer', textDecoration: 'underline' }}
+>
+  Điều khoản & Điều kiện
+</span>
+
+{" "}và{" "}
+
+<span 
+  onClick={openPrivacy}
+  style={{ color: '#4A90E2', cursor: 'pointer', textDecoration: 'underline' }}
+>
+  Chính sách bảo mật
+</span>
+
+  {" "}của chúng tôi.
+</p>
+
+       </form>
+</div>
+
+{/* 🔥 MODAL POPUP ĐIỀU KHOẢN / CHÍNH SÁCH */}
+{showModal && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999
+    }}
+    onClick={() => setShowModal(false)}
+  >
+    <div
+      style={{
+        background: "white",
+        padding: "25px",
+        borderRadius: "12px",
+        width: "90%",
+        maxWidth: "500px",
+        maxHeight: "80vh",
+        overflowY: "auto",
+        position: "relative"
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => setShowModal(false)}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "none",
+          border: "none",
+          fontSize: "20px",
+          cursor: "pointer"
+        }}
+      >
+        ×
+      </button>
+
+      <div dangerouslySetInnerHTML={{ __html: modalContent }} />
+    </div>
+  </div>
+)}
+
+<ToastContainer />
+
     </div>
   );
 }

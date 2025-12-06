@@ -157,7 +157,7 @@ useEffect(() => {
       <img src={scrolled ? new_logo2 : new_logo2sub} 
       onClick={() => navigate('/home')}
       alt="Logo" 
-      style={{ height: 20, cursor: "pointer" }} />
+      style={{ height: 25, cursor: "pointer" }} />
 
       {/* Right icons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
