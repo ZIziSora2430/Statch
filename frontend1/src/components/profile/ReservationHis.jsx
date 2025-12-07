@@ -64,7 +64,11 @@ const BookingCard = ({ booking }) => {
     const handleViewDetail = (e) => {
         // Ngăn chặn sự kiện nổi bọt nếu bấm vào các nút con
         e?.stopPropagation(); 
-        navigate("/confirm", { state: { bookingId: booking.booking_id } });
+        if (booking.status === 'completed') {
+            navigate(`/accommodations/${booking.accommodation_id}`);
+        } else {
+            navigate("/confirm", { state: { bookingId: booking.booking_id } });
+        }
     };
     return (
         <div 
@@ -82,6 +86,10 @@ const BookingCard = ({ booking }) => {
                     src={imageUrl} 
                     alt={booking.accommodation_title} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    onError={(e) => {                      
+                        e.target.onerror = null; 
+                        e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
+                }}
                 />
             </div>
 

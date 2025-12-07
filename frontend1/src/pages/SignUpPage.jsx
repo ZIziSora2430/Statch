@@ -346,8 +346,8 @@ const openPrivacy = () => {
           >
             <option value="">--Bạn đăng ký với vai trò gì--</option>
             {/* ✅ SỬA: Đổi value để khớp với backend API (traveler, owner) */}
-            <option value="traveler">Người dùng</option>
-            <option value="owner">Chủ trọ</option>
+            <option value="traveler">Khách du lịch</option>
+            <option value="owner">Chủ cho thuê</option>
           </select>
 
           {/* Submit button */}

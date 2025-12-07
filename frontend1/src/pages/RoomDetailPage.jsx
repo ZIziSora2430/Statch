@@ -263,6 +263,10 @@ useEffect(() => {
                             src={images[0]} 
                             alt="Background" 
                             className="w-full h-full object-cover opacity-50 blur-xl scale-110" 
+                            onError={(e) => {                      
+                            e.target.onerror = null; 
+                            e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
+                      }}
                         />
                     </div>
 
@@ -270,7 +274,11 @@ useEffect(() => {
                     <img 
                         src={images[0]} 
                         alt="Main" 
-                        className="relative z-10 w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" 
+                        className="relative z-10 w-full h-full object-contain transition-transform duration-500 group-hover:scale-[1.02]"
+                        onError={(e) => {                      
+                        e.target.onerror = null; 
+                        e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
+                      }} 
                     />
                 </div>
             ) : images.length === 2 ? (
@@ -597,7 +605,13 @@ useEffect(() => {
                             className="flex flex-col sm:flex-row gap-4 border border-gray-200 rounded-xl p-3 hover:shadow-md transition bg-white cursor-pointer"
                         >
                             <div className="w-full sm:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden shrink-0">
-                                <img src={item.picture_url || `https://placehold.co/400x300?text=${item.title}`} className="w-full h-full object-cover hover:scale-110 transition duration-500"/>
+                                <img 
+                                    src={item.picture_url || `https://placehold.co/400x300?text=${item.title}`} 
+                                    className="w-full h-full object-cover hover:scale-110 transition duration-500"
+                                    onError={(e) => {                      
+                                    e.target.onerror = null; 
+                                    e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
+                                }}/>
                             </div>
                             <div className="flex-1 flex flex-col justify-between">
                                 <div>

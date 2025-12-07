@@ -70,6 +70,10 @@ function RoomCard({ id, image, category, categoryColor, name, price, status, onD
           src={image || "https://via.placeholder.com/400x300?text=No+Image"}
           alt={name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          onError={(e) => {                      
+            e.target.onerror = null; 
+            e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
+          }}
         />
 
         {/* Badge Category */}

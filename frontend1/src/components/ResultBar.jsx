@@ -136,10 +136,13 @@ export default function ResultBar({
         {/* Left: Image */}
         <div className="md:col-span-2 h-56 md:h-auto relative">
           <img
-            src={image || "https://placehold.co/600x400?text=No+Image"}
+            src={image}
             alt={title}
             className="h-full w-full object-cover"
-            onError={(e) => {e.target.src = "https://placehold.co/600x400?text=Error";}} // Fallback nếu ảnh lỗi
+            onError={(e) => {                      
+            e.target.onerror = null; 
+            e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
+            }}
           />
           <div className="absolute top-3 left-3 flex gap-1">
              {categories.map((c, idx) => c && <TagChip key={idx} label={c} isCategory={true} />)}

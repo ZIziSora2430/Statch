@@ -174,59 +174,55 @@ def search_accommodations(
         query = query.where(models.Accommodation.accommodation_id.notin_(busy_rooms_subquery))
 
     results = []
-        # --- STRATEGY 1: TÌM THEO TỌA ĐỘ (Ưu tiên) ---
-    
-    
-    if lat is not None and lng is not None and radius is not None:
-        geo_query = query.where(
-            models.Accommodation.latitude.isnot(None),
-            models.Accommodation.longitude.isnot(None)
-        )
-        
-        distance_col = (
-            6371 * func.acos(
-                func.cos(func.radians(lat)) *
-                func.cos(func.radians(models.Accommodation.latitude)) *
-                func.cos(func.radians(models.Accommodation.longitude) - func.radians(lng)) +
-                func.sin(func.radians(lat)) *
-                func.sin(func.radians(models.Accommodation.latitude))
-            )
-        ).label("distance")
-
-        geo_results = db.execute(
-            geo_query.add_columns(distance_col)
-                     .where(distance_col <= radius)
-                     .order_by(distance_col)
-                     .limit(50)
-        ).all()
-        
-        if geo_results:
-             results = geo_results  
-
-
-    # CASE B: Tìm theo Text (Keyword Search)
-    # Chạy khi: (Không có tọa độ) HOẶC (Có tọa độ nhưng tìm không ra kết quả nào)
-    if not results and location_text:
-        print(f"🔤 Searching by Text SQL: '{location_text}'")
+    # CASE A: Có nhập Text (Ưu tiên tìm theo địa điểm/tên) -> BỎ QUA RADIUS
+    if location_text:
+        print(f"🔍 Mode: Text Search ('{location_text}')")
         search_term = f"%{location_text}%"
         
-        # Tìm kiếm trên 3 trường: Title, Location VÀ Tags
-        # Sử dụng ilike để không phân biệt hoa thường (Case-insensitive)
-        text_query = query.where(
+        # Tìm theo text
+        query = query.where(
             or_(
                 models.Accommodation.title.ilike(search_term),
                 models.Accommodation.location.ilike(search_term),
                 models.Accommodation.tags.ilike(search_term) 
             )
         )
-        results = db.execute(text_query.limit(50)).all()
+        
+        # Nếu có tọa độ, ta vẫn tính khoảng cách để SẮP XẾP cho đẹp (Gần user nhất lên đầu)
+        # NHƯNG KHÔNG dùng .where(distance <= radius) để lọc bỏ
+        if lat is not None and lng is not None:
+             distance_col = (
+                6371 * func.acos(
+                    func.cos(func.radians(lat)) *
+                    func.cos(func.radians(models.Accommodation.latitude)) *
+                    func.cos(func.radians(models.Accommodation.longitude) - func.radians(lng)) +
+                    func.sin(func.radians(lat)) *
+                    func.sin(func.radians(models.Accommodation.latitude))
+                )
+            ).label("distance")
+             
+             # Chỉ order by distance, không filter radius
+             results = db.execute(
+                 query.add_columns(distance_col).order_by(distance_col.asc()).limit(50)
+             ).all()
+             
+             # Map lại kết quả (SQLAlchemy trả về tuple khi dùng add_columns)
+             final_results = []
+             for row in results:
+                 final_results.append(row[0])
+             results = final_results
+             
+        else:
+            # Nếu không có tọa độ thì query bình thường
+            results = db.scalars(query.limit(50)).all()
+    else:
+        results = db.scalars(query.limit(50)).all()
     
     # Xử lý kết quả trả về
     accommodations = []
     for row in results:
-        acc = row[0] 
-        _attach_rating_info(db, acc)
-        accommodations.append(acc)
+        _attach_rating_info(db, row)
+        accommodations.append(row)
 
     return accommodations
 

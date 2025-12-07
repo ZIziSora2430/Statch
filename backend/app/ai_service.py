@@ -2,6 +2,7 @@ import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold # 1. Import thêm cái này
 import os
 from dotenv import load_dotenv 
+import re
 
 load_dotenv()
 
@@ -21,19 +22,19 @@ async def generate_tags_from_desc(description: str, location: str) -> str:
 
     try:
         prompt = f"""
-        Bạn là chuyên gia SEO du lịch. Nhiệm vụ: Trích xuất đúng 3 đến 5 từ khóa (tags) ngắn gọn nhất (2-4 từ/tag) mô tả tiện ích nổi bật và không khí của chỗ ở này.
-
-        Dữ liệu đầu vào:
+        Nhiệm vụ: Trích xuất 4-6 tiện ích/đặc điểm quan trọng nhất từ mô tả dưới đây thành các từ khóa (tags).
+        
+        Dữ liệu:
         - Mô tả: "{description}"
         - Vị trí: "{location}"
+        
+        Quy tắc BẮT BUỘC:
+        1. CHỈ trả về các từ khóa ngăn cách bởi dấu phẩy. KHÔNG viết câu dẫn nhập. KHÔNG gạch đầu dòng.
+        2. Ưu tiên dùng từ trong danh sách này: {std_keywords}.
+        3. Tiếng Việt 100%.
 
-        Quy tắc quan trọng:
-        1. Ưu tiên sử dụng chính xác các từ sau nếu phù hợp: {std_keywords}.
-        2. Nếu không có trong danh sách trên, hãy dùng từ ngắn gọn, phổ biến (Ví dụ: dùng "Máy lạnh" thay vì "Điều hòa nhiệt độ").
-        3. Viết hoa chữ cái đầu, cách nhau bằng dấu phẩy.
-
-        Input: "Nhà có bể bơi lớn, nhìn ra biển, có chỗ nướng thịt."
-        Output: Hồ bơi, View biển, BBQ, Thoáng mát
+        Ví dụ Input: "Căn hộ có bể bơi vô cực, nhìn thẳng ra biển, wifi cực mạnh."
+        Ví dụ Output: Hồ bơi, View biển, Wifi, Thoáng mát
         """
 
         # 2. Cấu hình an toàn (Tránh bị chặn vì từ khóa nhạy cảm trong mô tả)
@@ -49,7 +50,7 @@ async def generate_tags_from_desc(description: str, location: str) -> str:
             prompt,
             generation_config=genai.types.GenerationConfig(
                 max_output_tokens=100, # Giới hạn ngắn thôi cho tiết kiệm
-                temperature=0.5        # Giảm độ sáng tạo để tags chính xác hơn
+                temperature=0.3
             ),
             safety_settings=safety_settings
         )
@@ -57,21 +58,35 @@ async def generate_tags_from_desc(description: str, location: str) -> str:
         try:
             raw_text = response.text.strip()
         except ValueError:
-            # Nếu bị lỗi ValueError nghĩa là AI chặn câu trả lời
-            print(f"⚠️ AI chặn phản hồi Tags. Feedback: {response.prompt_feedback}")
-            # Fallback về logic cắt chuỗi thủ công
-            short_loc = location.split(',')[-1].strip() if ',' in location else location
-            return f"Tiện nghi, {short_loc}, Du lịch"
-        # ------------------------
+            print(f"⚠️ AI Blocked Tags Generation.")
+            return "Tiện nghi, Du lịch"
 
-        clean_tags = raw_text.replace("\n", "").replace(".", "").replace("*", "")
-        print(f"🏷️ Generated Tags: {clean_tags}")
-        return clean_tags
+        # --- LOGIC LÀM SẠCH MỚI (MẠNH HƠN) ---
+        # 1. Bỏ hết các ký tự đặc biệt như *, -, • (nếu AI lỡ tạo bullet point)
+        clean_tags = re.sub(r'[*\-•]', '', raw_text)
+        
+        # 2. Xóa các cụm từ thừa nếu AI lỡ nói nhiều (VD: "Tags của bạn là: ...")
+        if ":" in clean_tags:
+            clean_tags = clean_tags.split(":")[-1]
+            
+        # 3. Chuẩn hóa dấu phẩy và khoảng trắng
+        # Tách chuỗi bằng dấu phẩy, strip từng phần tử, rồi ghép lại
+        tags_list = [t.strip() for t in clean_tags.split(',') if t.strip()]
+        
+        # Lấy tối đa 6 tags để không bị tràn UI
+        final_tags_str = ", ".join(tags_list[:6])
+        
+        print(f"🏷️ Generated Tags: {final_tags_str}")
+        return final_tags_str
 
     except Exception as e:
         print(f"⚠️ Lỗi SYSTEM tạo Tags: {str(e)}")
-        short_loc = location.split(',')[-1].strip() if ',' in location else location
-        return f"Tiện nghi đầy đủ, {short_loc}, Du lịch"
+        # Fallback an toàn: Lấy tên quận/huyện từ location
+        try:
+            short_loc = location.split(',')[-1].strip()
+        except:
+            short_loc = "TP.HCM"
+        return f"Wifi, Máy lạnh, {short_loc}"
     
 async def generate_description_text(title: str, property_type: str, location: str, features: str) -> str:
     try:
@@ -131,7 +146,7 @@ async def generate_description_text(title: str, property_type: str, location: st
     
 import json
 
-async def calculate_match_score(user_preference: str, accommodations: list, user_history_context: str = "") -> list:
+async def calculate_match_score(user_preference: str, accommodations: list, search_query: str = "", user_history_context: str = "") -> list:
     """
     Dùng AI để chấm điểm độ phù hợp.
     """
@@ -146,9 +161,15 @@ async def calculate_match_score(user_preference: str, accommodations: list, user
                 "tags": acc.tags
             })
 
-        context_str = ""
+        context_parts = []
+        if user_preference:
+            context_parts.append(f"- Sở thích chung của User: {user_preference}")
         if user_history_context:
-            context_str = f"\n- Mối quan tâm gần đây (Dựa trên bài đăng Forum 2 tuần qua): {user_history_context}"
+            context_parts.append(f"- Mối quan tâm gần đây: {user_history_context}")
+        if search_query:
+            context_parts.append(f"- User ĐANG tìm kiếm từ khóa: '{search_query}' (Rất quan trọng)")
+            
+        full_context = "\n".join(context_parts)
 
         # 2. Prompt "Cứng rắn về định dạng" nhưng "Mềm mỏng về nội dung"
         prompt = f"""
@@ -156,11 +177,12 @@ async def calculate_match_score(user_preference: str, accommodations: list, user
         Nhiệm vụ: So khớp nhu cầu người dùng với danh sách chỗ ở.
 
         Input:
-        - Sở thích: "{user_preference}"{context_str}
+        - Ngữ cảnh người dùng: {full_context}
         - Ứng viên: {json.dumps(candidates, ensure_ascii=False)}
 
         Yêu cầu Logic (Copywriter):
-        - Kết hợp cả sở thích chung VÀ mối quan tâm gần đây để đánh giá.
+        - Nếu có "Từ khóa tìm kiếm", hãy ưu tiên tuyệt đối các chỗ ở có địa điểm hoặc tên khớp với từ khóa đó.
+        - Sau đó mới xét đến "Sở thích chung" và "Các mối quan tâm gần đây" để cộng trừ điểm.
         - Ưu tiên những chỗ ở phù hợp với bài đăng gần đây nhất của họ (Ví dụ: Bài đăng hỏi về "Đà Lạt" thì ưu tiên Homestay Đà Lạt).
         - Viết lý do ngắn gọn (dưới 20 từ) giải thích tại sao chỗ này "có liên quan" đến sở thích.
         - CẤM dùng từ phủ định (VD: "không có núi", "thiếu hồ bơi").
@@ -175,7 +197,7 @@ async def calculate_match_score(user_preference: str, accommodations: list, user
 
         # 3. Cấu hình ép buộc JSON (Quan trọng)
         generation_config = genai.types.GenerationConfig(
-            temperature=0.5, 
+            temperature=0.4, 
             # response_mime_type="application/json" #ép AI trả về dạng json 
         )
 
@@ -253,7 +275,7 @@ async def rank_search_results(user_query: str, accommodations: list, user_prefer
             raw_text = raw_text.split("```")[1].split("```")[0].strip()
 
         ranking_data = json.loads(raw_text)
-        
+
         score_map = {item['id']: item['score'] for item in ranking_data}
 
         # 3. Lọc và Sắp xếp

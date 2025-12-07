@@ -114,25 +114,50 @@ async def search_accommodations_endpoint(
             check_out_date=check_out_date,
             number_of_guests=number_of_guests
         )
-        if not accommodations and location_text and not lat:
-            print(f"🤔 SQL không tìm thấy '{location_text}'. Kích hoạt AI Semantic Search...")
-            candidates = service.get_random_accommodations(db, limit=20)
-            user_pref = current_user.preference if current_user.preference else "Không có sở thích cụ thể"
-            accommodations = await ai_service.rank_search_results(
-                user_query=location_text, 
-                accommodations=candidates,
-                user_preference=user_pref
-            )
+        if accommodations and location_text:
+            print("🤖 Đang nhờ AI chấm điểm kết quả...")
+            user_pref = current_user.preference if current_user.preference else ""
 
-        # Nếu đã có kết quả từ SQL, vẫn dùng AI sắp xếp lại cho chuẩn sở thích
-        elif accommodations and len(accommodations) > 0:
-             user_pref = current_user.preference if current_user.preference else ""
-             accommodations = await ai_service.rank_search_results(
-                user_query=location_text if location_text else "", 
-                accommodations=accommodations,
-                user_preference=user_pref
-            )
+            two_weeks_ago = datetime.now() - timedelta(weeks=2)
+    
+            recent_posts = db.query(models.Post).filter(
+                models.Post.user_id == current_user.id,
+                models.Post.created_at >= two_weeks_ago,
+            ).all()
 
+            history_context = ""
+            if recent_posts:
+                # Gộp tiêu đề và nội dung các bài viết lại thành 1 đoạn văn
+                history_context = ". ".join([f"{p.title}: {p.content[:100]}..." for p in recent_posts])
+                print(f"📜 User History Context (2 weeks): {history_context}")
+
+
+            try:
+                # Gọi hàm tính điểm với tham số search_query
+                ai_results = await ai_service.calculate_match_score(
+                    user_preference=user_pref,
+                    accommodations=accommodations,
+                    user_history_context=history_context,
+                    search_query=location_text 
+                )
+                
+                # Chuyển list kết quả AI thành Dict cho dễ tra cứu: {id: {score, reason}}
+                score_map = {item['id']: item for item in ai_results}
+
+                # 3. Gắn điểm vào object Accommodation
+                for acc in accommodations:
+                    match_info = score_map.get(acc.accommodation_id)
+                    if match_info:
+                        acc.match_score = match_info.get('score', 0)
+                        acc.match_reason = match_info.get('reason', "Có liên quan")
+                    else:
+                        # Nếu AI sót hoặc lỗi, gán mặc định thấp
+                        acc.match_score = 0
+                        acc.match_reason = None
+                        
+            except Exception as e:
+                print(f"⚠️ Lỗi chấm điểm AI trong Search: {e}")
+                # Không raise lỗi để user vẫn thấy kết quả tìm kiếm dù AI tạch
         return accommodations
 
     except Exception as e:

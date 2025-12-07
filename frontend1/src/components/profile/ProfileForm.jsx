@@ -191,8 +191,15 @@ export default function ProfileForm({
               
                 {/* Hàng 5: Sở thích */}
                 <div className="flex flex-col gap-2">
-                    <label className="text-gray-700 font-bold text-sm">Sở thích cá nhân</label>
-                    <textarea value={preference} disabled={!isEditingInfo} onChange={(e) => setPreference(e.target.value)} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none resize-none h-32 ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100'}`} />
+                    <label className="text-gray-700 font-bold text-sm">Gu du lịch và chỗ ở</label>
+                    
+                    <textarea value={preference} disabled={!isEditingInfo} onChange={(e) => setPreference(e.target.value)} className={`w-full p-3 rounded-xl font-bold text-gray-800 outline-none resize-none h-32 ${isEditingInfo ? 'bg-white border border-[#AD0000] ring-1 ring-[#AD0000] shadow-sm' : 'bg-gray-100'}`} 
+                                placeholder="Ví dụ: Tôi thích nơi yên tĩnh, gần biển, có ban công rộng và nhiều ánh sáng tự nhiên..."
+                        />
+
+                    <p className="text-xs text-gray-500 mt-1">
+                    *Thông tin này giúp AI gợi ý những căn phòng phù hợp nhất với gu của bạn.
+                    </p>
                 </div>
 
                 {/* Nút lưu / chỉnh sửa */}

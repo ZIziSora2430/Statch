@@ -65,6 +65,36 @@ export default function LandingPage() {
       setCurrentUserName(storedUsername);
     }
 
+    const CACHE_KEY = "recommendation_cache";
+    
+    // Hàm kiểm tra Cache
+    const checkCache = () => {
+      const cachedRaw = localStorage.getItem(CACHE_KEY);
+      if (cachedRaw) {
+        try {
+          const cachedData = JSON.parse(cachedRaw);
+          // Kiểm tra xem cache này có phải của user hiện tại không?
+          // Và kiểm tra xem cache có bị quá cũ không (ví dụ: 24h)
+          const isSameUser = cachedData.username === storedUsername;
+          const isFresh = (Date.now() - cachedData.timestamp) < 24 * 60 * 60 * 1000; // 24 giờ
+
+          if (isSameUser && isFresh) {
+            console.log("⚡ Dùng dữ liệu Cache (Không tốn quota API)");
+            setAccommodations(cachedData.data);
+            setIsLoading(false);
+            return true; // Đã load từ cache thành công
+          }
+        } catch (e) {
+          console.error("Lỗi đọc cache", e);
+          localStorage.removeItem(CACHE_KEY); // Xóa cache lỗi
+        }
+      }
+      return false; // Không có cache hoặc cache cũ/sai user
+    };
+
+    // Nếu đã load được từ cache thì dừng, không chạy fetch nữa
+    if (checkCache()) return;
+
     const fetchData = async () => {
       try {
         const response = await fetch(`${API_URL}/api/accommodations/recommendations/`, {
@@ -91,6 +121,16 @@ export default function LandingPage() {
         const data = await response.json();
         console.log("Dữ liệu gợi ý chỗ ở:", data);
         setAccommodations(data);
+
+        // --- LƯU VÀO CACHE ---
+        if (data && data.length > 0) {
+            const cachePayload = {
+                username: storedUsername, // Lưu tên user để đối chiếu
+                data: data,
+                timestamp: Date.now()     // Lưu thời gian để hết hạn
+            };
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
+        }
 
       } catch (error) {
         console. error("Lỗi khi fetch dữ liệu:", error);
@@ -277,7 +317,7 @@ if (isLoading) {
                       referrerPolicy="no-referrer"
                       onError={(e) => {                      
                         e.target.onerror = null; 
-                        e.target.src = "https://placehold.co/600x400?text=No+Image"; 
+                        e.target.src = "https://res.cloudinary.com/drzs4mgqk/image/upload/v1765015038/hilton_eqr7ym.webp"; 
                       }}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />

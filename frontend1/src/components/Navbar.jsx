@@ -408,6 +408,7 @@ useEffect(() => {
                   localStorage.removeItem("access_token");
                   localStorage.removeItem("username");
                   localStorage.removeItem("user_role");
+                  localStorage.removeItem("recommendation_cache");
                   navigate("/");
                   }}
               >
