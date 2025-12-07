@@ -261,6 +261,7 @@ const openPrivacy = () => {
               style={{
                 position: "absolute",
                 top: 387,
+                right: 50,
                 transform: "translateY(-50%)",
                 background: "none",
                 border: "none",

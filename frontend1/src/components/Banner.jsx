@@ -17,7 +17,7 @@ const Banner = ({ username }) => {
 
             {/* 2. LỚP PHỦ MÀU (Overlay) */}
             {/* Giúp chữ trắng nổi bật trên mọi loại ảnh nền */}
-            <div className="absolute inset-0 bg-linear-to-b from-black/25 via-black/25 to-black/60"></div>
+            <div className="absolute inset-0 bg-linear-to-b from-black/0 via-black/50 to-black/50"></div>
 
             {/* 3. NỘI DUNG CHÍNH */}
             <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 max-w-5xl mx-auto">
