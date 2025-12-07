@@ -2,6 +2,7 @@
 // FILE: src/pages/SignUpPage.jsx
 // ========================================
 import React, { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import Footer from "../components/Footer";
@@ -15,6 +16,21 @@ import { TableRowsSplitIcon } from "lucide-react";
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function SignUpPage() {
+    const navigate = useNavigate();
+
+  useEffect(() => {
+    const role = localStorage.getItem("user_role"); 
+    const token = localStorage.getItem("access_token");
+
+    if (token) {
+      if (role === "owner") {
+        navigate("/profile");  // owner page
+      } else {
+        navigate("/home");       // traveller / normal user
+      }
+    }
+  }, [navigate]);
+
   // ✅ THÊM: State để lưu email
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -25,7 +41,6 @@ function SignUpPage() {
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false); // ✅ THÊM: Loading state
-  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState("");
 

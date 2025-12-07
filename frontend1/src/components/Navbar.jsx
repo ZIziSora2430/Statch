@@ -404,7 +404,12 @@ useEffect(() => {
                   borderTop: "1px solid #eee",
                   marginTop: "5px",
                 }}
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  localStorage.removeItem("access_token");
+                  localStorage.removeItem("username");
+                  localStorage.removeItem("user_role");
+                  navigate("/");
+                  }}
               >
                 Đăng xuất
               </div>

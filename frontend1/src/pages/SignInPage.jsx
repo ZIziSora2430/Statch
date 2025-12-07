@@ -7,11 +7,26 @@ import { useNavigate } from "react-router-dom";
 import '../index.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from "react"; 
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function SignInPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const role = localStorage.getItem("user_role"); 
+    const token = localStorage.getItem("access_token");
+
+    if (token) {
+      if (role === "owner") {
+        navigate("/profile");  // owner page
+      } else {
+        navigate("/home");       // traveller / normal user
+      }
+    }
+  }, [navigate]);
+
   
   // ✅ THÊM: State để lưu thông tin đăng nhập
   const [username, setUsername] = useState("");

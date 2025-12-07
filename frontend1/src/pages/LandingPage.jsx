@@ -57,7 +57,7 @@ export default function LandingPage() {
     // 3.  KIỂM TRA ĐĂNG NHẬP
     if (! token) {
       alert("Bạn cần đăng nhập để sử dụng tính năng này!");
-      navigate("/login"); 
+      navigate("/"); 
       return; // Dừng chạy tiếp
     }
 
