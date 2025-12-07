@@ -11,9 +11,8 @@ import { MapPin, ArrowLeft, Users, Home, Type, FileText, Search, Sparkles, Image
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 const MOCK_TYPES = [
-    { value: 'apartment', label: 'Căn hộ dịch vụ' },
+    { value: 'apartment', label: 'Căn hộ' },
     { value: 'house', label: 'Nhà riêng' },
-    { value: 'room', label: 'Phòng trọ/Phòng đơn' },
     { value: 'hotel', label: 'Khách sạn' },
     { value: 'villa', label: 'Biệt thự' },
 ];

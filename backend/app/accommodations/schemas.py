@@ -5,7 +5,7 @@ from decimal import Decimal # Sử dụng Decimal cho giá
 from datetime import date
 
 class OwnerInfo(BaseModel):
-    full_name: str
+    full_name: str | None = None
     email: str
     phone: Optional[str] = None 
     class Config: 
@@ -42,6 +42,7 @@ class AccommodationRead(AccommodationCreate):
     status: str # Trả về status (mặc định là 'available')
     tags: Optional[str] = None
     owner: Optional[OwnerInfo] = None
+    picture_url: str | None = None
 
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None

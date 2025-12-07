@@ -101,7 +101,18 @@ export default function SearchingPage() {
       const activeTypes = Object.keys(filters.types).filter((key) => filters.types[key]);
       if (activeTypes.length > 0) {
         const itemTypeLower = (item.property_type || "").toLowerCase();
-        const isMatch = activeTypes.some(type => itemTypeLower.includes(type));
+        const typeMapping = {
+            hotel: ["hotel", "khách sạn"],
+            homestay: ["homestay", "nhà dân"],
+            villa: ["villa", "biệt thự"],
+            apartment: ["apartment", "căn hộ", "chung cư"]
+        };
+
+        // Kiểm tra xem property_type của item có chứa bất kỳ từ khóa nào của loại đã chọn không
+        const isMatch = activeTypes.some(selectedTypeKey => {
+            const keywords = typeMapping[selectedTypeKey] || [selectedTypeKey];
+            return keywords.some(keyword => itemTypeLower.includes(keyword));
+        });
         if (!isMatch) return false;
       }
 
@@ -222,18 +233,24 @@ export default function SearchingPage() {
               <div className="mb-6 border-t border-gray-100 pt-4">
                 <label className="text-sm font-bold text-gray-700 mb-3 block">Loại chỗ ở</label>
                 <div className="space-y-2.5">
-                    {['hotel', 'homestay', 'villa', 'apartment'].map(type => (
-                        <label key={type} className="flex items-center space-x-3 cursor-pointer group">
+                    {[
+                        { key: 'hotel', label: 'Khách sạn' },
+                        { key: 'homestay', label: 'Homestay' },
+                        { key: 'villa', label: 'Biệt thự / Villa' },
+                        { key: 'apartment', label: 'Căn hộ' }
+                    ].map(type => (
+                        <label key={type.key} className="flex items-center space-x-3 cursor-pointer group">
                             <div className="relative flex items-center">
                                 <input 
                                     type="checkbox" 
-                                    checked={filters.types[type]}
-                                    onChange={() => handleTypeChange(type)}
+                                    checked={filters.types[type.key]}
+                                    onChange={() => handleTypeChange(type.key)}
                                     className="peer h-4 w-4 rounded border-gray-300 text-[#BF1D2D] focus:ring-[#BF1D2D]" 
                                 />
                             </div>
                             <span className="text-sm text-gray-600 group-hover:text-[#BF1D2D] transition capitalize">
-                                {type === 'apartment' ? 'Căn hộ' : type}
+                                {type.label}
+                        
                             </span>
                         </label>
                     ))}

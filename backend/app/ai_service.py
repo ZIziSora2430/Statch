@@ -13,7 +13,7 @@ if not GOOGLE_API_KEY:
     print("⚠️ CẢNH BÁO: Chưa tìm thấy AI_KEY trong biến môi trường!")
 
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemma-3-1b-it')
 
 async def generate_tags_from_desc(description: str, location: str) -> str:
     
@@ -176,7 +176,7 @@ async def calculate_match_score(user_preference: str, accommodations: list, user
         # 3. Cấu hình ép buộc JSON (Quan trọng)
         generation_config = genai.types.GenerationConfig(
             temperature=0.5, 
-            response_mime_type="application/json" #ép AI trả về dạng json 
+            # response_mime_type="application/json" #ép AI trả về dạng json 
         )
 
         # 4. Gọi AI
@@ -187,10 +187,15 @@ async def calculate_match_score(user_preference: str, accommodations: list, user
         
         # 5. Xử lý kết quả
         raw_text = response.text.strip()
-        
-        # DEBUG: In ra xem AI trả về cái gì 
-        print(f"AI Raw Output: {raw_text[:100]}...") 
 
+        # Làm sạch Markdown (Gemma hay trả về ```json ... ```)
+        if "```json" in raw_text:
+            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw_text:
+            raw_text = raw_text.split("```")[1].split("```")[0].strip()
+
+       # Parse JSON
+        print(f"AI Raw Output (Cleaned): {raw_text[:100]}...") 
         match_results = json.loads(raw_text)
         return match_results
 
@@ -233,7 +238,6 @@ async def rank_search_results(user_query: str, accommodations: list, user_prefer
 
         generation_config = genai.types.GenerationConfig(
             temperature=0.5,
-            response_mime_type="application/json"
         )
 
         response = await model.generate_content_async(
@@ -241,7 +245,15 @@ async def rank_search_results(user_query: str, accommodations: list, user_prefer
             generation_config=generation_config
         )
         
-        ranking_data = json.loads(response.text.strip())
+        # XỬ LÝ LÀM SẠCH TEXT
+        raw_text = response.text.strip()
+        if "```json" in raw_text:
+            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw_text:
+            raw_text = raw_text.split("```")[1].split("```")[0].strip()
+
+        ranking_data = json.loads(raw_text)
+        
         score_map = {item['id']: item['score'] for item in ranking_data}
 
         # 3. Lọc và Sắp xếp
