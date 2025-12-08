@@ -53,6 +53,14 @@ function CommunityPage() {
   // State cho trạng thái verify
   const [isVerified, setIsVerified] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState("");
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    const role = localStorage.getItem("user_role"); 
+    if (role) setUserRole(role);
+  }, []);
+
+  const canCreatePost = isVerified && userRole === "traveler";
 
   // --- HÀM XỬ LÝ LIKE POST
   const handleViewClick = async (postId) => {
@@ -173,7 +181,7 @@ function CommunityPage() {
         </aside>
 
         {/* NÚT FLOATING - CHỈ HIỆN KHI ĐÃ VERIFY */}
-        {isVerified && (
+        {canCreatePost && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="fixed bottom-15 left-15 w-14 h-14 rounded-full bg-gray-300 shadow-lg flex items-center justify-center hover:bg-gray-400 transition cursor-pointer"
@@ -184,16 +192,22 @@ function CommunityPage() {
 
         {/* Nội dung chính */}
         <main className="flex-1 px-6 pt-18 pb-6">
-          {/* BANNER cảnh báo khi chưa verify */}
-          {!isVerified && (
+          {/* Case 1: Là Traveler nhưng chưa verify -> Hiện thông báo cần verify */}
+          {userRole === "traveler" && !isVerified && (
             <div className="w-full bg-red-700 text-white text-center py-3 rounded-xl font-medium mb-6 shadow-md">
-              {verifyMessage ||
-                "Bạn chỉ có thể đăng bài hoặc bình luận khi đã đặt phòng"}
+              {verifyMessage || "Bạn chỉ có thể đăng bài khi đã đặt phòng (Verified Traveler)."}
             </div>
+          )}
+          
+          {/* Case 2: Là Owner -> Hiện thông báo chỉ xem/reply (Optional, nếu muốn) */}
+          {userRole === "owner" && (
+             <div className="w-full bg-red-700 text-white text-center py-3 rounded-xl font-medium mb-6 shadow-md">
+               Chủ nhà chỉ có thể xem và bình luận để hỗ trợ khách du lịch.
+             </div>
           )}
 
           {/* Ô "Bạn đang nghĩ gì" – CHỈ HIỆN KHI ĐÃ VERIFY */}
-          {isVerified && (
+          {canCreatePost && (
             <div
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-3 mb-6 bg-red-700 rounded-2xl p-3 shadow-md cursor-pointer"
