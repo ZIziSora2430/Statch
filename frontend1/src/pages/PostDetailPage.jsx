@@ -1,4 +1,4 @@
-// ==================== PostDetailPage. jsx ====================
+// ==================== PostDetailPage.jsx ====================
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -73,8 +73,8 @@ function PostDetailPage() {
   const [isVerified, setIsVerified] = useState(false);
   const [showAllComments, setShowAllComments] = useState(false);
   
-  // ✅ THÊM: State cho view
-  const [hasViewed, setHasViewed] = useState(false);
+  // ✅ ĐỔI: State cho like
+  const [hasLiked, setHasLiked] = useState(false);
 
   // Fetch Data
   const fetchPost = async () => {
@@ -95,7 +95,7 @@ function PostDetailPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/posts/${postId}/replies`);
       if (response.ok) {
-        const data = await response. json();
+        const data = await response.json();
         setReplies(data);
       }
     } catch (err) {
@@ -116,7 +116,7 @@ function PostDetailPage() {
         }
       });
 
-      if (response. ok) {
+      if (response.ok) {
         const data = await response.json();
         setIsVerified(data.is_verified);
       }
@@ -125,29 +125,29 @@ function PostDetailPage() {
     }
   };
 
-  // ✅ THÊM: Fetch trạng thái view của user
-  const fetchViewStatus = async () => {
+  // ✅ ĐỔI: Fetch trạng thái like của user
+  const fetchLikeStatus = async () => {
     try {
       const token = localStorage.getItem("access_token");
       if (!token) return;
 
-      const response = await fetch(`${API_BASE_URL}/posts/${postId}/view-status`, {
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}/like-status`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
       });
 
       if (response.ok) {
-        const data = await response. json();
-        setHasViewed(data.has_viewed);
+        const data = await response.json();
+        setHasLiked(data.has_liked);
       }
     } catch (error) {
-      console.error('Lỗi fetch view status:', error);
+      console.error('Lỗi fetch like status:', error);
     }
   };
 
-  // ✅ SỬA: Hàm toggle view khi click icon con mắt
-  const handleViewClick = async () => {
+  // ✅ ĐỔI: Hàm toggle like
+  const handleLikeClick = async () => {
     const token = localStorage.getItem("access_token");
     
     if (!token) {
@@ -156,7 +156,7 @@ function PostDetailPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/posts/${postId}/view`, {
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           "Authorization": `Bearer ${token}`
@@ -165,11 +165,11 @@ function PostDetailPage() {
       
       if (response.ok) {
         const data = await response.json();
-        setPost(prev => ({ ...prev, views_count: data.views_count }));
-        setHasViewed(data.has_viewed);
+        setPost(prev => ({ ...prev, likes_count: data.likes_count }));
+        setHasLiked(data.has_liked);
       }
     } catch (error) {
-      console.error('Lỗi toggle view:', error);
+      console.error('Lỗi toggle like:', error);
     }
   };
 
@@ -193,14 +193,14 @@ function PostDetailPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ content: replyContent. trim() })
+        body: JSON.stringify({ content: replyContent.trim() })
       });
 
       if (response.ok) {
-        const newReply = await response. json();
+        const newReply = await response.json();
         setReplies(prev => [...prev, newReply]);
         setReplyContent("");
-        setPost(prev => ({ ... prev, replies_count: (prev.replies_count || 0) + 1 }));
+        setPost(prev => ({ ...prev, replies_count: (prev.replies_count || 0) + 1 }));
       } else {
         alert("Lỗi khi gửi bình luận.");
       }
@@ -221,15 +221,15 @@ function PostDetailPage() {
         setPost(prev => ({ ...prev, replies_count: Math.max(0, (prev.replies_count || 0) - 1) }));
       }
     } catch (err) {
-      console. error(err);
+      console.error(err);
     }
   };
 
-  // ✅ SỬA: Thêm fetchViewStatus vào useEffect
+  // ✅ SỬA: Thêm fetchLikeStatus vào useEffect
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchPost(), fetchReplies(), fetchVerifiedStatus(), fetchViewStatus()]);
+      await Promise.all([fetchPost(), fetchReplies(), fetchVerifiedStatus(), fetchLikeStatus()]);
       setIsLoading(false);
     };
     loadData();
@@ -287,7 +287,7 @@ function PostDetailPage() {
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <Clock size={12} />
                   <span>{formatTimeAgo(post.created_at)}</span>
-                  {/* ĐÃ ĐỔI: post. category -> post.location */}
+                  {/* ĐÃ ĐỔI: post.category -> post.location */}
                   {post.location && (
                     <>
                       <span>•</span>
@@ -301,7 +301,7 @@ function PostDetailPage() {
             </div>
 
             <h3 className="font-bold text-lg text-gray-900 mb-2">
-              {post. title}
+              {post.title}
             </h3>
 
             <p className="text-gray-800 text-sm mb-3 whitespace-pre-wrap">
@@ -309,20 +309,20 @@ function PostDetailPage() {
             </p>
 
             <div className="flex items-center gap-4 text-sm text-gray-500 pt-3 border-t">
-              {/* ✅ SỬA: Icon con mắt với trạng thái đã view */}
+              {/* ✅ ĐỔI: Icon tim với trạng thái đã like */}
               <div 
                 className={`flex items-center gap-1 cursor-pointer transition ${
-                  hasViewed ? 'text-red-600' : 'hover:text-red-600'
+                  hasLiked ? 'text-red-600' : 'hover:text-red-600'
                 }`}
-                onClick={handleViewClick}
-                title={hasViewed ? "Bỏ xem" : "Đánh dấu đã xem"}
+                onClick={handleLikeClick}
+                title={hasLiked ? "Bỏ thích" : "Thả tim"}
               >
-                {hasViewed ? (
+                {hasLiked ? (
                   <Heart size={16} fill="currentColor" />   // ❤️ TIM ĐỎ ĐẶC
                 ) : (
                   <Heart size={16} />                        // 🤍 TIM RỖNG
                 )}
-                <span>{post.views_count || 0}</span>
+                <span>{post.likes_count || 0}</span>
               </div>
               <div className="flex items-center gap-1">
                 <MessageCircle size={16} />
@@ -355,7 +355,7 @@ function PostDetailPage() {
                         {reply.author?.username || "Ẩn danh"}
                       </p>
                       <button 
-                        onClick={() => handleDeleteReply(reply. id)}
+                        onClick={() => handleDeleteReply(reply.id)}
                         className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
                       >
                         <Trash2 size={14}/>
@@ -374,7 +374,7 @@ function PostDetailPage() {
           </div>
           
           {/* Nút "Hiện thêm bình luận" */}
-          {replies.length > 3 && ! showAllComments && (
+          {replies.length > 3 && !showAllComments && (
             <button
               onClick={() => setShowAllComments(true)}
               className="text-gray-500 hover:underline mt-4 text-sm font-medium cursor-pointer"
@@ -386,7 +386,7 @@ function PostDetailPage() {
           {/* Form nhập bình luận */}
           {isVerified ? (
             <div className="mt-6 flex gap-3 items-center">
-              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0. 5"/>
+              <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
               <input 
                 type="text" 
                 placeholder="Viết bình luận..." 
@@ -399,7 +399,7 @@ function PostDetailPage() {
               <button 
                 onClick={handleSubmitReply}
                 disabled={isSubmittingReply || !replyContent}
-                className={`transition ${replyContent ?  'text-black hover:scale-110' : 'text-gray-300'}`}
+                className={`transition ${replyContent ? 'text-black hover:scale-110' : 'text-gray-300'}`}
               >
                 {isSubmittingReply ? <Loader2 className="animate-spin" size={24}/> : <ArrowBigRight size={28} />}
               </button>

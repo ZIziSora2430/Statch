@@ -1,4 +1,3 @@
-# system_forum/schemas.py
 """
 Pydantic schemas cho Forum
 KHÔNG CÓ NESTED REPLIES
@@ -51,7 +50,7 @@ class PostLocation(str, Enum):
 
 # Post Schemas
 class PostBase(BaseModel):
-    title: str = Field(... , min_length=5, max_length=255)
+    title: str = Field(..., min_length=5, max_length=255)
     content: str = Field(..., min_length=10)
     location: PostLocation = PostLocation.district1  # Đổi từ category sang location
 
@@ -77,7 +76,7 @@ class PostResponse(PostBase):
     user_id: int
     author: Optional[PostAuthor] = None
     status: PostStatus
-    views_count: int
+    likes_count: int          # đổi từ views_count sang likes_count
     replies_count: int
     created_at: datetime
     updated_at: datetime
