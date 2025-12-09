@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { mockPostHistory } from "../../pages/dataHistory.jsx";
 import PostCard from "../Postcard.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -52,7 +51,7 @@ export default function PostHistory() {
     location: post.location, 
     title: post.title,
     content: post.content,
-    views_count: post.views_count,
+    likes_count: post.likes_count,
     replies_count: post.replies_count,
     status: post.status
   });

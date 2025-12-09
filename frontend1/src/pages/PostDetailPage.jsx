@@ -149,7 +149,6 @@ function PostDetailPage() {
   // ✅ ĐỔI: Hàm toggle like
   const handleLikeClick = async () => {
     const token = localStorage.getItem("access_token");
-    
     if (!token) {
       alert("Bạn cần đăng nhập để thực hiện thao tác này.");
       return;
@@ -165,6 +164,10 @@ function PostDetailPage() {
       
       if (response.ok) {
         const data = await response.json();
+         localStorage.setItem(
+        `liked_${postId}`,
+        data.has_liked ? "1" : "0"
+        );
         setPost(prev => ({ ...prev, likes_count: data.likes_count }));
         setHasLiked(data.has_liked);
       }
@@ -211,29 +214,25 @@ function PostDetailPage() {
     }
   };
 
-  // Delete Reply
-  const handleDeleteReply = async (replyId) => {
-    if (!window.confirm("Xóa bình luận này?")) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/replies/${replyId}`, { method: "DELETE" });
-      if (response.ok || response.status === 204) {
-        setReplies(prev => prev.filter(r => r.id !== replyId));
-        setPost(prev => ({ ...prev, replies_count: Math.max(0, (prev.replies_count || 0) - 1) }));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   // ✅ SỬA: Thêm fetchLikeStatus vào useEffect
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await Promise.all([fetchPost(), fetchReplies(), fetchVerifiedStatus(), fetchLikeStatus()]);
-      setIsLoading(false);
-    };
-    loadData();
+  const local = localStorage.getItem(`liked_${postId}`);
+  if(local === '1') setHasLiked(true);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    await Promise.all([
+      fetchPost(),
+      fetchReplies(),
+      fetchVerifiedStatus(),
+      fetchLikeStatus()
+    ]);
+    setIsLoading(false);
+  };
+
+  loadData();
   }, [postId]);
+
 
   // Logic cắt comment
   const commentsToShow = showAllComments ? replies : replies.slice(0, 3);
@@ -354,12 +353,6 @@ function PostDetailPage() {
                       <p className="font-semibold text-sm text-gray-900">
                         {reply.author?.username || "Ẩn danh"}
                       </p>
-                      <button 
-                        onClick={() => handleDeleteReply(reply.id)}
-                        className="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <Trash2 size={14}/>
-                      </button>
                     </div>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap mt-1">{reply.content}</p>
                     <span className="text-xs text-gray-400 mt-2 block">

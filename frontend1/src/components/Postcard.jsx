@@ -44,17 +44,15 @@ const LOCATION_LABELS = {
   cu_chi: "Huyện Củ Chi",
 };
 
-function PostCard({ post, onLikeToggle, onViewToggle }) {
-  // Fallback nếu cha vẫn truyền prop cũ onViewToggle
+function PostCard({ post, onLikeToggle}) {
   const handleHeartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (onLikeToggle) onLikeToggle(post.id);
-    else if (onViewToggle) onViewToggle(post.id);
   };
 
-  const likes = post.likes_count ?? post.views_count ?? 0; // fallback nếu backend/chỗ khác chưa đổi
-  const hasLiked = post.has_liked ?? post.has_viewed ?? false;
+  const likes = post.likes_count ?? 0; 
+  const hasLiked = post.has_liked ?? false;
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer">
