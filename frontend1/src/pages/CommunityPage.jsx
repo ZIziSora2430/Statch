@@ -81,7 +81,7 @@ function CommunityPage() {
 
       if (response.ok) {
         const data = await response.json();
-
+        localStorage.setItem(`liked_${postId}`, data.has_liked ? "1" : "0");
         setPosts((prevPosts) =>
           prevPosts.map((post) =>
             post.id === postId
@@ -140,7 +140,15 @@ function CommunityPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setPosts(data);
+        setPosts(
+          data.map(p => ({
+            ...p,
+            has_liked:
+              localStorage.getItem(`liked_${p.id}`) === '1'
+                ? true
+                : p.has_liked
+          }))
+        );
       }
     } catch (error) {
       console.error("Lỗi khi lấy bài viết:", error);
@@ -249,7 +257,6 @@ function CommunityPage() {
                   <PostCard
                     post={post}
                     onLikeToggle={handleLikeClick}   // dùng like
-                    onViewToggle={handleLikeClick}   // giữ fallback nếu PostCard còn prop cũ
                   />
                 </Link>
               ))
