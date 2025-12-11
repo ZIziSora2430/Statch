@@ -2,23 +2,63 @@
 // FILE: src/pages/SignUpPage.jsx
 // ========================================
 import React, { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SignUpInBackGround from "../components/SignUpInBackGround";
+import Footer from "../components/Footer";
 import '../index.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { TableRowsSplitIcon } from "lucide-react";
+
 
 // ✅ MỚI THÊM: Environment variable cho API URL - giúp dễ dàng thay đổi URL khi deploy
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function SignUpPage() {
+    const navigate = useNavigate();
+
+  useEffect(() => {
+    const role = localStorage.getItem("user_role"); 
+    const token = localStorage.getItem("access_token");
+
+    if (token) {
+      if (role === "owner") {
+        navigate("/profile");  // owner page
+      } else {
+        navigate("/home");       // traveller / normal user
+      }
+    }
+  }, [navigate]);
+
   // ✅ THÊM: State để lưu email
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false); // ✅ THÊM: Loading state
-  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState("");
+
+const openTerms = () => {
+  setModalContent(`
+    <h2>Điều khoản & Điều kiện</h2>
+    <p>⚠ Nội dung điều khoản của bạn đặt ở đây...</p>
+  `);
+  setShowModal(true);
+};
+
+const openPrivacy = () => {
+  setModalContent(`
+    <h2>Chính sách bảo mật</h2>
+    <p>🔒 Nội dung chính sách bảo mật đặt ở đây...</p>
+  `);
+  setShowModal(true);
+};
 
   // ✅ ĐÃ BỎ: Các hàm validation để test dễ hơn
   // const validatePassword = (password) => { ... }
@@ -27,76 +67,64 @@ function SignUpPage() {
   // ✅ THÊM: Hàm xử lý submit form - GỌI API SIGNUP
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Xóa lỗi cũ
 
-    // ✅ ĐÃ BỎ: Các validation phức tạp để test dễ hơn
+    // ❗ CHẶN username có dấu + ký tự đặc biệt
+    // Chỉ cho phép: a-z A-Z 0-9 . _
+    const usernameRegex = /^[a-zA-Z0-9._]+$/;
 
-    // ✅ THÊM: Validate mật khẩu khớp nhau
+    if (!usernameRegex.test(username.trim())) {
+      toast.error("Tên đăng nhập chỉ được dùng chữ không dấu, số, dấu chấm hoặc gạch dưới!", { autoClose: 900 });
+      return;
+    }
+
+    // ❗ Kiểm tra mật khẩu trùng khớp
     if (password !== confirmPassword) {
-      setError("Mật khẩu không khớp!");
+      toast.error("Mật khẩu không khớp!", { autoClose: 900 });
       return;
     }
 
-    // ✅ THÊM: Validate đã chọn role
+    // ❗ Phải chọn vai trò
     if (!role) {
-      setError("Vui lòng chọn vai trò!");
+      toast.error("Vui lòng chọn vai trò!", { autoClose: 900 });
       return;
     }
 
-    setLoading(true); // Bật loading
+    setLoading(true);
 
     try {
-      // ✅ DEBUG: Log để kiểm tra
       console.log('🚀 Sending signup request to:', `${API_URL}/signup`);
-      console.log('📦 Data:', { username, role });
 
-      // ✅ THÊM: Gọi API signup đến backend FastAPI
-      // ✅ MỚI CẬP NHẬT: Dùng API_URL từ environment thay vì hardcode
       const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: username.trim(), // ✅ MỚI THÊM: .trim() để xóa khoảng trắng thừa
+          username: username.trim(),
           email: email,
           password: password,
-          role: role, // ✅ THÊM: Gửi role (traveler/owner/admin)
-          full_name: null // Có thể thêm field này sau
+          role: role,
+          full_name: null
         }),
       });
 
-      const data = await response.json(); // Parse JSON response
-
-      // ✅ DEBUG: Log response
-      console.log('✅ Response status:', response.status);
-      console.log('📥 Response data:', data);
+      const data = await response.json();
 
       if (response.ok) {
-        // ✅ THÊM: Nếu đăng ký thành công, thông báo và chuyển về trang login
-        alert("Đăng ký thành công! Vui lòng đăng nhập.");
-        navigate("/"); // Quay về trang login
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.", { autoClose: 1000 });
+        setTimeout(() => navigate("/"), 1500);
       } else {
-        
-        // ✅ THÊM: Hiển thị lỗi từ backend (ví dụ: username đã tồn tại)
-        // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 400 (Bad Request)
-        if (response.status === 400) {
-          setError(data.detail || "Username đã tồn tại!");
-        } else {
-          setError(data.detail || "Đăng ký thất bại!");
-        }
+        toast.error(data.detail || "Đăng ký thất bại!", { autoClose: 900 });
       }
-    } catch (err) {
-      // ✅ THÊM: Xử lý lỗi khi không kết nối được server
-      // ✅ MỚI CẬP NHẬT: Thông báo cụ thể hơn về lỗi kết nối
+    } 
+    catch (err) {
       console.error('❌ Signup error:', err);
-      setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
-      console.error("Signup error:", err);
-      console.error("Signup error:", err);
-    } finally {
-      setLoading(false); // Tắt loading
+      toast.error("Không thể kết nối đến server. Vui lòng thử lại!", { autoClose: 900 });
+    } 
+    finally {
+      setLoading(false);
     }
-  };
+};
 
   return (
     <div className='page-wrapper'>
@@ -123,7 +151,7 @@ function SignUpPage() {
             marginBottom: '20px',
             fontSize: '24px',
             fontWeight: '700',
-            fontFamily: 'Montserrat'
+    
           }}>Đăng ký</h1>
 
           {/* Username */}
@@ -131,7 +159,7 @@ function SignUpPage() {
             marginBottom: '5px',
             fontSize: '15px',
             fontWeight: '450',
-            fontFamily: 'Montserrat'
+      
           }}>Tên đăng nhập</label>
 
           {/* ✅ THÊM: required để bắt buộc nhập */}
@@ -148,7 +176,7 @@ function SignUpPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '15px',
-              fontFamily: 'Montserrat',
+       
               fontSize: '15px'
             }}
           />
@@ -167,7 +195,7 @@ function SignUpPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '15px',
-              fontFamily: 'Montserrat',
+       
               fontSize: '15px'
             }}
           />
@@ -175,62 +203,96 @@ function SignUpPage() {
           {/* Password */}
           <label style={{
             marginBottom: '5px',
-            fontFamily: 'Montserrat',
+            
             fontWeight: '450',
             fontSize: '15px'
           }}>Mật khẩu</label>
 
           {/* ✅ THÊM: required */}
           {/* ✅ ĐÃ BỎ: minLength để test dễ hơn */}
-          <input
-            type="password"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required // ✅ THÊM
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '10px',
-              fontFamily: 'Montserrat',
-              fontSize: '15px'
-            }}
-          />
+          <div>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required // ✅ THÊM
+              style={{
+                padding: '10px 40px 10px 10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                width: '100%',
+                marginBottom: '10px',
+
+                fontSize: '15px'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                top: 310,
+                right:50,
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >{showPassword ? "Ẩn" : "Hiện"}</button>
+          </div>
 
           {/* Confirm Password */}
           <label style={{
             marginBottom: '5px',
-            fontFamily: 'Montserrat',
+ 
             fontWeight: '450',
             fontSize: '15px'
           }}>Xác nhận mật khẩu</label>
 
           {/* ✅ THÊM: required */}
-          <input
-            type="password"
-            placeholder="Nhập lại mật khẩu"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required // ✅ THÊM
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '10px',
-              fontFamily: 'Montserrat',
-              fontSize: '15px'
-            }}
-          />
+          <div>
+            <input
+              type={showPassword2 ? "text" : "password"}
+              placeholder="Nhập lại mật khẩu"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required // ✅ THÊM
+              style={{
+                padding: '10px 40px 10px 10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                width: '100%',
+                marginBottom: '10px',
+
+                fontSize: '15px'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword2(!showPassword2)}
+              style={{
+                position: "absolute",
+                top: 387,
+                right: 50,
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >{showPassword2 ? "Ẩn" : "Hiện"}</button>
+          </div>
 
           {/* ✅ THÊM: Hiển thị thông báo lỗi nếu có */}
           {/* ✅ MỚI CẬP NHẬT: Thêm background màu đỏ nhạt để dễ nhận biết */}
           {error && (
             <p style={{
               color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand thay vì 'red'
-              fontFamily: 'Montserrat',
+      
               marginBottom: '10px',
               fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size từ 14px xuống 13px
               textAlign: 'center',
@@ -245,7 +307,7 @@ function SignUpPage() {
             marginTop: '5px',
             marginBottom: '10px',
             fontSize: '14px',
-            fontFamily: 'Montserrat'
+   
           }}>
             Bạn đã có tài khoản?{" "}
             {/* ✅ SỬA: Đổi thành button type="button" để tránh submit form */}
@@ -258,7 +320,7 @@ function SignUpPage() {
                 color: '#B01C29',
                 cursor: 'pointer',
                 textDecoration: 'underline',
-                fontFamily: 'Montserrat'
+       
               }}
             >
               Đăng nhập tại đây.
@@ -278,14 +340,14 @@ function SignUpPage() {
               width: '100%',
               marginBottom: '25px',
               marginTop: '1px',
-              fontFamily: 'Montserrat',
+     
               fontSize: '14px'
             }}
           >
             <option value="">--Bạn đăng ký với vai trò gì--</option>
-            {/* ✅ SỬA: Đổi value để khớp với backend API (traveler, owner, admin) */}
-            <option value="traveler">Người dùng</option>
-            <option value="owner">Chủ trọ</option>
+            {/* ✅ SỬA: Đổi value để khớp với backend API (traveler, owner) */}
+            <option value="traveler">Khách du lịch</option>
+            <option value="owner">Chủ cho thuê</option>
           </select>
 
           {/* Submit button */}
@@ -303,7 +365,7 @@ function SignUpPage() {
               width: '100%',
               cursor: loading ? 'not-allowed' : 'pointer', // ✅ THÊM
               fontWeight: 'bold',
-              fontFamily: 'Montserrat',
+
               transition: 'background-color 0.3s' // ✅ MỚI THÊM: Smooth transition
             }}
           >
@@ -313,31 +375,87 @@ function SignUpPage() {
 
           {/* Cautions */}
           {/* ✅ MỚI CẬP NHẬT: Thêm color: '#666' và cursor pointer cho link */}
-          <p style={{
-            fontFamily: 'Montserrat',
-            fontSize: '11px',
-            textAlign: 'center',
-            marginTop: '19px',
-            color: '#666' // ✅ MỚI THÊM: Màu xám nhạt cho text phụ
-          }}>
-            Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với{" "}
-            <span style={{ 
-              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
-              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
-            }}>
-              Điều khoản & Điều kiện
-            </span>
-            {" "}và{" "}
-            <span style={{ 
-              color: '#4A90E2', // ✅ MỚI CẬP NHẬT: Đổi từ 'lightblue' sang màu xanh chuẩn
-              cursor: 'pointer' // ✅ MỚI THÊM: Thêm cursor pointer
-            }}>
-              Chính sách bảo mật{" "}
-            </span>
-            của chúng tôi.
-          </p>
-        </form>
-      </div>
+         <p
+  style={{
+    fontSize: '11px',
+    textAlign: 'center',
+    marginTop: '19px',
+    color: '#666'
+  }}
+>
+  Bằng cách đăng nhập hoặc tạo tài khoản, bạn đồng ý với{" "}
+  
+<span 
+  onClick={openTerms}
+  style={{ color: '#4A90E2', cursor: 'pointer', textDecoration: 'underline' }}
+>
+  Điều khoản & Điều kiện
+</span>
+
+{" "}và{" "}
+
+<span 
+  onClick={openPrivacy}
+  style={{ color: '#4A90E2', cursor: 'pointer', textDecoration: 'underline' }}
+>
+  Chính sách bảo mật
+</span>
+
+  {" "}của chúng tôi.
+</p>
+
+       </form>
+</div>
+
+{/* 🔥 MODAL POPUP ĐIỀU KHOẢN / CHÍNH SÁCH */}
+{showModal && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999
+    }}
+    onClick={() => setShowModal(false)}
+  >
+    <div
+      style={{
+        background: "white",
+        padding: "25px",
+        borderRadius: "12px",
+        width: "90%",
+        maxWidth: "500px",
+        maxHeight: "80vh",
+        overflowY: "auto",
+        position: "relative"
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => setShowModal(false)}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: "none",
+          border: "none",
+          fontSize: "20px",
+          cursor: "pointer"
+        }}
+      >
+        ×
+      </button>
+
+      <div dangerouslySetInnerHTML={{ __html: modalContent }} />
+    </div>
+  </div>
+)}
+
+<ToastContainer />
+
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import promo1 from "../images/promo.jpg";
-import promo2 from "../images/promo2.jpg";
-import promo3 from "../images/promo3.jpg";
-import promo4 from "../images/promo4.jpg";
+import promo1 from "../images/promo.png";
+import promo2 from "../images/promo2.png";
+import promo3 from "../images/promo3.png";
+import promo4 from "../images/promo4.png";
+import promo5 from "../images/promo1.png";
 
-const promotions = [promo1, promo2, promo3, promo4];
+const promotions = [promo1, promo2, promo3, promo4,promo5];
 
   const ArrowLeftIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -114,14 +115,6 @@ export default function PromotionCarousel() {
           <ArrowRightIcon />
         </button>
       </div>
-
-      {/* Link "Điều kiện" giống trong hình */}
-      <a
-        href="#"
-        className="mt-8 text-sm font-medium text-gray-800 uppercase tracking-wider border-b-2 border-red-700 pb-1 hover:text-red-700 transition-colors"
-      >
-        Điều kiện
-      </a>
     </div>
   );
   

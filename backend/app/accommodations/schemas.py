@@ -1,7 +1,21 @@
 # app/accommodations/schemas.py
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
 from decimal import Decimal # Sử dụng Decimal cho giá
+from datetime import date
+
+class OwnerInfo(BaseModel):
+    full_name: str | None = None
+    email: str
+    phone: Optional[str] = None 
+    class Config: 
+        model_config = ConfigDict(from_attributes=True)
+
+class GenerateDescRequest(BaseModel):
+    title: str
+    property_type: str
+    location: str
+    features: str = "" # Ví dụ: "Wifi mạnh, gần chợ, có hồ bơi"
 
 # --- Schema cho dữ liệu ĐẦU VÀO (từ React form) ---
 class AccommodationCreate(BaseModel):
@@ -26,10 +40,19 @@ class AccommodationRead(AccommodationCreate):
     accommodation_id: int
     owner_id: int
     status: str # Trả về status (mặc định là 'available')
+    tags: Optional[str] = None
+    owner: Optional[OwnerInfo] = None
+    picture_url: str | None = None
 
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
+    
+    # Mặc định None vì không lưu trong DB, chỉ AI tạo ra tức thời
+    match_score: Optional[int] = None
+    match_reason: Optional[str] = None
 
+    rating_score: Optional[float] = 0.0  
+    review_count: Optional[int] = 0
     class Config: 
         model_config=ConfigDict(from_attributes=True)
 
@@ -49,3 +72,4 @@ class AccommodationUpdate(BaseModel):
     longitude: Optional[Decimal] = None
 
     model_config=ConfigDict(from_attributes=True)
+

@@ -17,3 +17,84 @@
   display: flex;
   justify-content: center;
 }
+/* RANGE SLIDER FIX – đảm bảo thumb nằm đúng giữa track */
+
+.range-slider {
+  position: relative;
+  width: 100%;
+}
+
+/* Track */
+.range-slider__track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Base input range overlay */
+.range-slider__range {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  width: 100%;
+  background: transparent;
+  pointer-events: none; /* tránh ảnh hưởng */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Thumb CHỈ thumb có pointer event */
+.range-slider__range::-webkit-slider-thumb {
+  pointer-events: auto;
+}
+
+.range-slider__range::-moz-range-thumb {
+  pointer-events: auto;
+}
+
+/* ---- FIX THUMB ---- */
+.range-thumb-circle {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* WebKit thumb */
+.range-thumb-circle::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  background: #bf1d2d;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px #bf1d2d;
+  cursor: pointer;
+  margin-top: -8px;  /* ⭐ FIX NÚT BỊ TỤT */
+}
+
+/* Firefox thumb */
+.range-thumb-circle::-moz-range-thumb {
+  height: 20px;
+  width: 20px;
+  background: #bf1d2d;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px #bf1d2d;
+  cursor: pointer;
+}
+
+/* Hide native track */
+.range-thumb-circle::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+}
+
+.range-thumb-circle::-moz-range-track {
+  height: 4px;
+  background: transparent;
+}

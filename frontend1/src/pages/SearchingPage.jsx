@@ -1,219 +1,401 @@
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
+
+// Import Components
 import Navbar from "../components/Navbar";
 import SearchingBar from "../components/SearchingBar";
-import ResultBar from "../components/ResultBar"; 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import ResultBar from "../components/ResultBar";
+import { Filter, X, Frown, Sparkles } from "lucide-react"; // Thêm icon cho sinh động (cần cài lucide-react)
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function SearchingPage() {
-
   const [searchParamsURL] = useSearchParams();
+  const navigate = useNavigate();
 
-  
-  // State UI trạng thái
-  const [results, setResults] = useState([]); // Kết quả tìm kiếm thực tế
-  const [isLoading, setIsLoading] = useState(true); // Trạng thái tải
-  const [error, setError] = useState(null); // Thông báo lỗi
+  // --- STATE DỮ LIỆU ---
+  const [results, setResults] = useState([]); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    // 2. STATE để lưu trữ tham số tìm kiếm
-  const [searchParams, setSearchParams] = useState({
-    lat: null, 
-    lng: null, 
-    radius: 10,
-    location_text: searchParamsURL.get('location_text') || "Thành phố Hồ Chí Minh", 
+  // --- STATE BỘ LỌC ---
+  const PRICE_MIN_LIMIT = 0;
+  const PRICE_MAX_LIMIT = 10000000;
+
+  const [filters, setFilters] = useState({
+    priceMin: PRICE_MIN_LIMIT,
+    priceMax: PRICE_MAX_LIMIT,
+    types: { hotel: false, homestay: false, villa: false, apartment: false },
+    amenities: { wifi: false, pool: false, ac: false, parking: false },
+    minRating: null,
   });
 
+  // --- HELPER FUNCTIONS (Giữ nguyên) ---
+  const formatVnd = (value) => {
+    if (value === null || value === undefined) return "0 ₫";
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(Number(value));
+  };
+
+  const parseTags = (tagString) => {
+    if (!tagString) return [];
+    return tagString.split(",").map((t) => t.trim()).filter(t => t !== "");
+  };
+
+  // --- HELPER: Chuyển điểm số thành chữ ---
+  const getRatingText = (score) => {
+    if (!score) return "Mới"; // Chưa có đánh giá
     
-    const toScore10 = (r) => Math.round(r * 20) / 10;
+    if (score >= 9.5) return "Xuất sắc";
+    if (score >= 9.0) return "Tuyệt hảo";
+    if (score >= 8.0) return "Tuyệt vời";
+    if (score >= 7.0) return "Rất tốt";
+    if (score >= 6.0) return "Tốt";
+    if (score >= 5.0) return "Trung bình";
+    return "Điểm thấp";
+  };
 
+  // --- Bộ lọc ---
+  const handleFilterChange = (field, rawValue) => {
+    setFilters((prev) => {
+      let value = Number(rawValue);
+      if (Number.isNaN(value)) value = 0;
+      let next = { ...prev, [field]: value };
+      if (field === "priceMin" && next.priceMin > next.priceMax) next.priceMax = next.priceMin;
+      if (field === "priceMax" && next.priceMax < next.priceMin) next.priceMin = next.priceMax;
+      return next;
+    });
+  };
 
-  // 5. Sử dụng useEffect để gọi API khi component được mount và khi searchParams thay đổi
-  useEffect(() => {
+  const handleTypeChange = (name) => {
+    setFilters((prev) => ({
+      ...prev,
+      types: { ...prev.types, [name]: !prev.types[name] },
+    }));
+  };
 
-    const newLocationText = searchParamsURL.get('location_text') || "";
-    const currentLat = searchParamsURL.get('lat');
-    const currentLng = searchParamsURL.get('lng');
-    const currentRadius = searchParamsURL.get('radius');
+  const handleRatingChange = (value) => {
+    setFilters((prev) => ({ ...prev, minRating: value }));
+  };
 
-    
-    const newParams = {
-        location_text: newLocationText,
-        lat: currentLat ? parseFloat(currentLat) : null,
-        lng: currentLng ? parseFloat(currentLng) : null,
-        radius: currentRadius ? parseInt(currentRadius) : 10,
-    };
+  const handleClearFilter = () => {
+    setFilters({
+      priceMin: PRICE_MIN_LIMIT,
+      priceMax: PRICE_MAX_LIMIT,
+      types: { hotel: false, homestay: false, villa: false, apartment: false },
+      amenities: { wifi: false, pool: false, ac: false, parking: false },
+      minRating: null,
+    });
+  };
 
-    const fetchAccommodations = async (paramsToFetch) => { // Dùng paramsToFetch thay cho currentParams
-    setIsLoading(true);
-    setError(null);
-    setResults([])
+  // --- LOGIC LỌC (Giữ nguyên) ---
+  const applyFilters = (items) => {
+    return items.filter((item) => {
+      const price = parseFloat(item.price) || 0;
+      if (price < filters.priceMin || price > filters.priceMax) return false;
 
-    // ⚠️ LẤY ACCESS TOKEN ĐÃ LƯU TỪ SIGNINPAGE
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
-        setError("Vui lòng đăng nhập để xem kết quả tìm kiếm. Token không tìm thấy.");
-        setIsLoading(false);
-        return; 
-    }
-    // Xây dựng chuỗi query params (chỉ dùng các tham số được backend xử lý)
-    const newSearchParams = new URLSearchParams();
-    // Ưu tiên tìm kiếm theo tọa độ nếu có
-    if (paramsToFetch.lat !== null && paramsToFetch.lng !== null) {
-      newSearchParams.append("lat", paramsToFetch.lat);
-      newSearchParams.append("lng", paramsToFetch.lng);
-      newSearchParams.append("radius", paramsToFetch.radius);
+      const activeTypes = Object.keys(filters.types).filter((key) => filters.types[key]);
+      if (activeTypes.length > 0) {
+        const itemTypeLower = (item.property_type || "").toLowerCase();
+        const typeMapping = {
+            hotel: ["hotel", "khách sạn"],
+            homestay: ["homestay", "nhà dân"],
+            villa: ["villa", "biệt thự"],
+            apartment: ["apartment", "căn hộ", "chung cư"]
+        };
 
-    // Nếu không có tọa độ, dùng location_text
-    } else if (paramsToFetch.location_text) {
-      newSearchParams.append("location_text", paramsToFetch.location_text);
-    }
-
-    // Nếu không có tham số nào, không gọi API
-    if (newSearchParams.toString() === "") {
-         setIsLoading(false);
-         return; 
-    }
-
-    const url = `${API_BASE_URL}/api/accommodations/search/?${newSearchParams.toString()}`;
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          // ⚠️ GỬI TOKEN CÙNG REQUEST
-          'Authorization': `Bearer ${accessToken}`, 
-        },
-      }); 
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 401) {
-             throw new Error("Phiên làm việc hết hạn. Vui lòng đăng nhập lại.");
-        }
-        throw new Error(errorData.detail || `Lỗi HTTP: ${response.status}`);
+        // Kiểm tra xem property_type của item có chứa bất kỳ từ khóa nào của loại đã chọn không
+        const isMatch = activeTypes.some(selectedTypeKey => {
+            const keywords = typeMapping[selectedTypeKey] || [selectedTypeKey];
+            return keywords.some(keyword => itemTypeLower.includes(keyword));
+        });
+        if (!isMatch) return false;
       }
-      const data = await response.json();
-      setResults(data);
-    } catch (err) {
-      console.error("Lỗi khi tìm kiếm chỗ ở:", err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
 
-  }
-    setSearchParams(newParams); // Cập nhật state searchParams với giá trị mới
+      if (filters.minRating !== null) {
+        const score = item.rating_score || 0; 
+        if (score < filters.minRating) return false;
+      }
+      return true;
+    });
+  };
 
-    if (newLocationText || currentLat) { 
-        // ⚠️ Gọi hàm fetch bên trong useEffect để đảm bảo nó luôn dùng giá trị mới nhất
-        fetchAccommodations(newParams);
-    } else {
-        // Nếu URL không có tham số nào, chỉ tắt loading
+  const filteredResults = applyFilters(results);
+
+  useEffect(() => {
+    const fetchAccommodations = async () => {
+      setIsLoading(true);
+      setError(null);
+      setResults([]);
+
+      const token = localStorage.getItem("access_token");
+      const params = new URLSearchParams();
+      const lat = searchParamsURL.get("lat");
+      const lng = searchParamsURL.get("lng");
+      const radius = searchParamsURL.get("radius");
+      const locationText = searchParamsURL.get("location_text");
+      const checkin = searchParamsURL.get("checkin");
+      const checkout = searchParamsURL.get("checkout");
+      const guests = searchParamsURL.get("guests");
+
+      if (lat && lng) {
+        params.append("lat", lat);
+        params.append("lng", lng);
+        params.append("radius", radius || 10);
+      }
+      if (locationText) {
+        params.append("location_text", locationText);
+      } else {
         setIsLoading(false);
-    }
-    
+        return;
+      }
+      if (checkin) params.append("checkin", checkin);
+      if (checkout) params.append("checkout", checkout);
+      if (guests) params.append("guests", guests);
+      
+      try {
+        const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+        const response = await fetch(`${API_BASE_URL}/api/accommodations/search/?${params.toString()}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json", ...headers }
+        });
+
+        if (!response.ok) throw new Error(`Lỗi tải dữ liệu (${response.status})`);
+        const data = await response.json();
+        setResults(data);
+      } catch (err) {
+        console.error("Search Error:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAccommodations();
   }, [searchParamsURL]);
 
 
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
-      <main className="mx-auto w-[92%] sm:w-11/12 max-w-7xl pt-6 md:pt-10 lg:pt-12">
-        <div className="mb-6 md:mb-8 lg:mb-10">
-          <SearchingBar />
+    <div className="min-h-screen bg-gray-50 font-sans">
+      
+      {/* --- 1. HEADER KẾT HỢP (STICKY) --- */}
+      {/* Gom Navbar và SearchBar vào chung 1 khối dính ở trên cùng */}
+      <div className="sticky top-0 z-50 bg-white shadow-md">
+        <Navbar />
+        
+        {/* Thanh Search nằm ngay dưới Navbar, có viền ngăn cách nhẹ */}
+        <div className="border-t border-gray-100 pt-18 pb-4 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <SearchingBar />
+            </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          {/* Sidebar filter chỉ là khung */}
-          <aside className="md:col-span-4 lg:col-span-3">
-            <div className="sticky top-6">
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-5 shadow-sm">
-                <h2 className="text-lg font-semibold text-gray-800">Bộ lọc (khung)</h2>
-                <p className="text-sm text-gray-500 mt-1">Khu vực này chỉ là khung giao diện; logic lọc sẽ làm sau.</p>
-
-                <div className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700">Điểm đến</div>
-                  <div className="mt-2 h-10 rounded-xl border border-gray-200 bg-gray-50" />
-                </div>
-
-                <div className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700">Khoảng giá</div>
-                  <div className="mt-2 h-10 rounded-xl border border-gray-200 bg-gray-50" />
-                </div>
-
-                <div className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700">Ngày ở</div>
-                  <div className="mt-2 h-10 rounded-xl border border-gray-200 bg-gray-50" />
-                </div>
-
-                <div className="mt-4 border-t border-gray-100 pt-4">
-                  <div className="text-sm font-medium text-gray-700">Tiện nghi</div>
-                  <div className="mt-2 space-y-2">
-                    <div className="h-9 rounded-xl border border-gray-200 bg-gray-50" />
-                    <div className="h-9 rounded-xl border border-gray-200 bg-gray-50" />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="mt-5 w-full rounded-xl bg-[#BF1D2D] text-white font-medium py-2.5 hover:bg-[#a41725] active:scale-[.99] transition"
-                >
-                  Áp dụng (demo)
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 mt-4 pb-20">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* --- 2. SIDEBAR BỘ LỌC --- */}
+          <aside className="lg:col-span-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm sticky top-40 max-h-[calc(100vh-180px)] overflow-y-auto">
+              
+              <div className="flex justify-between items-center mb-5 pb-3 border-b border-gray-100">
+                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <Filter size={20} /> Bộ lọc
+                </h2>
+                <button onClick={handleClearFilter} className="text-xs font-medium text-red-600 hover:bg-red-50 px-2 py-1 rounded transition">
+                    Đặt lại
                 </button>
+              </div>
+
+              {/* Filter: Giá */}
+              <div className="mb-6">
+                <label className="text-sm font-bold text-gray-700 mb-2 block">Khoảng giá</label>
+                <div className="flex justify-between text-xs text-gray-500 mb-2 font-medium">
+                   <span>{formatVnd(filters.priceMin)}</span>
+                   <span>{formatVnd(filters.priceMax)}</span>
+                </div>
+                <input
+                  type="range"
+                  min={PRICE_MIN_LIMIT}
+                  max={PRICE_MAX_LIMIT}
+                  step={500000}
+                  value={filters.priceMax}
+                  onChange={(e) => handleFilterChange("priceMax", e.target.value)}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#BF1D2D]"
+                />
+              </div>
+
+              {/* Filter: Loại chỗ ở */}
+              <div className="mb-6 border-t border-gray-100 pt-4">
+                <label className="text-sm font-bold text-gray-700 mb-3 block">Loại chỗ ở</label>
+                <div className="space-y-2.5">
+                    {[
+                        { key: 'hotel', label: 'Khách sạn' },
+                        { key: 'homestay', label: 'Homestay' },
+                        { key: 'villa', label: 'Biệt thự / Villa' },
+                        { key: 'apartment', label: 'Căn hộ' }
+                    ].map(type => (
+                        <label key={type.key} className="flex items-center space-x-3 cursor-pointer group">
+                            <div className="relative flex items-center">
+                                <input 
+                                    type="checkbox" 
+                                    checked={filters.types[type.key]}
+                                    onChange={() => handleTypeChange(type.key)}
+                                    className="peer h-4 w-4 rounded border-gray-300 text-[#BF1D2D] focus:ring-[#BF1D2D]" 
+                                />
+                            </div>
+                            <span className="text-sm text-gray-600 group-hover:text-[#BF1D2D] transition capitalize">
+                                {type.label}
+                        
+                            </span>
+                        </label>
+                    ))}
+                </div>
+              </div>
+
+              {/* Filter: Rating */}
+              <div className="mb-2 border-t border-gray-100 pt-4">
+                <label className="text-sm font-bold text-gray-700 mb-3 block">Đánh giá khách hàng</label>
+                <div className="space-y-2.5">
+                    {[9, 8, 7].map(score => (
+                        <label key={score} className="flex items-center space-x-3 cursor-pointer group">
+                            <input 
+                                type="radio" 
+                                name="rating"
+                                checked={filters.minRating === score}
+                                onChange={() => handleRatingChange(score)}
+                                className="h-4 w-4 border-gray-300 text-[#BF1D2D] focus:ring-[#BF1D2D]" 
+                            />
+                            <span className="text-sm text-gray-600 group-hover:text-[#BF1D2D] transition">Từ {score}.0 trở lên</span>
+                        </label>
+                    ))}
+                    <label className="flex items-center space-x-3 cursor-pointer group">
+                        <input 
+                            type="radio" 
+                            name="rating"
+                            checked={filters.minRating === null}
+                            onChange={() => handleRatingChange(null)}
+                            className="h-4 w-4 border-gray-300 text-[#BF1D2D] focus:ring-[#BF1D2D]" 
+                        />
+                        <span className="text-sm text-gray-600 group-hover:text-[#BF1D2D] transition">Mọi đánh giá</span>
+                    </label>
+                </div>
               </div>
             </div>
           </aside>
 
-          {/* Kết quả */}
-          <section className="md:col-span-8 lg:col-span-9">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-800">Kết quả đề xuất</h3>
-              <div className="text-sm text-gray-500">{results.length} chỗ ở</div>
+          {/* --- 3. DANH SÁCH KẾT QUẢ --- */}
+          <section className="lg:col-span-9">
+            
+            {/* Header Kết quả */}
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                        Kết quả tìm kiếm
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Hiển thị {filteredResults.length} chỗ ở phù hợp nhất
+                    </p>
+                </div>
+                {/* Có thể thêm Dropdown Sắp xếp ở đây */}
             </div>
 
-            {/* THAY = ResultBar */}
-            <div className="mt-4 space-y-5">
-              {results.map((item) => (
-                <ResultBar
-                  key={item.accommodation_id || item.id}
-                  // map dữ liệu sang props mà ResultBar của bạn mong đợi:
-                  image={item.thumb || "https://placehold.co/1200x800"} // ảnh demo nếu không có ảnh
-                  title={item.title}
-                  location={item.location}
-                  // ⚠️ Dùng giá trị mặc định cho các trường demo không có trong API
-                  ratingText={"Rất tốt"} 
-                  ratingCount={0}
-                  ratingScore={9.0} 
-                  stars={4}
-                  
-                  tags={["Chưa phân loại"]} 
-                  categories={["Khách sạn"]} 
-                  dateRangeLabel="T5, 20 tháng 11 - T6, 21 tháng 11"
-                  summary="1 đêm, 2 người lớn"
-                  priceLabel={item.price || "Liên hệ"}
-                  priceNote="Đã bao gồm thuế và phí"
-                  onClick={() => console.log("Xem chi tiết:", item.accommodation_id)}
-                />
-              ))}
+            {/* Loading State */}
+            {isLoading && (
+                <div className="flex flex-col items-center justify-center py-32 bg-white rounded-xl border border-gray-100 shadow-sm">
+                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#BF1D2D] border-t-transparent"></div>
+                    <p className="mt-4 text-gray-500 font-medium">Đang tìm chỗ ở tốt nhất cho bạn...</p>
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && !isLoading && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex items-center gap-3" role="alert">
+                    <X size={24} />
+                    <div>
+                        <strong className="font-bold block">Đã xảy ra lỗi!</strong>
+                        <span className="text-sm">{error}</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Empty State - Thiết kế lại đẹp hơn */}
+            {!isLoading && !error && filteredResults.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-24 bg-white rounded-xl border border-dashed border-gray-300 text-center">
+                    <div className="bg-gray-50 p-4 rounded-full mb-4">
+                        <Frown size={48} className="text-gray-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Không tìm thấy kết quả nào</h3>
+                    <p className="text-gray-500 max-w-md mx-auto mb-6">
+                        Chúng tôi không tìm thấy chỗ ở nào phù hợp với bộ lọc của bạn. Hãy thử mở rộng khu vực hoặc điều chỉnh mức giá.
+                    </p>
+                    <button 
+                        onClick={handleClearFilter} 
+                        className="px-6 py-2.5 bg-[#BF1D2D] text-white text-sm font-bold rounded-lg hover:bg-[#a01825] transition shadow-lg shadow-red-200"
+                    >
+                        Xóa toàn bộ lọc
+                    </button>
+                </div>
+            )}
+
+            {/* Results List */}
+            <div className="space-y-6">
+                {!isLoading && filteredResults.map((item) => {
+                    let displayImage = "https://placehold.co/600x400?text=No+Image";
+                    if (item.picture_url) {
+                         const urls = item.picture_url.split(',');
+                         if (urls.length > 0 && urls[0].trim() !== "") {
+                             displayImage = urls[0].trim();
+                         }
+                    }
+
+                    return (
+                      <div key={item.accommodation_id || item.id} className="relative group block">
+                            
+                            {/* --- AI MATCH SCORE BADGE --- */}
+                            {item.match_score && item.match_score > 0 && (
+                                <div className="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-sm pl-2 pr-3 py-1.5 rounded-full shadow-md border border-green-200 flex items-center gap-2 transform transition-transform group-hover:scale-105">
+                                    <span className="relative flex h-3 w-3">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                    </span>
+                                    <div className="flex flex-col leading-none">
+                                        <div className="flex items-center gap-1 text-green-700 font-bold text-sm">
+                                            {item.match_score}% <Sparkles size={12} className="text-yellow-500 fill-yellow-500" />
+                                        </div>
+                                        <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Phù hợp</span>
+                                    </div>
+                                </div>
+                            )}
+                        <ResultBar
+                            image={displayImage}
+                            title={item.title}
+                            location={item.location}
+                            
+                            ratingText={getRatingText(item.rating_score)}
+                            ratingScore={item.rating_score || 0.0} // Fallback nếu API chưa có
+                            ratingCount={item.review_count}                            
+                            tags={parseTags(item.tags || item.ai_tags || "")}
+                            categories={[item.property_type]}
+                            summary={`${item.max_guests} khách tối đa`}
+                            
+                            priceLabel={formatVnd(item.price)}
+                            priceNote="chưa bao gồm thuế"
+                            
+                            onClick={() => navigate(`/accommodations/${item.accommodation_id || item.id}`)}
+                        />
+                      </div>
+                    );
+                })}
             </div>
           </section>
         </div>
       </main>
-         <footer className="bg-gray-900 text-gray-300 py-6 mt-10 text-center">
-  <div className="container mx-auto">
-    <p className="text-sm">
-      © 2025 Statch. All rights reserved.
-    </p>
-    <div className="mt-2 flex justify-center gap-4">
-      <a href="#" className="hover:text-white transition">Về chúng tôi</a>
-      <a href="#" className="hover:text-white transition">Liên hệ</a>
-      <a href="#" className="hover:text-white transition">Điều khoản</a>
+      <Footer/>
     </div>
-  </div>
-</footer>
-    </div>
-    
   );
 }

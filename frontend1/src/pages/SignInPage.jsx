@@ -5,23 +5,39 @@ import React, { useState } from "react";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import { useNavigate } from "react-router-dom";
 import '../index.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from "react"; 
 
-// ✅ MỚI THÊM: Environment variable cho API URL (giống SignUp)
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 function SignInPage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const role = localStorage.getItem("user_role"); 
+    const token = localStorage.getItem("access_token");
+
+    if (token) {
+      if (role === "owner") {
+        navigate("/profile");  // owner page
+      } else {
+        navigate("/home");       // traveller / normal user
+      }
+    }
+  }, [navigate]);
+
   
   // ✅ THÊM: State để lưu thông tin đăng nhập
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // ✅ THÊM: Hiển thị lỗi nếu có
-  const [loading, setLoading] = useState(false); // ✅ THÊM: Trạng thái loading khi đang gọi API
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); 
+  
   // ✅ THÊM: Hàm xử lý submit form - GỌI API LOGIN
   const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn reload trang
-    setError(""); // Xóa lỗi cũ
+  
     setLoading(true); // Bật loading
 
     // ✅ MỚI THÊM: Log để debug (giống SignUp)
@@ -54,29 +70,34 @@ function SignInPage() {
         localStorage.setItem("user_role", data.role);
         localStorage.setItem("username", username);
 
-        console.log('✅ Login successful! Role:', data.role);
+        toast.success("Đăng nhập thành công! Đang chuyển hướng...", {
+          position: "top-right",
+          autoClose: 900
+        });
 
         // ✅ THÊM: Điều hướng dựa trên role của user
-        if (data.role === "owner") {
-          navigate("/profileo"); // Chủ trọ -> dashboard
-        } else if (data.role === "traveler") {
-          navigate("/home"); // Người dùng -> home
-        } else {
-          navigate("/home"); // Các role khác
-        }
+        setTimeout(() => {
+            if (data.role === "owner") {
+            navigate("/profileo"); // Chủ trọ -> dashboard
+          } else if (data.role === "traveler") {
+            navigate("/home"); // Người dùng -> home
+          } else {
+            navigate("/home"); // Các role khác
+          }
+          console.log(data.access_token);
+        }, 1200);
+        
       } else {
-        // ✅ THÊM: Hiển thị lỗi nếu đăng nhập thất bại
-        // ✅ MỚI CẬP NHẬT: Xử lý cụ thể lỗi 401 (Unauthorized)
         if (response.status === 401) {
-          setError("Tên đăng nhập hoặc mật khẩu không đúng!");
+          toast.error("Tên đăng nhập hoặc mật khẩu không đúng!", {autoClose: 900});
         } else {
-          setError(data.detail || "Đăng nhập thất bại!");
+          toast.error(data.detail || "Đăng nhập thất bại!", {autoClose: 900});
         }
       }
     } catch (err) {
       // ✅ THÊM: Xử lý lỗi khi không kết nối được server
       console.error('❌ Login error:', err);
-      setError("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
+      toast.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng!");
       console.error("Login error:", err);
     } finally {
       setLoading(false); // Tắt loading
@@ -108,14 +129,14 @@ function SignInPage() {
             marginBottom: '20px',
             fontSize: '24px',
             fontWeight: '700',
-            fontFamily: 'Montserrat'
+            
           }}>Đăng nhập</h1>
 
           <h1 style={{
             marginBottom: '5px',
             fontSize: '15px',
             fontWeight: '450',
-            fontFamily: 'Montserrat'
+            
           }}>Tên đăng nhập</h1>
 
           {/* ✅ THÊM: value và onChange để lưu username vào state */}
@@ -131,55 +152,58 @@ function SignInPage() {
               borderRadius: '5px',
               width: '100%',
               marginBottom: '15px',
-              fontFamily: 'Montserrat',
+             
               fontSize: '15px'
             }}
           />
 
           <label style={{
             marginBottom: '5px',
-            fontFamily: 'Montserrat',
+         
             fontWeight: '450',
             fontSize: '15px'
           }}>Mật khẩu</label>
 
           {/* ✅ THÊM: value và onChange để lưu password vào state */}
-          <input
-            type="password"
-            placeholder="Nhập mật khẩu"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required // ✅ THÊM: Bắt buộc nhập
-            style={{
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              width: '100%',
-              marginBottom: '10px',
-              fontFamily: 'Montserrat',
-              fontSize: '15px'
-            }}
-          />
-
-          {/* ✅ THÊM: Hiển thị thông báo lỗi nếu có */}
-          {/* ✅ MỚI CẬP NHẬT: Style giống SignUp (có background màu đỏ nhạt) */}
-          {error && (
-            <p style={{
-              color: '#B01C29', // ✅ MỚI CẬP NHẬT: Dùng màu brand
-              fontFamily: 'Montserrat',
-              marginBottom: '10px',
-              fontSize: '13px', // ✅ MỚI CẬP NHẬT: Giảm size
-              textAlign: 'center',
-              backgroundColor: '#ffe6e6', // ✅ MỚI THÊM: Background nhạt
-              padding: '8px', // ✅ MỚI THÊM
-              borderRadius: '5px' // ✅ MỚI THÊM
-            }}>{error}</p>
-          )}
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Nhập mật khẩu"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required // ✅ THÊM: Bắt buộc nhập
+              style={{
+                padding: '10px 40px 10px 10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                width: '100%',
+                marginBottom: '10px',
+                fontSize: '15px'
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: 21,
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#666",
+              }}
+            >
+              {showPassword ? "Ẩn" : "Hiện"}
+            </button>
+          </div>
 
           {/* ✅ MỚI CẬP NHẬT: Đổi <a> thành <button> để tránh navigation không mong muốn */}
           <button
             type="button"
-            onClick={() => {/* TODO: Implement forgot password */}}
+            onClick={() => navigate("/forgotpass")}
             style={{
               background: 'none',
               border: 'none',
@@ -189,7 +213,6 @@ function SignInPage() {
               color: '#333',
               textDecoration: 'none',
               marginBottom: '20px',
-              fontFamily: 'Montserrat',
               cursor: 'pointer'
             }}
           >
@@ -210,7 +233,7 @@ function SignInPage() {
               width: '100%',
               cursor: loading ? 'not-allowed' : 'pointer', // ✅ THÊM: Đổi cursor khi loading
               fontWeight: 'bold',
-              fontFamily: 'Montserrat',
+     
               transition: 'background-color 0.3s' // ✅ MỚI THÊM: Smooth transition
             }}
           >
@@ -222,7 +245,7 @@ function SignInPage() {
             textAlign: 'center',
             marginTop: '15px',
             fontSize: '14px',
-            fontFamily: 'Montserrat'
+    
           }}>
             Bạn không có tài khoản?{" "}
             {/* ✅ SỬA: Đổi từ <a> thành <button> với type="button" để tránh submit form */}
@@ -235,7 +258,7 @@ function SignInPage() {
                 color: '#B01C29',
                 cursor: 'pointer',
                 textDecoration: 'underline',
-                fontFamily: 'Montserrat'
+          
               }}
             >
               Đăng ký tại đây.
@@ -243,6 +266,7 @@ function SignInPage() {
           </p>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 }
