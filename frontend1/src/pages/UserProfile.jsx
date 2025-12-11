@@ -220,7 +220,6 @@ export default function UserProfile() {
             setPhone(originalData.phone);
             setIsEditingPhone(false);
         }
-        showNotify("Đã hủy thay đổi", "info");
     };
 
     
