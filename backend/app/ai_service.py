@@ -54,6 +54,12 @@ async def generate_tags_from_desc(description: str, location: str) -> str:
             ),
             safety_settings=safety_settings
         )
+
+        # 4. DEBUG: In phản hồi thô ra Terminal để kiểm tra (Quan trọng)
+        print("INPUT TOKENS:", response.usage.prompt_token_count)
+        print("OUTPUT TOKENS:", response.usage.candidates_token_count)
+        print("TOTAL TOKENS:", response.usage.total_token_count)
+
         
         try:
             raw_text = response.text.strip()
