@@ -31,6 +31,25 @@ export default function SearchingPage() {
     minRating: null,
   });
 
+  const getDisplayType = (type) => {
+    if (!type) return "Chỗ ở";
+    
+    // Chuyển hết về chữ thường để so sánh cho chuẩn
+    const normalizedType = type.toLowerCase().trim();
+
+    const typeMapping = {
+        "hotel": "Khách sạn",
+        "homestay": "Homestay",
+        "villa": "Biệt thự",
+        "apartment": "Căn hộ",
+        "resort": "Khu nghỉ dưỡng",
+        "guest house": "Nhà khách"
+    };
+
+    // Trả về tên tiếng Việt, nếu không có trong map thì viết hoa chữ cái đầu
+    return typeMapping[normalizedType] || (type.charAt(0).toUpperCase() + type.slice(1));
+  };
+
   // --- HELPER FUNCTIONS (Giữ nguyên) ---
   const formatVnd = (value) => {
     if (value === null || value === undefined) return "0 ₫";
@@ -357,7 +376,7 @@ export default function SearchingPage() {
                       <div key={item.accommodation_id || item.id} className="relative group block">
                             
                             {/* --- AI MATCH SCORE BADGE --- */}
-                            {item.match_score && item.match_score > 0 && (
+                            {(item.match_score && item.match_score > 0) ? (
                                 <div className="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-sm pl-2 pr-3 py-1.5 rounded-full shadow-md border border-green-200 flex items-center gap-2 transform transition-transform group-hover:scale-105">
                                     <span className="relative flex h-3 w-3">
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -370,6 +389,15 @@ export default function SearchingPage() {
                                         <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Phù hợp</span>
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="absolute bottom-4 left-4 z-20">
+                                  <div className="bg-linear-to-r from-violet-600 to-indigo-600 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-white/20 flex items-center gap-1.5 transform transition-transform hover:scale-105 cursor-pointer">
+                                    <Sparkles size={14} className="text-yellow-300 fill-yellow-300 animate-pulse" />
+                                    <span className="text-[11px] text-white font-bold uppercase tracking-wider leading-none pb-[1px]">
+                                      Khám phá thêm
+                                    </span>
+                                  </div>
+                                </div>
                             )}
                         <ResultBar
                             image={displayImage}
@@ -380,7 +408,7 @@ export default function SearchingPage() {
                             ratingScore={item.rating_score || 0.0} // Fallback nếu API chưa có
                             ratingCount={item.review_count}                            
                             tags={parseTags(item.tags || item.ai_tags || "")}
-                            categories={[item.property_type]}
+                            categories={[getDisplayType(item.property_type)]}
                             summary={`${item.max_guests} khách tối đa`}
                             
                             priceLabel={formatVnd(item.price)}
