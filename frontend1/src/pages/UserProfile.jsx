@@ -184,7 +184,7 @@ export default function UserProfile() {
 
             if (response.ok) {
                 showNotify("Cập nhật thông tin thành công!", "success");
-                
+                localStorage.setItem("REFRESH_RECOMMENDATIONS", "true");
                 setOriginalData({
                     ...originalData,
                     fullName, email, phone, sex, city, preference, dob

@@ -156,7 +156,6 @@ def update_user(db: Session, current_user: models.User, payload: schemas.UserUpd
         if existing and existing.id != current_user.id:
             return None # Trả về None để router báo lỗi
         
-    # 3. VÒNG LẶP THẦN THÁNH: Tự động cập nhật mọi trường (sex, city, dob...)
     for key, value in update_data.items():
         setattr(current_user, key, value)
         

@@ -24,13 +24,13 @@ const getSmartTagStyle = (tagName) => {
   if (['vườn', 'cây', 'rừng', 'đồi', 'xanh', 'thiên nhiên'].some(k => lower.includes(k))) return TAG_STYLES.green;
   
   // Nhóm Cảm xúc / View -> Tím/Indigo
-  if (['view', 'chill', 'thơ', 'mộng', 'lãng mạn', 'yên tĩnh'].some(k => lower.includes(k))) return TAG_STYLES.indigo;
+  if (['view', 'chill', 'thơ', 'mộng', 'lãng mạn', 'yên tĩnh', 'ban công'].some(k => lower.includes(k))) return TAG_STYLES.indigo;
   
   // Nhóm Sang trọng / Cao cấp -> Hồng/Rose
   if (['luxury', 'sang', 'vip', 'cao cấp'].some(k => lower.includes(k))) return TAG_STYLES.rose;
   
   // Nhóm Tiện nghi / Ăn uống -> Cam
-  if (['bbq', 'bếp', 'ăn', 'cafe', 'nhà hàng', 'wifi', 'tv'].some(k => lower.includes(k))) return TAG_STYLES.orange;
+  if (['BBQ', 'bếp', 'ăn', 'cafe', 'nhà hàng', 'wifi', 'tv', 'máy sấy', 'lễ tân 24h', 'Thang máy', 'thú cưng', 'máy lạnh'].some(k => lower.includes(k))) return TAG_STYLES.orange;
 
   return TAG_STYLES.gray; // Mặc định
 };
@@ -120,7 +120,6 @@ export default function ResultBar({
   ratingScore = 0,
   tags = [], // Mảng các tag phụ (VD: view biển, hồ bơi)
   categories = [], // Mảng loại phòng (VD: Villa, Khách sạn)
-  dateRangeLabel = "Chọn ngày để kiểm tra",
   summary = "Tối đa 2 khách",
   priceLabel = "Liên hệ",
   priceNote = "Đã bao gồm thuế và phí",
@@ -208,9 +207,6 @@ export default function ResultBar({
           {/* Bottom Row: Info & Price */}
           <div>
             <div className="flex flex-wrap items-center gap-3 mb-3">
-              <div className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-700">
-                {dateRangeLabel}
-              </div>
               <div className="text-sm text-gray-500 font-medium">{summary}</div>
             </div>
 

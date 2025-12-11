@@ -80,18 +80,108 @@ TRAVEL_KEYWORDS = [
     "thích leo núi", "yêu biển", "đam mê ẩm thực", "thích check-in",
     "muốn yên tĩnh", "thích náo nhiệt", "du lịch bụi", "luxury", "yêu động vật"
 ]
+REALISTIC_REVIEWS = {
+    5: [
+        "Tuyệt vời! Phòng sạch sẽ, thơm tho, view đẹp y như hình. Chủ nhà support cực kỳ nhiệt tình.",
+        "10 điểm không có nhưng. Vị trí ngay trung tâm, đi đâu cũng tiện. Sẽ quay lại lần sau.",
+        "Decor siêu xinh, góc nào cũng sống ảo được. Tiện nghi đầy đủ từ A-Z.",
+        "Đáng đồng tiền bát gạo. Giường êm, máy lạnh mát rượi, ngủ rất ngon.",
+        "Mình book gấp nhưng phòng vẫn được dọn dẹp rất kỹ. Rất ưng ý!",
+        "Không gian yên tĩnh, chill phết. Thích hợp để đi trốn deadline."
+    ],
+    4: [
+        "Phòng ổn, sạch sẽ. Tuy nhiên cách âm hơi kém chút, sáng sớm hơi ồn.",
+        "Mọi thứ đều tốt, trừ việc wifi buổi tối hơi chập chờn.",
+        "Vị trí đẹp, phòng giống mô tả. Điểm trừ là chỗ để xe hơi chật.",
+        "Chủ nhà thân thiện. Phòng ốc gọn gàng nhưng thang máy chờ hơi lâu.",
+        "Tổng thể ok trong tầm giá. Nếu có thêm gương toàn thân thì tuyệt hơn."
+    ],
+    3: [
+        "Phòng tạm ổn để ngủ qua đêm. Hơi cũ hơn so với hình chụp trên web.",
+        "Vị trí trong hẻm sâu khó tìm. Phòng bình thường, không có gì đặc sắc.",
+        "Giá rẻ nên không đòi hỏi nhiều. Tiện nghi ở mức cơ bản.",
+        "Hơi thất vọng về vấn đề vệ sinh, sàn nhà còn bụi khi mình nhận phòng.",
+        "Máy nước nóng hoạt động không tốt lắm. Cần bảo trì lại."
+    ]
+}
 
-FORUM_TOPICS = [
-    ("Kinh nghiệm tìm homestay ở", PostLocation.district1),
-    ("Review chỗ ở giá rẻ tại", PostLocation.district3),
-    ("Top 5 quán cà phê đẹp ở", PostLocation.district1),
-    ("Cần tìm bạn đồng hành khám phá", PostLocation.thu_duc),
-    ("Câu chuyện du lịch thú vị tại", PostLocation.district7),
-    ("Hỏi về chỗ ở an toàn ở", PostLocation.binh_thanh),
-    ("Review Homestay X ở", PostLocation.phu_nhuan),
-    ("Địa điểm check-in đẹp tại", PostLocation.district2),
-    ("Tìm phòng trọ sinh viên ở", PostLocation.go_vap),
-    ("Kinh nghiệm thuê căn hộ tại", PostLocation.district4),
+# ==============================================================
+# DỮ LIỆU FORUM THỰC TẾ (REALISTIC FORUM DATA)
+# ==============================================================
+REALISTIC_POSTS = [
+    {
+        "title": "Review chi tiết 2N1Đ ăn sập Bình Thạnh, ở Landmark 81",
+        "content": "Cuối tuần rồi mình với người yêu book được căn hộ Airbnb ở Landmark 81 giá siêu tốt. Tiện thể làm chuyến foodtour Bình Thạnh luôn. \n\n1. Chỗ ở: Căn mình thuê tầng 35, view sông cực chill. Chủ nhà support nhiệt tình. \n2. Ăn uống: Gần đó có tiệm mì vịt tiềm siêu ngon, tối thì qua chợ Bà Chiểu ăn xôi gà. \n\nTổng thiệt hại chưa tới 2tr/người. Mọi người ai cần info phòng thì comment mình chỉ cho nhé!",
+        "location": PostLocation.binh_thanh
+    },
+    {
+        "title": "Cầu cứu: Tìm homestay cho nhóm 10 người ở Quận 1",
+        "content": "Chào cả nhà, tháng sau lớp đại học cũ của mình tổ chức họp lớp ở Sài Gòn. \nMình cần tìm một căn homestay hoặc villa nguyên căn khu vực Quận 1 hoặc Quận 3.\n\nYêu cầu: \n- Có bếp để tự nấu nướng.\n- Cho phép làm ồn xíu vì tụi mình hay hát hò.\n- Giá tầm 3-5 triệu/đêm quay đầu.\n\nAi biết chỗ nào ổn áp giới thiệu giúp mình với ạ. Cảm ơn admin duyệt bài.",
+        "location": PostLocation.district1
+    },
+    {
+        "title": "Góc cảnh giác: Trải nghiệm tệ hại khi thuê phòng ở Bùi Viện",
+        "content": "Mọi người né cái homestay X ở hẻm 1xx Bùi Viện ra nhé. \nThứ nhất, hình trên web một đằng, nhận phòng một nẻo. Phòng siêu bé và có mùi ẩm mốc.\nThứ hai, cách âm cực tệ. Đêm nằm nghe nhạc bar dập thình thịch không ngủ được luôn.\nChủ nhà thì thái độ lồi lõm khi mình phản ánh. Chừa luôn không bao giờ quay lại.",
+        "location": PostLocation.district1
+    },
+    {
+        "title": "Hỏi chỗ cafe làm việc yên tĩnh khu Thảo Điền",
+        "content": "Mình mới chuyển qua Thảo Điền sống (khu Masteri). \nCó bạn nào biết quán cafe nào không gian yên tĩnh, wifi mạnh, ngồi làm việc (work from home) ổn không ạ? \nƯu tiên quán có view xanh mát xíu cho đỡ stress. Cảm ơn mọi người.",
+        "location": PostLocation.district2
+    },
+    {
+        "title": "Tìm bạn ở ghép căn hộ Sunrise City Quận 7",
+        "content": "Hiện mình đang thuê căn 2PN ở Sunrise City (đối diện Lotte Mart Q7). \nTháng sau bạn cùng phòng chuyển đi nên mình cần tìm 1 bạn nữ ở ghép.\n- Phòng master có toilet riêng.\n- Full nội thất, chỉ việc xách vali vào ở.\n- Tiện ích hồ bơi, gym free.\n- Giá: 4tr5/tháng (chưa điện nước).\nBạn nào quan tâm inbox mình gửi hình phòng nhé.",
+        "location": PostLocation.district7
+    },
+    {
+        "title": "List 5 quán ăn ngon nhức nách khu Chợ Lớn (Quận 5)",
+        "content": "Đi Quận 5 mà không ăn đồ Hoa là thiếu sót lớn. Nay mình share list 5 quán ruột của mình:\n1. Sủi cảo Thiên Thiên (Hà Tôn Quyền)\n2. Chè Hà Ký\n3. Dimsum Tiến Phát\n4. Hủ tiếu mì Thiệu Ký\n5. Vịt quay Vĩnh Phong\n\nBạn nào đi du lịch Q5 nhớ ghé thử nha, đảm bảo không thất vọng!",
+        "location": PostLocation.district5
+    },
+    {
+        "title": "Có ai đi Cần Giờ cuối tuần này không?",
+        "content": "Cuối tuần này mình tính phượt xe máy xuống Cần Giờ đổi gió, ăn hải sản.\nLịch trình: Sáng đi sớm ghé Đảo Khỉ -> Trưa ăn hải sản chợ Hàng Dương -> Chiều checkin bãi biển 30/4 -> Tối về lại SG.\nHiện tại mình đi một mình, muốn rủ thêm 1-2 bạn đồng hành cho vui. Share tiền xăng xe ăn uống sòng phẳng ạ.",
+        "location": PostLocation.can_gio
+    },
+    {
+        "title": "Review căn hộ dịch vụ khu sân bay (Tân Bình)",
+        "content": "Mình vừa có chuyến công tác 3 ngày ở SG, chọn ở khu Yên Thế, Tân Bình cho gần sân bay.\nKhu này nhiều cây xanh, yên tĩnh dã man dù sát sân bay. Phòng ốc sạch sẽ, giá tầm 600k/đêm.\nĐiểm trừ là buổi chiều đường Trường Sơn hay kẹt xe, các bạn canh giờ ra sân bay cẩn thận kẻo trễ chuyến.",
+        "location": PostLocation.tan_binh
+    },
+    {
+        "title": "Hỏi đường đi địa đạo Củ Chi bằng xe buýt",
+        "content": "Sắp tới mình có mấy người bạn Tây qua chơi, muốn dẫn đi Củ Chi mà ngại thuê tour.\nNghe nói có thể đi xe buýt từ Bến Thành. Có bạn nào đi rồi cho mình xin kinh nghiệm với ạ? Nên đi tuyến số mấy và mất bao lâu? Cảm ơn cả nhà.",
+        "location": PostLocation.cu_chi
+    },
+    {
+        "title": "Phú Nhuận có chỗ nào chill về đêm không?",
+        "content": "Tối nay mình muốn tìm chỗ nào nhạc acoustic nhẹ nhàng hoặc pub nhỏ ở khu Phan Xích Long, Phú Nhuận để chill. \nKhông thích ồn ào xập xình đâu ạ. Mọi người recommend giúp mình vài quán với.",
+        "location": PostLocation.phu_nhuan
+    },
+    {
+        "title": "Trải nghiệm tệ tại chung cư River Gate Q4",
+        "content": "Book phòng qua app, thấy review cũng ổn mà tới nơi thất vọng tràn trề. Thang máy chờ siêu lâu, bảo vệ khó chịu. Hồ bơi thì đông như kiến. Được cái vị trí sát Q1 đi lại tiện thôi. Lần sau chắc mình chọn ở khách sạn cho lành.",
+        "location": PostLocation.district4
+    },
+    {
+        "title": "Tìm phòng trọ sinh viên gần ĐH Bách Khoa (Q10)",
+        "content": "Em là tân sinh viên K24, cần tìm phòng trọ khu vực Q10, gần trường Bách Khoa.\nTài chính: 2tr - 2tr5.\nYêu cầu: An ninh, không chung chủ, giờ giấc tự do.\nAnh chị nào biết chỉ giúp em với ạ, em cảm ơn nhiều.",
+        "location": PostLocation.district10
+    }
+]
+
+REALISTIC_REPLIES = [
+    "Bài viết rất hữu ích, cảm ơn bạn đã chia sẻ!",
+    "Mình cũng đang quan tâm khu này, bạn check inbox mình hỏi chút nha.",
+    "Chỗ này mình đi rồi nè, công nhận đồ ăn ngon mà rẻ.",
+    "Lần trước mình ở đây thấy cũng bình thường, không như quảng cáo.",
+    "Lưu lại để hôm nào rủ người yêu đi. Thanks chủ thớt.",
+    "Giá này hơi cao so với mặt bằng chung rồi bạn ơi.",
+    "Có chỗ đậu xe hơi không bạn?",
+    "Hóng review chi tiết hơn ạ.",
+    "Chia sẻ kinh nghiệm đi, mình cũng tính đi chỗ này tuần sau.",
+    "Né gấp chỗ này ra, mình từng bị chặt chém ở đây rồi."
 ]
 
 def clean_database(db: Session):
@@ -124,17 +214,17 @@ def get_image_by_type(acc_type):
     return random.choice(collection)
 
 def get_tags_by_type(acc_type):
-    """Lấy tags phù hợp (VD: Villa thì phải có hồ bơi)"""
-    common_tags = ["wifi", "ac", "parking", "shampoo"]
+    """Lấy tags phù hợp (Toàn bộ bằng Tiếng Việt)"""
+    common_tags = ["Wifi", "Máy lạnh", "Chỗ đậu xe", "Dầu gội"]
     
     if acc_type in ["Biệt thự", "Villa"]:
-        return common_tags + ["pool", "bbq", "garden", "kitchen", "balcony"]
+        return common_tags + ["Hồ bơi", "BBQ", "Sân vườn", "Bếp", "Ban công"]
     elif acc_type == "Căn hộ":
-        return common_tags + ["kitchen", "washing_machine", "elevator", "gym", "view"]
+        return common_tags + ["Bếp", "Máy giặt", "Thang máy", "Phòng Gym", "View đẹp"]
     elif acc_type == "Homestay":
-        return common_tags + ["hair_dryer", "breakfast", "pets_allowed"]
+        return common_tags + ["Máy sấy", "Ăn sáng", "Thú cưng"]
     else: # Khách sạn
-        return common_tags + ["tv", "elevator", "reception_24h", "breakfast"]
+        return common_tags + ["TV", "Thang máy", "Lễ tân 24h", "Ăn sáng"]
 
 def get_price_range(acc_type):
     """Giá tiền hợp lý (VND)"""
@@ -307,11 +397,16 @@ def seed_data():
             
             # Tạo Review nếu completed
             if status == 'completed' and random.random() > 0.4:
+                # Random điểm số từ 3 đến 5
+                rating = random.randint(3, 5)
+                # Lấy nội dung review tương ứng với điểm số từ kho dữ liệu
+                content = random.choice(REALISTIC_REVIEWS[rating])
+                
                 review = Review(
                     user_id=guest.id,
                     accommodation_id=accom.accommodation_id,
-                    rating=random.randint(3, 5),
-                    content=fake.paragraph(nb_sentences=2)
+                    rating=rating,
+                    content=content # <-- Dùng content thật
                 )
                 db.add(review)
                 reviews.append(review)
@@ -326,19 +421,17 @@ def seed_data():
         print("💬 4. Đang tạo dữ liệu Forum...")
         
         posts = []
-        for _ in range(25):
-            author = random.choice(users)
-            topic_title, topic_location = random.choice(FORUM_TOPICS)
-            
-            full_title = f"{topic_title} {topic_location.value.replace('_', ' ').title()}"
+        # Lặp qua danh sách bài viết thực tế đã định nghĩa
+        for post_data in REALISTIC_POSTS:
+            author = random.choice(users) # Chọn ngẫu nhiên tác giả
             
             post = Post(
                 user_id=author.id,
-                title=full_title,
-                content=fake.text(max_nb_chars=600),
-                location=topic_location,
+                title=post_data["title"],
+                content=post_data["content"],
+                location=post_data["location"],
                 status=PostStatus.active,
-                views_count=random.randint(50, 1000),
+                views_count=random.randint(100, 2000), # View ảo cho đẹp
                 replies_count=0 
             )
             db.add(post)
@@ -346,25 +439,31 @@ def seed_data():
         
         db.commit()
         
-        # Replies
+        # Tạo replies ngẫu nhiên từ danh sách câu trả lời mẫu
         replies_count = 0
         for post in posts:
-            num_replies = random.randint(0, 8)
+            num_replies = random.randint(1, 6) # Mỗi bài có 1-6 cmt
             post.replies_count = num_replies
             
             for _ in range(num_replies):
                 replier = random.choice(users)
+                # Đảm bảo người trả lời khác người đăng (tùy chọn)
+                while replier.id == post.user_id:
+                     replier = random.choice(users)
+
+                reply_content = random.choice(REALISTIC_REPLIES)
+                
                 reply = Reply(
                     post_id=post.id,
                     user_id=replier.id,
-                    content=fake.sentence(nb_words=15),
+                    content=reply_content,
                     status=PostStatus.active
                 )
                 db.add(reply)
                 replies_count += 1
                 
         db.commit()
-        print(f"   - Đã tạo {len(posts)} bài viết và {replies_count} bình luận.")
+        print(f"   - Đã tạo {len(posts)} bài viết chất lượng và {replies_count} bình luận.")
 
         print("\n✅ SEED DATA SUCCESSFUL! (User pass: 123456)")
 

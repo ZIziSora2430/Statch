@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import Footer from "../components/Footer";
 import { 
-  MapPin, Star, Share, Heart, Wifi, Car, Coffee, Grid,Utensils, Waves, Tv, Sun, Lock,
+  MapPin, Star, Wifi, Car, Coffee, Grid,Utensils, Waves, Tv, Sun, Lock,
   Wind, CheckCircle, User, ArrowRight, ChevronDown, X, ChevronLeft, ChevronRight 
 } from "lucide-react";
 
@@ -633,8 +633,20 @@ useEffect(() => {
                                 <div className="flex justify-between items-end mt-2">
                                     {/* DỮ LIỆU ĐỘNG */}
                                     <span className="font-bold text-xl text-[#AD0000]">{formatCurrency(item.price)} </span>
-                                    {/* Giả định: Điểm đánh giá */}
-                                    <span className="text-2xl font-black text-red-700">{item.rating_score || 'N/A'}<span className="text-sm font-normal text-gray-500">/10</span></span>
+                                    {/* Điểm đánh giá */}
+                                    {item.rating_score ? (
+                                        // TRƯỜNG HỢP 1: Đã có điểm -> Hiện số to màu đỏ + đuôi /10
+                                        <span className="text-2xl font-black text-red-700">
+                                            {item.rating_score}
+                                            <span className="text-sm font-normal text-gray-500">/10</span>
+                                        </span>
+                                        ) : (
+                                        // TRƯỜNG HỢP 2: Chưa có điểm 
+                                        <div className="flex items-center gap-1 text-gray-400">
+                                            <span className="text-sm font-medium">Chưa có đánh giá</span>
+                                            <Star size={16} className="fill-gray-200 text-gray-300" />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

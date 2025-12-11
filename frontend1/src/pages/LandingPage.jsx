@@ -66,9 +66,18 @@ export default function LandingPage() {
     }
 
     const CACHE_KEY = "recommendation_cache";
-    
+    const REFRESH_KEY = "REFRESH_RECOMMENDATIONS";
+
     // Hàm kiểm tra Cache
     const checkCache = () => {
+
+      const shouldRefresh = localStorage.getItem(REFRESH_KEY);
+      
+      if (shouldRefresh === "true") {
+        console.log("Phát hiện thay đổi dữ liệu User -> Bỏ qua Cache để lấy mới.");
+        localStorage.removeItem(REFRESH_KEY); 
+        return false; // Bắt buộc fetch lại
+      }
       const cachedRaw = localStorage.getItem(CACHE_KEY);
       if (cachedRaw) {
         try {
@@ -129,6 +138,7 @@ export default function LandingPage() {
                 data: data,
                 timestamp: Date.now()     // Lưu thời gian để hết hạn
             };
+            localStorage.removeItem(REFRESH_KEY);
             localStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
         }
 

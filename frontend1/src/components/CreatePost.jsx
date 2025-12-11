@@ -42,6 +42,7 @@ export default function CreatePost({ onClose, onPostSuccess }) {
 
       if (response.ok) {
         if (onPostSuccess) onPostSuccess();
+        localStorage.setItem("REFRESH_RECOMMENDATIONS", "true");
         onClose();
       } else {
         const errorData = await response.json();
