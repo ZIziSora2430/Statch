@@ -260,7 +260,7 @@ def owner_cancel_booking(db: Session, booking_id: int, owner_id: int):
         raise HTTPException(status_code=403, detail="Không có quyền hủy booking này")
 
     # Chỉ cho phép hủy nếu đang chờ
-    if booking.status != schemas.BookingStatusEnum.pending_confirmation.value:
+    if booking.status == schemas.BookingStatusEnum.pending_confirmation.value:
         raise HTTPException(
             status_code=400,
             detail="Chỉ có thể hủy booking đang chờ xác nhận"

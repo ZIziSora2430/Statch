@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import { useNavigate } from "react-router-dom";
 import '../index.css';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useEffect } from "react"; 
 
@@ -219,8 +219,6 @@ function SignInPage() {
             Quên mật khẩu?
           </button>
 
-          {/* ✅ THÊM: type="submit" để trigger handleSubmit, disabled khi đang loading */}
-          {/* ✅ MỚI THÊM: Transition effect giống SignUp */}
           <button
             type="submit"
             disabled={loading}
@@ -266,7 +264,6 @@ function SignInPage() {
           </p>
         </form>
       </div>
-      <ToastContainer />
     </div>
   );
 }

@@ -72,6 +72,9 @@ class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
 
+class VerifyCodeRequest(BaseModel):
+    email: EmailStr
+    code: str
 
 class BankInfoUpdate(BaseModel):
     bank_name: str

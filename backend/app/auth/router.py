@@ -44,6 +44,15 @@ def reset_password_endpoint(payload: schemas.ResetPasswordRequest, db: Session =
         return {"message": "Đặt lại mật khẩu thành công."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/verify-code")
+def verify_code_endpoint(payload: schemas.VerifyCodeRequest, db: Session = Depends(get_db)):
+    is_valid = service.verify_reset_code(db, payload.email, payload.code)
+    
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Mã xác nhận không hợp lệ hoặc đã hết hạn.")
+    
+    return {"message": "Mã hợp lệ."}
 # ======= Signup =======
 @router.post("/signup", response_model=schemas.UserResponse)
 def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):

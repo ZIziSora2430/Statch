@@ -393,7 +393,7 @@ export default function SearchingPage() {
                                 <div className="absolute bottom-4 left-4 z-20">
                                   <div className="bg-linear-to-r from-violet-600 to-indigo-600 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-white/20 flex items-center gap-1.5 transform transition-transform hover:scale-105 cursor-pointer">
                                     <Sparkles size={14} className="text-yellow-300 fill-yellow-300 animate-pulse" />
-                                    <span className="text-[11px] text-white font-bold uppercase tracking-wider leading-none pb-[1px]">
+                                    <span className="text-[11px] text-white font-bold uppercase tracking-wider leading-none pb-px">
                                       Khám phá thêm
                                     </span>
                                   </div>

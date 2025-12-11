@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import { useNavigate } from "react-router-dom";
+import {toast} from 'react-toastify';
 import '../index.css';
 
 
@@ -21,8 +22,10 @@ function SignInPage() {
 
   // --- BƯỚC 1: Gửi yêu cầu lấy mã ---
   const handleSendCode = async () => {
-    setError("");
-    setMessage("");
+    if (!email) {
+      toast.error("Vui lòng nhập email."); 
+      return;
+    }
     setLoading(true);
 
     try {
@@ -34,35 +37,55 @@ function SignInPage() {
 
       if (response.ok) {
         setStep(2); // Chuyển sang bước nhập mã
-        setMessage("Mã xác nhận đã được gửi vào email của bạn.");
+        toast.success("Mã xác nhận đã được gửi vào email của bạn.");
       } else {
-        setError("Có lỗi xảy ra, vui lòng thử lại.");
+        toast.error(data.detail || "Có lỗi xảy ra, vui lòng thử lại.");
       }
     } catch (err) {
-      setError("Không thể kết nối đến server.");
+      toast.error("Không thể kết nối đến server.");
     } finally {
       setLoading(false);
     }
   };
 
   // --- BƯỚC 2: Xác nhận mã (Chuyển sang giao diện nhập pass) ---
-  const handleVerifyCodeUI = () => {
+  const handleVerifyCodeUI = async () => {
     if (confirmCode.length < 6) {
-      setError("Vui lòng nhập mã xác nhận hợp lệ.");
+      toast.warning("Vui lòng nhập mã xác nhận hợp lệ.");
       return;
     }
-    setError("");
-    setStep(3); // Chuyển sang bước nhập pass mới
+    try {
+      // 2. Gọi API kiểm tra mã
+      const response = await fetch(`${API_URL}/verify-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            email: email, 
+            code: confirmCode 
+        }),
+      });
+      if (response.ok) {
+        setStep(3); // Chuyển sang bước nhập pass mới
+        toast.info("Mã xác nhận hợp lệ. Vui lòng tạo mật khẩu mới.");
+      } else {
+        const data = await response.json();
+        toast.error(data.detail || "Mã xác nhận sai hoặc đã hết hạn.");
+      }
+    } catch (err) {
+      toast.error("Lỗi kết nối server.");
+      return;
+    } finally {
+      setLoading(false);
+    }
+    
   };
 
   // --- BƯỚC 3: Gửi API đặt lại mật khẩu ---
   const handleResetPassword = async () => {
     if (newPassword !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      toast.error("Mật khẩu xác nhận không khớp.");
       return;
     }
-
-    setError("");
     setLoading(true);
 
     try {
@@ -79,16 +102,17 @@ function SignInPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
+        toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
         navigate("/");
       } else {
-        setError(data.detail || "Mã xác nhận sai hoặc đã hết hạn.");
+        toast.error(data.detail || "Mã xác nhận sai hoặc đã hết hạn.");
         if(data.detail === "Mã xác nhận không hợp lệ hoặc đã hết hạn"){
             setStep(2); // Quay lại bước nhập mã nếu sai
+            toast.warning("Phiên làm viêchn đã hết hạn. Vui lòng nhập lại mã xác nhận.");
         }
       }
     } catch (err) {
-      setError("Lỗi kết nối server.");
+      toast.error("Lỗi kết nối server.");
     } finally {
       setLoading(false);
     }
@@ -148,8 +172,11 @@ function SignInPage() {
                 style={{ padding: '10px', border: '1px solid #ccc', borderRadius: '5px', width: '100%', marginBottom: '10px', fontSize: '15px' }}
               />
 
-              <button onClick={handleVerifyCodeUI} style={buttonStyle(false)}>
-                Tiếp tục
+              <button onClick={handleVerifyCodeUI} 
+                      style={buttonStyle(false)} 
+                      disabled={loading}
+              >
+                {loading ? 'Đang kiểm tra...' : 'Tiếp tục'}
               </button>
               <button 
                 onClick={() => setStep(1)} 

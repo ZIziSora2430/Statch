@@ -7,9 +7,8 @@ import { useNavigate } from "react-router-dom";
 import SignUpInBackGround from "../components/SignUpInBackGround";
 import Footer from "../components/Footer";
 import '../index.css';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { TableRowsSplitIcon } from "lucide-react";
 
 
 // ✅ MỚI THÊM: Environment variable cho API URL - giúp dễ dàng thay đổi URL khi deploy
@@ -453,9 +452,6 @@ const openPrivacy = () => {
     </div>
   </div>
 )}
-
-<ToastContainer />
-
     </div>
   );
 }

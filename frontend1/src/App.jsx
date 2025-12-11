@@ -1,4 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // --- IMPORT CÁC TRANG (PAGES) ---
 import SignIn from './pages/SignInPage.jsx';
@@ -24,7 +26,17 @@ export default function App() {
     <div className="app-container">
       {/* Nếu muốn có Navbar hiển thị Ở TẤT CẢ CÁC TRANG, hãy đặt nó ở đây */}
       {/* <Navbar /> */}
-
+      <ToastContainer 
+        position="bottom-right"
+        autoClose={3000} // Tự tắt sau 3 giây
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Routes>
         {/* --- Auth & Home --- */}
         <Route path="/" element={<SignIn />} />
