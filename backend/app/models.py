@@ -1,4 +1,3 @@
-# app/models.py
 """
 Database models cho toàn bộ dự án Statch
 Bao gồm: Users, Accommodation, Booking, Review, Forum (Posts, Replies)
@@ -11,7 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy import TEXT, DateTime
-from . database import Base
+from .database import Base
 import enum
 
 # =====================================================
@@ -23,7 +22,7 @@ class UserRole(str, enum.Enum):
     traveler = "traveler"
     owner = "owner"
 
-class PostLocation(str, enum. Enum):
+class PostLocation(str, enum.Enum):
     """Địa điểm bài viết forum - Quận/Huyện TP. HCM"""
     # Quận 1-12
     district1 = "district1"
@@ -97,7 +96,7 @@ class User(Base):
     
     # Timestamps
     verified_at = Column(TIMESTAMP, nullable=True)
-    created_at = Column(TIMESTAMP, server_default=func. now())
+    created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # =====================================================
@@ -116,6 +115,7 @@ class User(Base):
     # Forum
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
     replies = relationship("Reply", back_populates="author", cascade="all, delete-orphan")
+    post_likes = relationship("PostLike", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role}')>"
@@ -150,7 +150,7 @@ class Accommodation(Base):
     
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func. now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # =====================================================
     # Relationships
@@ -195,7 +195,7 @@ class Booking(Base):
     payment_proof = Column(String(500), nullable=True) # Lưu link ảnh/file
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func. now(), onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # =====================================================
     # Relationships
@@ -256,18 +256,19 @@ class Post(Base):
     status = Column(Enum(PostStatus), default=PostStatus.active)
     
     # Counters
-    views_count = Column(Integer, default=0)
+    likes_count = Column(Integer, default=0)
     replies_count = Column(Integer, default=0)
     
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func. now(), onupdate=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
     # =====================================================
     # Relationships
     # =====================================================
     author = relationship("User", back_populates="posts")
     replies = relationship("Reply", back_populates="post", cascade="all, delete-orphan")
+    likes = relationship("PostLike", back_populates="post", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Post(id={self.id}, title='{self.title}', location='{self.location}')>"
@@ -303,7 +304,6 @@ class Reply(Base):
     def __repr__(self):
         return f"<Reply(id={self.id}, post_id={self.post_id})>"
 
-
 # =====================================================
 # Bảng 7: Notification
 # =====================================================
@@ -319,24 +319,25 @@ class Notification(Base):
     # Quan hệ ngược: 1 user có nhiều notification
     user = relationship("User", backref="notifications")
 
-
 # =====================================================
-# Bảng 8: PostView (Lưu user đã view bài viết nào)
+# Bảng 8: PostLike (Lưu user đã like bài viết nào)
 # =====================================================
 
-class PostView(Base):
-    __tablename__ = "post_views"
+class PostLike(Base):
+    __tablename__ = "post_likes"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    created_at = Column(TIMESTAMP, server_default=func. now())
+    created_at = Column(TIMESTAMP, server_default=func.now())
 
-    # Đảm bảo mỗi user chỉ view 1 lần cho mỗi post
+    # Đảm bảo mỗi user chỉ like 1 lần cho mỗi post
     __table_args__ = (
-        {'mysql_charset': 'utf8mb4'}
+        {'mysql_charset': 'utf8mb4'},
     )
 
+    post = relationship("Post", back_populates="likes")
+    user = relationship("User", back_populates="post_likes")
 
 # =====================================================
 # Export tất cả models
@@ -353,5 +354,5 @@ __all__ = [
     "PostLocation",
     "PostStatus",
     "Notification",
-    "PostView"
+    "PostLike",
 ]

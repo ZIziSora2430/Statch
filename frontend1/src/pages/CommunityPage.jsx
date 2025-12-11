@@ -56,14 +56,14 @@ function CommunityPage() {
   const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
-    const role = localStorage.getItem("user_role"); 
+    const role = localStorage.getItem("user_role");
     if (role) setUserRole(role);
   }, []);
 
   const canCreatePost = isVerified && userRole === "traveler";
 
   // --- HÀM XỬ LÝ LIKE POST
-  const handleViewClick = async (postId) => {
+  const handleLikeClick = async (postId) => {
     const token = localStorage.getItem("access_token");
 
     if (!token) {
@@ -72,7 +72,7 @@ function CommunityPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/posts/${postId}/view`, {
+      const response = await fetch(`${API_BASE_URL}/posts/${postId}/like`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -81,21 +81,21 @@ function CommunityPage() {
 
       if (response.ok) {
         const data = await response.json();
-
+        localStorage.setItem(`liked_${postId}`, data.has_liked ? "1" : "0");
         setPosts((prevPosts) =>
           prevPosts.map((post) =>
             post.id === postId
               ? {
                   ...post,
-                  views_count: data.views_count,
-                  has_viewed: data.has_viewed,
+                  likes_count: data.likes_count,
+                  has_liked: data.has_liked,
                 }
               : post
           )
         );
       }
     } catch (error) {
-      console.error("Lỗi toggle view:", error);
+      console.error("Lỗi toggle like:", error);
     }
   };
 
@@ -140,7 +140,15 @@ function CommunityPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setPosts(data);
+        setPosts(
+          data.map(p => ({
+            ...p,
+            has_liked:
+              localStorage.getItem(`liked_${p.id}`) === '1'
+                ? true
+                : p.has_liked
+          }))
+        );
       }
     } catch (error) {
       console.error("Lỗi khi lấy bài viết:", error);
@@ -248,7 +256,7 @@ function CommunityPage() {
                 >
                   <PostCard
                     post={post}
-                    onViewToggle={handleViewClick}
+                    onLikeToggle={handleLikeClick}   // dùng like
                   />
                 </Link>
               ))

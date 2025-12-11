@@ -1,30 +1,23 @@
-# app/system_forum/routes.py
-"""
-Forum routes - Posts & Replies
-- Owner: Đăng bài và reply thoải mái, không cần verify
-- Traveler: Phải có ít nhất 1 booking (Verified Traveler)
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.  orm import Session
+from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
 from app.models import User, Post, Reply
 
-from app.system_forum.  schemas import (
+from app.system_forum.schemas import (
     PostCreate, PostUpdate, PostResponse,
     ReplyCreate, ReplyUpdate, ReplyResponse,
     VerifiedTravelerStatus
 )
-from app.system_forum.  dependencies import get_current_user
+from app.system_forum.dependencies import get_current_user
 
 router = APIRouter()
 
 
 # API Lấy danh sách bài viết của chính user đang đăng nhập
-@router.  get("/posts/me", response_model=List[PostResponse])
+@router.get("/posts/me", response_model=List[PostResponse])
 async def get_my_posts(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1),
@@ -34,8 +27,8 @@ async def get_my_posts(
     """
     Lấy lịch sử đăng bài của user hiện tại
     """
-    query = db.query(Post). filter(Post.user_id == current_user.id)
-    posts = query. order_by(Post.  created_at.desc()).offset(skip).  limit(limit). all()
+    query = db.query(Post).filter(Post.user_id == current_user.id)
+    posts = query.order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
     return posts
 
 
@@ -51,10 +44,10 @@ async def update_verified_status(user: User, db: Session):
     """Tự động cập nhật verified status nếu đủ điều kiện"""
     if not user.is_verified_traveler and check_verified_traveler(user):
         user.is_verified_traveler = True
-        db.  commit()
+        db.commit()
         db.refresh(user)
 
-@router. get("/verified-status", response_model=VerifiedTravelerStatus)
+@router.get("/verified-status", response_model=VerifiedTravelerStatus)
 async def get_verified_status(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -66,11 +59,11 @@ async def get_verified_status(
     - Traveler: Cần 1 booking
     """
     # Owner luôn được phép
-    if current_user.role.  value == "owner":
+    if current_user.role.value == "owner":
         return {
             "is_verified": True,
             "bookings_count": current_user.bookings_count,
-            "message": "Bạn là Owner!   Có thể đăng bài và bình luận thoải mái."
+            "message": "Bạn là Owner! Có thể đăng bài và bình luận thoải mái."
         }
     
     # Traveler cần check
@@ -86,7 +79,7 @@ async def get_verified_status(
     
     return {
         "is_verified": is_verified,
-        "bookings_count": current_user.  bookings_count,
+        "bookings_count": current_user.bookings_count,
         "message": message
     }
 
@@ -106,19 +99,19 @@ async def create_post(
     - Traveler: Phải có ít nhất 1 booking (Verified Traveler)
     """
     # Owner được bỏ qua, chỉ check với Traveler
-    if current_user.role.  value == "traveler":
+    if current_user.role.value == "traveler":
         await update_verified_status(current_user, db)
         if not current_user.is_verified_traveler:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Bạn cần có ít nhất 1 booking để tạo bài viết. Hiện tại: {current_user. bookings_count} booking."
+                detail=f"Bạn cần có ít nhất 1 booking để tạo bài viết. Hiện tại: {current_user.bookings_count} booking."
             )
     
     new_post = Post(
-        user_id=current_user.  id,
-        title=post_data.  title,
-        content=post_data.  content,
-        location=post_data.  location
+        user_id=current_user.id,
+        title=post_data.title,
+        content=post_data.content,
+        location=post_data.location
     )
     
     db.add(new_post)
@@ -144,89 +137,77 @@ async def get_posts(
     if location:
         query = query.filter(Post.location == location)
     
-    posts = query.order_by(Post. created_at.desc()). offset(skip). limit(limit).all()
+    posts = query.order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
     return posts
 
 @router.get("/posts/{post_id}", response_model=PostResponse)
 async def get_post(post_id: int, db: Session = Depends(get_db)):
-    """
-    Lấy chi tiết bài viết
-    - KHÔNG tự động tăng views_count nữa (dùng API riêng)
-    """
-    post = db.query(Post).  filter(Post.id == post_id).  first()
+    post = db.query(Post).filter(Post.id == post_id).first()
     
     if not post:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
-    
-    # ĐÃ XÓA: Không tự động tăng view khi load trang
     
     return post
 
 
-# ✅ API toggle view (click lần 1 tăng, click lần 2 giảm)
-@router.post("/posts/{post_id}/view")
-async def toggle_view(
+# ✅ API toggle like (click lần 1 tăng, click lần 2 giảm)
+@router.post("/posts/{post_id}/like")
+async def toggle_like(
     post_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Toggle views_count khi user click vào icon con mắt
-    - Click lần 1: Tăng view
-    - Click lần 2: Giảm view
-    Mỗi user chỉ được tính 1 view
-    """
-    from app.models import PostView
+    from app.models import PostLike
     
-    post = db.query(Post).filter(Post. id == post_id).first()
+    post = db.query(Post).filter(Post.id == post_id).first()
     
     if not post:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
     
-    # Kiểm tra user đã view chưa
-    existing_view = db. query(PostView). filter(
-        PostView.post_id == post_id,
-        PostView. user_id == current_user.id
+    # Kiểm tra user đã like chưa
+    existing_like = db.query(PostLike).filter(
+        PostLike.post_id == post_id,
+        PostLike.user_id == current_user.id
     ).first()
     
-    if existing_view:
-        # Đã view rồi -> Bỏ view (giảm)
-        db.delete(existing_view)
-        post.views_count = max(0, post. views_count - 1)
-        has_viewed = False
+    if existing_like:
+        # Đã like rồi -> Bỏ like (giảm)
+        db.delete(existing_like)
+        post.likes_count = max(0, post.likes_count - 1)
+        has_liked = False
     else:
-        # Chưa view -> Thêm view (tăng)
-        new_view = PostView(post_id=post_id, user_id=current_user. id)
-        db.add(new_view)
-        post.views_count += 1
-        has_viewed = True
+        # Chưa like -> Thêm like (tăng)
+        new_like = PostLike(post_id=post_id, user_id=current_user.id)
+        db.add(new_like)
+        post.likes_count += 1
+        has_liked = True
     
-    db. commit()
+    db.commit()
     
     return {
-        "views_count": post. views_count,
-        "has_viewed": has_viewed
+        "likes_count": post.likes_count,
+        "has_liked": has_liked
     }
 
 
-# ✅ API kiểm tra user đã view chưa
-@router.get("/posts/{post_id}/view-status")
-async def get_view_status(
+# ✅ API kiểm tra user đã like chưa
+@router.get("/posts/{post_id}/like-status")
+async def get_like_status(
     post_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Kiểm tra user hiện tại đã view bài viết chưa
+    Kiểm tra user hiện tại đã like bài viết chưa
     """
-    from app.models import PostView
+    from app.models import PostLike
     
-    existing_view = db. query(PostView). filter(
-        PostView.post_id == post_id,
-        PostView. user_id == current_user.id
+    existing_like = db.query(PostLike).filter(
+        PostLike.post_id == post_id,
+        PostLike.user_id == current_user.id
     ).first()
     
-    return {"has_viewed": existing_view is not None}
+    return {"has_liked": existing_like is not None}
 
 
 @router.put("/posts/{post_id}", response_model=PostResponse)
@@ -249,12 +230,12 @@ async def update_post(
         raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa")
     
     # Update fields
-    if post_data. title is not None:
+    if post_data.title is not None:
         post.title = post_data.title
-    if post_data.  content is not None:
-        post.content = post_data.  content
-    if post_data.  location is not None:
-        post.location = post_data.  location
+    if post_data.content is not None:
+        post.content = post_data.content
+    if post_data.location is not None:
+        post.location = post_data.location
     
     db.commit()
     db.refresh(post)
@@ -271,7 +252,7 @@ async def delete_post(
     Xóa bài viết (HARD DELETE)
     YÊU CẦU: Phải là author của post
     """
-    post = db.query(Post).filter(Post.id == post_id).  first()
+    post = db.query(Post).filter(Post.id == post_id).first()
     
     if not post:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
@@ -299,16 +280,16 @@ async def get_replies(
     """
     replies = (
         db.query(Reply)
-        .filter(Reply.  post_id == post_id)
+        .filter(Reply.post_id == post_id)
         .order_by(Reply.created_at.asc())
-        .  offset(skip)
+        .offset(skip)
         .limit(limit)
-        . all()
+        .all()
     )
     
     return replies
 
-@router. post("/posts/{post_id}/replies", response_model=ReplyResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/posts/{post_id}/replies", response_model=ReplyResponse, status_code=status.HTTP_201_CREATED)
 async def create_reply(
     post_id: int,
     reply_data: ReplyCreate,
@@ -322,24 +303,24 @@ async def create_reply(
     - Traveler: Phải là Verified Traveler (có ít nhất 1 booking)
     """
     # Kiểm tra post tồn tại
-    post = db. query(Post).  filter(Post.id == post_id).  first()
+    post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài viết")
     
     # Owner được bỏ qua, chỉ check với Traveler
-    if current_user.role.  value == "traveler":
+    if current_user.role.value == "traveler":
         await update_verified_status(current_user, db)
-        if not current_user. is_verified_traveler:
+        if not current_user.is_verified_traveler:
             raise HTTPException(
-                status_code=status.  HTTP_403_FORBIDDEN,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Bạn cần có ít nhất 1 booking để bình luận. Hiện tại: {current_user.bookings_count} booking."
             )
     
     # Tạo reply
     db_reply = Reply(
         post_id=post_id,
-        user_id=current_user.  id,
-        content=reply_data.  content
+        user_id=current_user.id,
+        content=reply_data.content
     )
     db.add(db_reply)
     
@@ -362,17 +343,17 @@ async def update_reply(
     Cập nhật reply
     YÊU CẦU: Phải là author của reply
     """
-    reply = db. query(Reply).filter(Reply.id == reply_id).first()
+    reply = db.query(Reply).filter(Reply.id == reply_id).first()
     
     if not reply:
         raise HTTPException(status_code=404, detail="Không tìm thấy reply")
     
-    if reply. user_id != current_user.id:
+    if reply.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa")
     
     # Update fields
-    if reply_data.  content is not None:
-        reply.content = reply_data.  content
+    if reply_data.content is not None:
+        reply.content = reply_data.content
     
     db.commit()
     db.refresh(reply)
@@ -390,19 +371,19 @@ async def delete_reply(
     YÊU CẦU: Phải là author của reply
     - Tự động giảm replies_count của post
     """
-    reply = db. query(Reply).  filter(Reply.id == reply_id).  first()
+    reply = db.query(Reply).filter(Reply.id == reply_id).first()
     
     if not reply:
         raise HTTPException(status_code=404, detail="Không tìm thấy reply")
     
     if reply.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Không có quyền xóa")
+        raise HTTPException(statuscode=403, detail="Không có quyền xóa")
     
     # Giảm replies_count của post
-    post = db.  query(Post). filter(Post.id == reply.post_id).first()
-    if post and post.  replies_count > 0:
+    post = db.query(Post).filter(Post.id == reply.post_id).first()
+    if post and post.replies_count > 0:
         post.replies_count -= 1
     
     # Hard delete
-    db.  delete(reply)
+    db.delete(reply)
     db.commit()

@@ -13,7 +13,7 @@ const formatTimeAgo = (dateString) => {
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
   if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
   
-  return date.toLocaleDateString('vi-VN');
+  return date.toLocaleDateString("vi-VN");
 };
 
 // Key khớp với Backend (snake_case, lowercase)
@@ -44,19 +44,24 @@ const LOCATION_LABELS = {
   cu_chi: "Huyện Củ Chi",
 };
 
-function PostCard({ post, onViewToggle }) { 
-  
+function PostCard({ post, onLikeToggle}) {
   const handleHeartClick = (e) => {
-    // Ngăn chặn sự kiện click lan truyền lên Link bao ngoài
-    e.preventDefault(); 
-    e.stopPropagation(); 
-    onViewToggle(post.id); 
+    e.preventDefault();
+    e.stopPropagation();
+    if (onLikeToggle) onLikeToggle(post.id);
   };
+
+  const likes = post.likes_count ?? 0; 
+  const hasLiked = post.has_liked ?? false;
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition cursor-pointer">
       <div className="flex items-center gap-3 mb-3">
-        <img src={DefaultAvatar} alt="avatar" className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"/>
+        <img
+          src={DefaultAvatar}
+          alt="avatar"
+          className="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-300 p-0.5"
+        />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium text-gray-800">
@@ -87,17 +92,15 @@ function PostCard({ post, onViewToggle }) {
       </p>
 
       <div className="flex items-center gap-4 text-sm text-gray-500 pt-3 border-t">
-        <div 
+        <div
           className={`flex items-center gap-1 cursor-pointer transition ${
-            post.has_viewed ? 'text-red-600' : 'hover:text-red-600' 
+            hasLiked ? "text-red-600" : "hover:text-red-600"
           }`}
           onClick={handleHeartClick}
+          title={hasLiked ? "Bỏ thích" : "Thả tim"}
         >
-          <Heart 
-            size={16} 
-            fill={post.has_viewed ? 'currentColor' : 'none'} 
-          />
-          <span>{post.views_count || 0}</span>
+          <Heart size={16} fill={hasLiked ? "currentColor" : "none"} />
+          <span>{likes}</span>
         </div>
         <div className="flex items-center gap-1">
           <MessageCircle size={16} />

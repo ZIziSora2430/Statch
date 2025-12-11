@@ -1,4 +1,3 @@
-# app/seed_data.py
 import random
 import uuid
 from datetime import date, timedelta
@@ -11,7 +10,7 @@ from sqlalchemy.orm import Session
 # Import chuẩn từ app
 from app.database import SessionLocal
 from app.models import (
-    User, Accommodation, Booking, Review, Post, Reply,
+    User, Accommodation, Booking, Review, Post, Reply, PostLike,
     UserRole, PostLocation, PostStatus
 )
 
@@ -48,7 +47,7 @@ IMAGE_COLLECTIONS = {
     ],
     # Fallback cho trường hợp Villa trùng tên
     "Villa": [
-        "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80", 
+        "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80",
     ]
 }
@@ -190,7 +189,7 @@ def clean_database(db: Session):
     try:
         db.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
         tables = [
-            "Notification", "replies", "posts", "reviews", 
+            "Notification", "replies", "post_likes", "post_views", "posts", "reviews",
             "bookings", "accommodations", "users"
         ]
         for table in tables:
@@ -416,7 +415,7 @@ def seed_data():
         print(f"   - Đã cập nhật trạng thái Verified cho các user có booking.")
 
         # =====================================================
-        # 4. TẠO FORUM POSTS
+        # 4. TẠO FORUM POSTS + LIKES/REPLIES
         # =====================================================
         print("💬 4. Đang tạo dữ liệu Forum...")
         
@@ -431,7 +430,7 @@ def seed_data():
                 content=post_data["content"],
                 location=post_data["location"],
                 status=PostStatus.active,
-                views_count=random.randint(100, 2000), # View ảo cho đẹp
+                likes_count=0,
                 replies_count=0 
             )
             db.add(post)
@@ -463,8 +462,21 @@ def seed_data():
                 replies_count += 1
                 
         db.commit()
-        print(f"   - Đã tạo {len(posts)} bài viết chất lượng và {replies_count} bình luận.")
 
+        # Likes (seed PostLike + sync likes_count)
+        likes_total = 0
+        for post in posts:
+            # số like ngẫu nhiên, tránh vượt số user
+            k = random.randint(0, min(20, len(users)))
+            liked_users = random.sample(users, k=k) if k > 0 else []
+            post.likes_count = len(liked_users)
+            for u in liked_users:
+                like = PostLike(post_id=post.id, user_id=u.id)
+                db.add(like)
+                likes_total += 1
+        db.commit()
+
+        print(f"   - Đã tạo {len(posts)} bài viết, {replies_count} bình luận, {likes_total} lượt like.")
         print("\n✅ SEED DATA SUCCESSFUL! (User pass: 123456)")
 
     except Exception as e:

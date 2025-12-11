@@ -93,7 +93,7 @@ const TagChip = ({ label, isCategory = false }) => {
     const config = getCategoryConfig(label);
     const Icon = config.icon;
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r ${config.style} text-white shadow-md transform -translate-y-0.5`}>
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-linear-to-r ${config.style} text-white shadow-md transform -translate-y-0.5`}>
         <Icon size={12} fill="currentColor" className="opacity-90" /> 
         {label}
       </span>

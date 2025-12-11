@@ -256,7 +256,7 @@ useEffect(() => {
       background: "white",
       borderRadius: "8px",
       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-      zIndex: 1000,   // FIX z-index
+      zIndex: -1,   // FIX z-index
     }}
   >
     {/* Header */}
@@ -381,7 +381,7 @@ useEffect(() => {
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 width: "150px",
                 padding: "10px 0",
-                zIndex: 1000,
+                zIndex: -1,
               }}
             >
               <div
